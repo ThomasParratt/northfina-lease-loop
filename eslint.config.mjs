@@ -56,6 +56,8 @@ export default defineConfig([
             {
               group: [
                 'node:*',
+                // createHash is deterministic and does no I/O: the audit chain hashes rows here.
+                '!node:crypto',
                 'fs',
                 'fs/*',
                 'path',
