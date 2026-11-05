@@ -68,7 +68,12 @@ const FORBIDDEN_DOMAIN_IMPORT = new RegExp(
     String.raw`|@prisma/[^'"]*|@/server/[^'"]*|@/data/load|@/generated/[^'"]*)['"]`
 );
 
+// The only import from node:crypto the domain may have: createHash, which is deterministic.
+const IMPURE_CRYPTO_IMPORT =
+  /^(?!import\s*\{\s*createHash\s*\}\s*from\s*['"]node:crypto['"]).*['"]node:crypto['"]/;
+
 const DOMAIN_IMPURITIES: readonly Check[] = [
+  { pattern: IMPURE_CRYPTO_IMPORT, problem: 'takes more than createHash from node:crypto' },
   { pattern: /\bnew Date\(\s*\)/, problem: 'new Date() reads the clock' },
   { pattern: /\bDate\.now\b/, problem: 'Date.now reads the clock' },
   { pattern: /\bMath\.random\b/, problem: 'Math.random is not deterministic' },

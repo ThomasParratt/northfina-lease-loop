@@ -52,11 +52,19 @@ export default defineConfig([
       'no-restricted-imports': [
         'error',
         {
+          // node:crypto's createHash is deterministic and does no I/O (the audit chain hashes
+          // rows with it); every other export of the module, randomUUID included, stays out.
+          paths: [
+            {
+              name: 'node:crypto',
+              allowImportNames: ['createHash'],
+              message: 'src/domain may take only createHash from node:crypto.',
+            },
+          ],
           patterns: [
             {
               group: [
                 'node:*',
-                // createHash is deterministic and does no I/O: the audit chain hashes rows here.
                 '!node:crypto',
                 'fs',
                 'fs/*',
