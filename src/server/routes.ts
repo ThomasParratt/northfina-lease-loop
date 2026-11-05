@@ -18,6 +18,7 @@ import {
   invoiceKindSchema,
   invoiceStatusSchema,
 } from '@/domain/statuses';
+import { auditChainVerdictSchema } from './audit-schemas';
 import {
   contractIdParamsSchema,
   contractResponseSchema,
@@ -251,6 +252,14 @@ export const ROUTES: readonly RouteDefinition[] = [
     summary: 'The 50 newest audit rows, newest first',
     tag: 'audit',
     response: z.array(auditLogEntrySchema),
+  },
+  {
+    method: 'GET',
+    path: '/api/audit-log/verify',
+    summary:
+      'Walk the audit hash chain: intact with its length and head hash, or the first broken row (read-only, every actor)',
+    tag: 'audit',
+    response: auditChainVerdictSchema,
   },
   {
     method: 'GET',
