@@ -16,6 +16,7 @@ import {
   type Answer,
   type FlowContext,
 } from '@/domain/question-flow/engine';
+import { ADMIN_ACTOR } from './actor';
 import { listAssets } from './assets';
 import { withAudit } from './audit';
 import { getCustomer } from './customers';
@@ -214,7 +215,7 @@ export async function decideApplication(
   if (current.decision !== 'manual_review' && current.decision !== 'awaiting_signatory') {
     return { ok: false, reason: 'not_pending' };
   }
-  if (current.decision === 'manual_review' && input.actor !== 'admin') {
+  if (current.decision === 'manual_review' && input.actor !== ADMIN_ACTOR) {
     return { ok: false, reason: 'admin_only' };
   }
 
