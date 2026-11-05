@@ -11,7 +11,7 @@ Gives every page one warm, calm look: cream paper, forest green, terracotta, rou
 - **A life stamp says which life an item is on** (`LifeStamp`): "Life 1 · New" in forest green; every later life ("Life 2 · Checked") in terracotta. Worked through card 10: `ebike-008` has `previous_lives: 2`, so its card and passport carry "Life 3 · Checked" in terracotta.
 - **Every item has a drawing** (`ItemArt`), since the data pack has no photos. `artKindFor(category, model)` picks it from the model name: "Cargo Duo" and "Delivery Pro" are cargo bikes, "Fold Mini" folds, "T-140 Tractor" is a tractor; anything else gets its category's plain drawing.
 - **Customer screens and demo tools are apart.** The teal strip above the header holds "Continue as", the demo page and, for admin only, the audit log link. The demo and audit pages say "Back office: customers don't see this page".
-- **A link to a section scrolls there on every click** (`HashLink`, and the header's `NavLinks`): Next's router ignores a click on a link whose hash the URL already has, so "How it works" went dead after one click and a scroll back up. On the page it points to, the click scrolls the section into view (instantly under reduced motion) and moves focus to it.
+- **A link to a section scrolls there on every click** (`HashLink`, and the header's `NavLinks`): Next's router ignores a click on a link whose hash the URL already has, so "How it works" went dead after one click and a scroll back up. On the page it points to, the click scrolls the section into view (instantly under reduced motion), moves focus to it, closes the phone menu and adds a history entry, so Back undoes the jump. Arriving from another page, Next scrolls and `HashTargetFocus` (in the layout) moves focus to the section. `sectionOnPage(href, pathname)` decides which: `/en#how-it-works` on `/en` gives `how-it-works`, on `/en/catalogue` it gives null and the link navigates.
 - **Accessible by default:** body text 12.8:1 on cream, muted text 6.7:1, input borders 3.9:1, a light focus ring on the teal strip, one `h1` per page, drawings `aria-hidden`, and the tag flip and stamp press stop under reduced motion.
 
 ## Decisions
@@ -25,7 +25,7 @@ D21 (revised): the palette, the type pair (Nunito, Fredoka), the roles and the s
 ## Files
 
 - `src/app/globals.css`: colours, roles, shadows, the tag and stamp styles, reduced motion.
-- `src/components/ui/price-tag.tsx`, `ui/life-stamp.tsx`, `ui/staff-note.tsx`, `ui/disclosure.tsx` (with the catalogue rework), `ui/hash-link.tsx`, `item-art.tsx`, `loop-mark.tsx`, `site-header.tsx`.
+- `src/components/ui/price-tag.tsx`, `ui/life-stamp.tsx`, `ui/staff-note.tsx`, `ui/disclosure.tsx` (with the catalogue rework), `ui/hash-link.tsx`, `ui/section-hash.ts`, `item-art.tsx`, `loop-mark.tsx`, `site-header.tsx`.
 - The kit restyled in place: `ui/button.tsx`, `ui/card.tsx`, `ui/field.tsx`, `ui/notice.tsx`, `ui/nav-links.tsx`, `ui/page-header.tsx`.
 
 ## Tests that pin the numbers
@@ -33,6 +33,7 @@ D21 (revised): the palette, the type pair (Nunito, Fredoka), the roles and the s
 - `src/components/item-art.test.ts`: the drawing for every model in the pack, the fallbacks, and the first-match rule.
 - `src/i18n/messages.test.ts`: the new texts exist in all four languages and none is empty.
 - `src/components/ui/badge.test.ts`: every status still has a tone.
+- `src/components/ui/section-hash.test.ts`: a section link scrolls on its own page (one trailing slash ignored) and navigates from any other; no hash, an empty one or a malformed escape.
 
 ## Open questions
 
