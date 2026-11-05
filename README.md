@@ -63,6 +63,14 @@ Everything in the skeleton is replaceable. Keep the rules, not necessarily the c
 - `tests/meta-rules.test.ts`: the engineering rules checked against the repository itself, in `npm test`.
 - The practice repo (`ThomasParratt/leasing-platform`) is a read-only parts bin cloned beside this one; port functions with their tests, never structure.
 
+### API
+
+Every API route has one row in the route table, `src/server/routes.ts`: method, the Next.js path pattern (`/api/assets/[id]/status`), a summary, a tag, and the Zod schemas of its params, query, body and success `data`. Route files import their schemas from there. `npm run openapi` turns the table into [docs/openapi.json](docs/openapi.json) (OpenAPI 3.1, success bodies wrapped in the `ok()` envelope, errors in the `fail()` one). Tests fail when a `route.ts` has no row (or a row no file) and when the committed `docs/openapi.json` differs from the table, so add the row first and run `npm run openapi` after.
+
+### Events
+
+When one change touches several slices' rows at one instant, the owner emits one event inside `withAudit` and the other slices react in the same transaction (`docs/kickoff-brief.md` section 7). The payloads are Zod schemas in `src/domain/events.ts`: `CONTRACT_SIGNED`, `CONTRACT_BOUGHT_OUT`, `UNIT_RETURNED`, `UNIT_PASSED_ON`, `INVOICE_PAID`. `src/server/events.ts` has `onEvent(type, handler)` and `emit(tx, event)`: handlers get the same `tx`, run in registration order, and a handler that throws rolls the whole change back.
+
 ---
 
 ## Submitting
