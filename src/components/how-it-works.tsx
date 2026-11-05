@@ -10,7 +10,7 @@ export function HowItWorks({ t }: { t: Translate }) {
   return (
     <section id="how-it-works" aria-labelledby="how-title" className="scroll-mt-6 bg-muted">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <h2 id="how-title" className="text-4xl sm:text-5xl">
+        <h2 id="how-title" className="text-center text-4xl sm:text-5xl">
           {t('home.cta.how')}
         </h2>
         <div className="mt-10 grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-14">
