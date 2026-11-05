@@ -1,20 +1,17 @@
 // Leaving a contract: buy out, return or pass on, at the end of the term or early (D14, D16).
 // `previewExit` plans on the request's day and writes nothing. `exitContract` plans the same
-// way and writes it in one `withAudit`: the contract's status and end day (a conditional write
-// on `active`, so a second exit finds nothing to change), then one event emitted on the same
-// `tx`. The handlers do the other slices' parts: the invoices bill the exit and cancel the
-// unpaid rents, the catalogue sets the asset `sold` or `returned` (D22), the passport writes
-// its entry. A handler that throws rolls the whole exit back.
+// way and writes it in one `withAudit`: the contract's status and end day through the contract
+// slice's `endContract` (the row parsed, a conditional write on `active`, so a second exit finds
+// nothing to change), then one event emitted on the same `tx`. The handlers do the other
+// slices' parts: the invoices bill the exit and cancel the unpaid rents, the catalogue sets the
+// asset `sold` or `returned` (D22), the passport writes its entry. A handler that throws rolls the whole exit back.
 import type { AssetCondition, UsageUnit } from '@/data/schemas';
 import { planExit, type ExitMode, type ExitRefusal, type PlannedExit } from '@/domain/exits';
-import { contractRowSchema } from '@/domain/rows/contract';
-import { contractStatusSchema } from '@/domain/statuses';
 import { ADMIN_ACTOR } from './actor';
 import { withAudit } from './audit';
-import { toContractView, type ContractView } from './contracts';
+import { endContract, type ContractView } from './contracts';
 import { getCustomer } from './customers';
 import { emit } from './events';
-import { parseRow } from './row-rules';
 import './event-handlers';
 import {
   loadExitData,
@@ -162,25 +159,18 @@ export async function exitContract(
         },
       },
       async (tx) => {
-        // D23 and D27: the whole row as it will be is parsed before the write (an end day
-        // for every ended status, never before the start); the where makes a second exit a no-op.
-        const current = await tx.contract.findUniqueOrThrow({ where: { id: contractId } });
-        const { created_at: _created, updated_at: _updated, ...stored } = current;
-        const next = parseRow('contract', contractRowSchema, {
-          ...stored,
+        // The contract slice's operation: the row parsed (D27), written only while active.
+        const ended = await endContract(tx, {
+          id: contractId,
           status: exit.status,
-          ended_on: exit.endedOn,
+          endedOn: exit.endedOn,
         });
-        const { count } = await tx.contract.updateMany({
-          where: { id: contractId, status: contractStatusSchema.parse('active') },
-          data: { status: next.status, ended_on: next.ended_on },
-        });
-        if (count !== 1) throw new LostExitRace();
+        if (!ended) throw new LostExitRace();
         await emit(tx, exit.event);
-        return tx.contract.findUniqueOrThrow({ where: { id: contractId } });
+        return ended;
       }
     );
-    return { ok: true, contract: toContractView(row), plan: toPreview(exit, today) };
+    return { ok: true, contract: row, plan: toPreview(exit, today) };
   } catch (error) {
     if (error instanceof LostExitRace) {
       const now = await readExitContext(db, contractId);
