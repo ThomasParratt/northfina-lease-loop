@@ -10,7 +10,7 @@ export function businessIdCheckDigit(sevenDigits: string): number | null {
   if (!/^\d{7}$/.test(sevenDigits)) {
     throw new RangeError(`expected seven digits, got "${sevenDigits}"`);
   }
-  const sum = WEIGHTS.reduce((acc, weight, i) => acc + weight * Number(sevenDigits[i]), 0);
+  const sum = WEIGHTS.reduce((acc, weight, i) => acc + weight * Number(sevenDigits.charAt(i)), 0);
   const remainder = sum % 11;
   if (remainder === 0) return 0;
   if (remainder === 1) return null;
@@ -20,6 +20,7 @@ export function businessIdCheckDigit(sevenDigits: string): number | null {
 /** `1234567-1` with the right check digit. Surrounding spaces are ignored. */
 export function isValidBusinessId(value: string): boolean {
   const match = /^(\d{7})-(\d)$/.exec(value.trim());
-  if (!match) return false;
-  return businessIdCheckDigit(match[1]) === Number(match[2]);
+  const [, digits, check] = match ?? [];
+  if (digits === undefined || check === undefined) return false;
+  return businessIdCheckDigit(digits) === Number(check);
 }

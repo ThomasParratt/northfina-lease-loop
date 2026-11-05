@@ -107,7 +107,7 @@ describe('createApplication', () => {
 
   it('the broken business id is rejected with invalid_business_id', async () => {
     const result = await apply(await card1(), 'cust-broken-id');
-    expect(result.ok && result.application.reasons[0].code).toBe('invalid_business_id');
+    expect(result.ok && result.application.reasons[0]?.code).toBe('invalid_business_id');
   });
 
   it('stores only the answers that apply (pruned)', async () => {

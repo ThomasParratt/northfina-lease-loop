@@ -54,7 +54,7 @@ function isLeapYear(year: number): boolean {
  * year older on 1 March in a year without one (the Finnish legal reading).
  */
 export function birthdayAtAge(birthDate: string, years: number): string {
-  const [y, m, d] = birthDate.split('-').map(Number);
+  const [y = 0, m = 0, d = 0] = birthDate.split('-').map(Number);
   const year = y + years;
   const pad = (n: number) => String(n).padStart(2, '0');
   if (m === 2 && d === 29 && !isLeapYear(year)) return `${year}-03-01`;

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadQuestions } from '@/data/load';
-import type { Question } from '@/data/schemas';
+import type { AskWhenCondition, Question } from '@/data/schemas';
 import {
   conditionHolds,
   isComplete,
@@ -43,7 +43,7 @@ const card1: FlowContext = {
 
 describe('conditionHolds (the ask_when rules of data/DATA.md)', () => {
   it('in: the value is one of the list', () => {
-    const cond = { field: 'customer_type', op: 'in', value: ['company'] } as const;
+    const cond: AskWhenCondition = { field: 'customer_type', op: 'in', value: ['company'] };
     expect(conditionHolds(cond, card7, {})).toBe(true);
     expect(conditionHolds(cond, card1, {})).toBe(false);
   });
@@ -65,7 +65,7 @@ describe('conditionHolds (the ask_when rules of data/DATA.md)', () => {
   });
 
   it('an unanswered question never satisfies a condition on its answer', () => {
-    const cond = { field: 'answers.q_can_sign', op: 'in', value: ['no'] } as const;
+    const cond: AskWhenCondition = { field: 'answers.q_can_sign', op: 'in', value: ['no'] };
     expect(conditionHolds(cond, card6, {})).toBe(false);
     expect(conditionHolds(cond, card6, { q_can_sign: 'no' })).toBe(true);
   });
@@ -77,7 +77,7 @@ describe('conditionHolds (the ask_when rules of data/DATA.md)', () => {
   });
 
   it('the customer type answer, once given, wins over the context', () => {
-    const cond = { field: 'customer_type', op: 'in', value: ['sole_trader'] } as const;
+    const cond: AskWhenCondition = { field: 'customer_type', op: 'in', value: ['sole_trader'] };
     expect(conditionHolds(cond, card1, { q_customer_type: 'sole_trader' })).toBe(true);
   });
 });

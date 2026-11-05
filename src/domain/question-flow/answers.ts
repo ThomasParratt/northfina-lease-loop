@@ -46,10 +46,10 @@ export function validateAnswer(question: Question, answer: Answer): boolean {
 }
 
 function isRealDay(iso: string): boolean {
-  const [y, m, d] = iso.split('-').map(Number);
+  const [y = 0, m = 0, d = 0] = iso.split('-').map(Number);
   if (m < 1 || m > 12 || d < 1) return false;
   const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
-  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1] ?? 0;
   return d <= days;
 }
 
