@@ -135,7 +135,9 @@ export function applyFor(
   for (const question of questions) {
     const answer = answers[question.id];
     const problem =
-      answer === undefined ? null : answerProblem(question, answer, { today, answers });
+      answer === undefined
+        ? null
+        : answerProblem(question, answer, { today, answers, applicantEmail: customer.email });
     if (problem) return { ok: false, step: 'invalid', questionId: question.id, problem };
   }
   const missing = nextQuestion(questions, context, answers);
