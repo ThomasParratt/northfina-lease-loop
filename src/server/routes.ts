@@ -6,6 +6,13 @@
 // Contract first (AGENTS.md, team rule 2): a slice's first commit adds its row here.
 import { z } from 'zod';
 import { assetCategorySchema, assetSchema, assetStatusSchema, isoDateSchema } from '@/data/schemas';
+import {
+  createQuoteBodySchema,
+  previewQuoteQuerySchema,
+  previewQuoteResponseSchema,
+  quoteIdParamsSchema,
+  storedQuoteResponseSchema,
+} from './quote-schemas';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -120,6 +127,31 @@ export const ROUTES: readonly RouteDefinition[] = [
     summary: 'The 50 newest audit rows, newest first',
     tag: 'audit',
     response: z.array(auditLogEntrySchema),
+  },
+  {
+    method: 'POST',
+    path: '/api/quotes',
+    summary: "Price on today's date and store the quote, valid 14 days (D7), with its audit row",
+    tag: 'pricing',
+    body: createQuoteBodySchema,
+    response: storedQuoteResponseSchema,
+    status: 201,
+  },
+  {
+    method: 'GET',
+    path: '/api/quotes/preview',
+    summary: 'Price on today without storing: the breakdown and the term comparison (the sliders)',
+    tag: 'pricing',
+    query: previewQuoteQuerySchema,
+    response: previewQuoteResponseSchema,
+  },
+  {
+    method: 'GET',
+    path: '/api/quotes/[id]',
+    summary: 'A stored quote from its frozen numbers (never re-priced) and its status today',
+    tag: 'pricing',
+    params: quoteIdParamsSchema,
+    response: storedQuoteResponseSchema,
   },
 ];
 

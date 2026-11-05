@@ -4,7 +4,13 @@ import { loadAssets } from '@/data/load';
 import { quoteStatusOn, type PricingData } from '@/domain/pricing';
 import { createTestDb } from '../../tests/helpers/test-db';
 import { seedAssets } from './assets';
-import { createQuote, getQuote, loadPricingData } from './quotes';
+import {
+  createQuote,
+  getQuote,
+  loadPricingData,
+  previewQuote,
+  storedQuoteStatusOn,
+} from './quotes';
 import type { PrismaClient } from './prisma-client';
 
 let db: PrismaClient;
@@ -142,5 +148,47 @@ describe('getQuote, card 2 (the price stays locked after the list changes)', () 
 
   it('returns null for an unknown id', async () => {
     expect(await getQuote(db, 'no-such-quote')).toBeNull();
+  });
+});
+
+describe('storedQuoteStatusOn', () => {
+  it('reads card 2 from the stored quote: locked at v1, v2 cheaper the next day', async () => {
+    const created = await createQuote(db, { ...card1, assetId: 'laptop-004' }, data);
+    if (!created.ok) throw new Error(created.reason.code);
+    expect(storedQuoteStatusOn(created.quote, '2026-11-06', data.priceLists)).toMatchObject({
+      lockedListVersion: 1,
+      cheaperListLive: true,
+    });
+    expect(storedQuoteStatusOn(created.quote, '2026-11-20', data.priceLists).status).toBe(
+      'expired'
+    );
+  });
+});
+
+describe('previewQuote (the sliders, no write)', () => {
+  it('prices card 1 on today and compares the four terms without storing anything', async () => {
+    const preview = previewQuote(data, {
+      assetId: 'ebike-003',
+      quantity: 1,
+      termMonths: 36,
+      downPaymentCents: 0,
+      today: '2026-11-05',
+    });
+    expect(preview.quote?.monthlyGrossCents).toBe(13_466);
+    expect(preview.refusal).toBeNull();
+    expect(preview.comparison.rows).toHaveLength(4);
+    expect(await db.quote.count()).toBe(0);
+  });
+
+  it('returns the refusal and no quote for ebike-010', () => {
+    const preview = previewQuote(data, {
+      assetId: 'ebike-010',
+      quantity: 1,
+      termMonths: 36,
+      downPaymentCents: 0,
+      today: '2026-11-05',
+    });
+    expect(preview.quote).toBeNull();
+    expect(preview.refusal?.code).toBe('below_minimum');
   });
 });

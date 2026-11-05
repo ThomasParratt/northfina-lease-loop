@@ -7,12 +7,17 @@ import type { Quote as QuoteRow } from '@/generated/prisma/client';
 import { loadCoefficientTable, loadPriceLists, loadVatRates } from '@/data/load';
 import {
   addDays,
+  compareTerms,
   breakdownFromFrozen,
   priceQuote,
   QUOTE_VALID_DAYS,
+  quoteStatusOn,
   type PricingData,
   type QuoteBreakdown,
+  type QuoteInput,
   type QuoteRefusal,
+  type QuoteStatus,
+  type TermComparison,
 } from '@/domain/pricing';
 import { listAssets } from './assets';
 import { withAudit } from './audit';
@@ -156,4 +161,50 @@ export async function createQuote(
 export async function getQuote(db: PrismaClient, id: string): Promise<StoredQuote | null> {
   const row = await db.quote.findUnique({ where: { id } });
   return row ? toStoredQuote(row) : null;
+}
+
+/** Where a stored quote stands on `today`: valid or expired, and whether a cheaper list is live. */
+export function storedQuoteStatusOn(
+  stored: StoredQuote,
+  today: string,
+  priceLists: PricingData['priceLists']
+): QuoteStatus {
+  return quoteStatusOn(
+    {
+      assetId: stored.breakdown.assetId,
+      quoteDate: stored.quoteDate,
+      validUntil: stored.validUntil,
+      priceListVersion: stored.breakdown.priceListVersion,
+      unitListPriceCents: stored.breakdown.unitListPriceCents,
+    },
+    today,
+    priceLists
+  );
+}
+
+export type QuotePreview = {
+  today: string;
+  quote: QuoteBreakdown | null;
+  refusal: QuoteRefusal | null;
+  comparison: TermComparison;
+};
+
+/** The live sliders: the breakdown for the chosen term and every term side by side. No write. */
+export function previewQuote(
+  data: PricingData,
+  input: Omit<QuoteInput, 'isoDate'> & { today: string }
+): QuotePreview {
+  const { today, ...rest } = input;
+  const result = priceQuote(data, { ...rest, isoDate: today });
+  return {
+    today,
+    quote: result.ok ? result.quote : null,
+    refusal: result.ok ? null : result.reason,
+    comparison: compareTerms(data, {
+      assetId: rest.assetId,
+      quantity: rest.quantity,
+      downPaymentCents: rest.downPaymentCents,
+      isoDate: today,
+    }),
+  };
 }
