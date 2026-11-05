@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays } from './days';
+import { addDays } from './civil-days';
 
 describe('addDays', () => {
   it('gives a quote from 2026-11-05 a validity to 2026-11-19 (D7, 14 days)', () => {
@@ -23,7 +23,21 @@ describe('addDays', () => {
     expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
   });
 
+  it('crosses the month and year ends of the invoice periods (D3, D4)', () => {
+    expect(addDays('2026-01-31', 1)).toBe('2026-02-01');
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addDays('2028-02-28', 1)).toBe('2028-02-29');
+    expect(addDays('2028-03-01', -1)).toBe('2028-02-29');
+    expect(addDays('2027-03-01', -1)).toBe('2027-02-28');
+  });
+
+  it('throws on a day that does not exist', () => {
+    expect(() => addDays('2026-02-29', 1)).toThrow(RangeError);
+    expect(() => addDays('2026-04-31', 1)).toThrow(RangeError);
+  });
+
   it('throws on a malformed day or a fractional count', () => {
+    expect(() => addDays('2026-01-01', 0.5)).toThrow(RangeError);
     expect(() => addDays('2026-13-01', 1)).toThrow(RangeError);
     expect(() => addDays('5.11.2026', 1)).toThrow(RangeError);
     expect(() => addDays('2026-11-05', 1.5)).toThrow(RangeError);
