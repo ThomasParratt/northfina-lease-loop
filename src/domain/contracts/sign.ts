@@ -161,9 +161,11 @@ export function planContract(input: PlanContractInput): PlanContractResult {
 }
 
 /** The explanation when today's list is another version than the quote's; else null. */
-export function priceLockOf(
-  input: Pick<PlanContractInput, 'quote' | 'quoteStatus' | 'currentMonthlyNetCents'>
-): PriceLock | null {
+export function priceLockOf(input: {
+  quote: Pick<FrozenQuote, 'isoDate' | 'priceListVersion'>;
+  quoteStatus: Pick<QuoteStatus, 'todayList'>;
+  currentMonthlyNetCents: number | null;
+}): PriceLock | null {
   const { todayList } = input.quoteStatus;
   if (todayList === null || input.currentMonthlyNetCents === null) return null;
   if (todayList.version === input.quote.priceListVersion) return null;
