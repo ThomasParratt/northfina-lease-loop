@@ -16,7 +16,7 @@ import {
   Notice,
   PriceTag,
 } from '@/components/ui';
-import { termsOf, type QuoteStatus } from '@/domain/pricing';
+import { allowedTermsOf, termsOf, type QuoteStatus } from '@/domain/pricing';
 import { listPriceOn } from '@/domain/price-list';
 import { formatIsoDate, formatNumber } from '@/i18n/format';
 import { getT, type Translate } from '@/i18n/get-t';
@@ -62,13 +62,22 @@ export default async function PricePage({
   const storedForAsset = stored && stored.breakdown.assetId === asset.id ? stored : null;
 
   const price = listPriceOn(data.priceLists, asset.id, today);
-  const terms = termsOf(data.table);
+  // The terms this item may be offered: the table's, under its category's cap (D43).
+  const terms = allowedTermsOf(data, asset.id);
+  const maxTermMonths = data.termLimits?.max_term_months[asset.category];
+  const termNote =
+    maxTermMonths !== undefined && terms.length < termsOf(data.table).length
+      ? t('pricing.calculator.termCap', {
+          category: t(`category.${asset.category}`),
+          months: maxTermMonths,
+        })
+      : undefined;
   // The catalogue links an item it can only finance with more units or a down payment as
   // ?quantity=2 or ?down=1000000, so the sliders open on the card's offer. Out-of-range values
   // are clamped; a missing or broken one falls back to the default.
   const quantity = clampInt(query.quantity, 1, MAX_QUANTITY, 1);
   const initial = {
-    termMonths: terms.includes(DEFAULT_TERM) ? DEFAULT_TERM : terms[0]!,
+    termMonths: terms.includes(DEFAULT_TERM) ? DEFAULT_TERM : (terms[0] ?? DEFAULT_TERM),
     downPaymentCents: price.ok ? clampInt(query.down, 0, price.priceCents * quantity - 1, 0) : 0,
     quantity,
   };
@@ -147,11 +156,12 @@ export default async function PricePage({
         </Notice>
       ) : null}
 
-      {price.ok ? (
+      {price.ok && terms.length > 0 ? (
         <QuoteCalculator
           assetId={asset.id}
           locale={locale}
           terms={terms}
+          termNote={termNote}
           unitPriceCents={price.priceCents}
           initial={initial}
           initialPreview={previewQuote(data, { assetId: asset.id, ...initial, today })}

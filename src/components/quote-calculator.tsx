@@ -24,7 +24,10 @@ export type QuotePreviewData = {
 type QuoteCalculatorProps = {
   assetId: string;
   locale: Locale;
+  /** The terms this item may be offered, shortest first: the table's under its category's cap (D43). */
   terms: number[];
+  /** Why the slider stops short of the table's longest term, when it does. */
+  termNote?: string;
   /** Today's net list price of one unit, for the down-payment slider's range. */
   unitPriceCents: number;
   initial: { termMonths: number; downPaymentCents: number; quantity: number };
@@ -50,7 +53,7 @@ function downPaymentStep(totalCents: number, presetCents: number): number {
 }
 
 export function QuoteCalculator(props: QuoteCalculatorProps) {
-  const { assetId, locale, terms, unitPriceCents, initialPreview, canQuote } = props;
+  const { assetId, locale, terms, termNote, unitPriceCents, initialPreview, canQuote } = props;
   const t = getT(locale);
   const router = useRouter();
   const ids = useId();
@@ -178,7 +181,7 @@ export function QuoteCalculator(props: QuoteCalculatorProps) {
           </div>
 
           <div className="mt-6 space-y-6">
-            <Field id={`${ids}-term`} label={t('pricing.calculator.term')}>
+            <Field id={`${ids}-term`} label={t('pricing.calculator.term')} hint={termNote}>
               {(control) => (
                 <div>
                   <p
