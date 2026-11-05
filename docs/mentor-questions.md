@@ -2,6 +2,8 @@
 
 Three readings of the brief we took in code and want confirmed on Friday morning. For each: what we read, what the code does today, and what changes if the answer is different. The decisions are in [decisions.md](decisions.md).
 
+Not a question here: Thomas's question-flow validation (#25, merged) added four rules (D37 to D40: the birth-date range, answers checked against the customer record, only the named signatory signs, only the acting customer applies). They are listed for information; the scenario suite on `main` passes with them.
+
 ## 1. Fleet quantity: is card 6 "4 × `ebike-004`" four units on one asset row? (D8, issue #13)
 
 **Our reading.** A quote, an application and a contract carry a quantity (default 1). The financed amount is the list price × the quantity − the down payment, and the band and the question thresholds are read on that total: four bikes are band C, one bike is band B, and the total crosses the PEP threshold.
