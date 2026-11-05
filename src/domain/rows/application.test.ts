@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applicationRow } from '../../../tests/helpers/row-examples';
-import {
-  answersFromJson,
-  applicationDecisionUpdateSchema,
-  applicationRowSchema,
-  reasonsFromJson,
-} from './application';
+import { applicationDecisionUpdateSchema, applicationRowSchema } from './application';
 
 const refuses = (row: unknown) => applicationRowSchema.safeParse(row).success === false;
 
@@ -59,16 +54,5 @@ describe('applicationDecisionUpdateSchema: a manual review or the signatory deci
     expect(
       applicationDecisionUpdateSchema.safeParse({ ...update, decision: 'manual_review' }).success
     ).toBe(false);
-  });
-});
-
-describe('reading the JSON columns back', () => {
-  it('answersFromJson and reasonsFromJson return the parsed shapes', () => {
-    expect(answersFromJson('{"q_owners":["A","B"]}')).toEqual({ q_owners: ['A', 'B'] });
-    expect(reasonsFromJson('[{"code":"pep","params":{}}]')).toEqual([{ code: 'pep', params: {} }]);
-  });
-
-  it('throw on a stored value of another shape, instead of passing it on unchecked', () => {
-    expect(() => reasonsFromJson('[{"text":"PEP"}]')).toThrow();
   });
 });

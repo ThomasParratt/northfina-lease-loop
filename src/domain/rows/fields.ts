@@ -3,7 +3,6 @@
 // row (D23, D27): the server function that writes a row parses it with its schema first.
 import { z } from 'zod';
 import { assetConditionSchema, type AssetCondition } from '@/data/schemas';
-import { locales } from '@/i18n/locales';
 
 export { centsSchema, isoDateSchema } from '@/data/schemas';
 
@@ -29,9 +28,6 @@ export const priceListVersionSchema = z.number().int().positive();
 
 /** A coefficient band's letter. Which bands exist is the coefficient table's to say. */
 export const bandSchema = z.string().regex(/^[A-Z]$/, 'a band is one capital letter');
-
-/** The four app languages. */
-export const localeSchema = z.enum(locales);
 
 /** An outcome the page writes in the visitor's language (team rule 6): a code, never a sentence. */
 export const outcomeSchema = z.strictObject({
@@ -62,11 +58,6 @@ export function jsonText(schema: z.ZodType) {
   return z.string().refine((text) => parsesAs(schema, text), {
     message: 'not JSON of the expected shape',
   });
-}
-
-/** Reads a `*_json` column back through its schema. Throws on a stored value of another shape. */
-export function parseJsonColumn<T extends z.ZodType>(schema: T, text: string): z.infer<T> {
-  return schema.parse(JSON.parse(text));
 }
 
 /** True when `condition` is `atLeast` or better. The data pack lists them best first. */

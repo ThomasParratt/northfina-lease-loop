@@ -1,15 +1,8 @@
-// The write schema of an `Application` row (prisma/schema.prisma), and the readers of its
-// JSON columns. The answers' shape moved here from src/server/routes.ts so the domain owns it.
+// The write schema of an `Application` row (prisma/schema.prisma) and the shapes of its JSON
+// columns (the server reads them back with `parseStoredJson`). The answers' shape moved here from src/server/routes.ts so the domain owns it.
 import { z } from 'zod';
 import { applicationDecisionSchema } from '../statuses';
-import {
-  idSchema,
-  isoDateSchema,
-  jsonText,
-  ON_VALID_FIELDS,
-  outcomeSchema,
-  parseJsonColumn,
-} from './fields';
+import { idSchema, isoDateSchema, jsonText, ON_VALID_FIELDS, outcomeSchema } from './fields';
 
 /** One answer: text, a choice, an ISO day, cents as digits, or a list (beneficial owners). */
 export const answerSchema = z.union([z.string().max(500), z.array(z.string().max(200)).max(20)]);
@@ -47,7 +40,3 @@ export const applicationDecisionUpdateSchema = z.strictObject({
   decided_on: isoDateSchema,
   reviewed_by: reviewerSchema,
 });
-
-export const answersFromJson = (text: string): Answers => parseJsonColumn(answersSchema, text);
-
-export const reasonsFromJson = (text: string) => parseJsonColumn(reasonsSchema, text);

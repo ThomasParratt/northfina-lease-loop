@@ -4,9 +4,7 @@ import {
   conditionAtLeastAsGood,
   factorMillionthsSchema,
   jsonText,
-  localeSchema,
   outcomeSchema,
-  parseJsonColumn,
   quantitySchema,
   VAT_RATE_BP_MAX,
   vatRateBpSchema,
@@ -36,13 +34,6 @@ describe('quantity and factor', () => {
   });
 });
 
-describe('localeSchema', () => {
-  it('takes the four app languages and nothing else', () => {
-    expect(localeSchema.options).toEqual(['en', 'fi', 'sv', 'et']);
-    expect(localeSchema.safeParse('de').success).toBe(false);
-  });
-});
-
 describe('outcomeSchema: an outcome is a code with params, never a sentence', () => {
   it('accepts a snake_case code with string and number params', () => {
     const outcome = { code: 'too_young', params: { age: 17, minimum: 18 } };
@@ -54,7 +45,7 @@ describe('outcomeSchema: an outcome is a code with params, never a sentence', ()
   });
 });
 
-describe('jsonText and parseJsonColumn: the *_json text columns', () => {
+describe('jsonText: the *_json text columns', () => {
   const listOfNumbers = z.array(z.number().int());
 
   it('accepts JSON text of the expected shape', () => {
@@ -64,11 +55,6 @@ describe('jsonText and parseJsonColumn: the *_json text columns', () => {
   it('refuses text that is not JSON, and JSON of another shape', () => {
     expect(jsonText(listOfNumbers).safeParse('[1,').success).toBe(false);
     expect(jsonText(listOfNumbers).safeParse('["a"]').success).toBe(false);
-  });
-
-  it('reads a column back through its schema', () => {
-    expect(parseJsonColumn(listOfNumbers, '[3]')).toEqual([3]);
-    expect(() => parseJsonColumn(listOfNumbers, '{"a":1}')).toThrow();
   });
 });
 
