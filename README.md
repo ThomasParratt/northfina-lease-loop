@@ -77,14 +77,14 @@ The card files are in `src/domain/scenarios/`; the others sit next to the code t
 
 **Traps** (`src/domain/scenarios/traps.test.ts`): the inclusive band edge (`laptop-002` at 199 999 is A, `laptop-003` at 200 000 is B; on v1 only, v2 prices both at 184 000); `ebike-010` below the table on v1 (inside band A on v2) and `farm-006` above it, each a code; the broken business ID; both twin pairs told apart in the data (the matcher's tie-break is a wave 3 todo); invoices on 31 Dec 2026 at 25.5 % and on 1 Jan 2027 at 26 %; 29 Feb 2028 due dates; the price list in force on 5 and 6 Nov. The reserved `ebike-009` is refused where its status is read: `src/server/quotes.test.ts` "refuses a reserved asset (ebike-009) with its status". Every customer × one asset per category decides with a known code: `src/domain/scenarios/customers.test.ts`.
 
-**Open finding** (pricing owner, D5/D6): invoice 0 charges VAT on the down payment, but the quote's "total if you return it" and "total if you buy it" add the down payment net, so a quote with a down payment understates what its invoices add up to (card 7: by 510 000). Pinned as `it.fails` in `src/domain/scenarios/quote-schedule.property.test.ts` "FINDING: the quote total omits the down payment VAT".
+**Finding, fixed:** the quote’s totals used to add the down payment and the buyout net while invoice 0 charges VAT on the down payment (card 7: 510 000 short). The pricing slice fixed it on `main` (`4ec3b2e`); `src/domain/scenarios/quote-schedule.property.test.ts` now proves that the quote total equals what the invoices add up to whenever one VAT rate covers the term, and "card 7: invoice 0 is the quote down payment with its VAT".
 
 **Smart problems** (order from `docs/kickoff-brief.md` section 4):
 
 - 4 The smart question flow: done ([docs/features/question-flow.md](docs/features/question-flow.md)).
 - 7 Circular impact: partly; the method, the passport and the fleet counter are done, the third-life lease page is wave 3 ([docs/features/circular-impact.md](docs/features/circular-impact.md)).
 - 1 Lock the price, not the tax: done; the quote freezes the list version and the net rent, and each invoice takes the VAT of its own date ([docs/features/pricing.md](docs/features/pricing.md), [docs/features/invoicing.md](docs/features/invoicing.md)).
-- 5 Money that adds up: done for the schedule and the balance (property tests in `src/domain/invoicing/schedule.property.test.ts` and `src/domain/scenarios/quote-schedule.property.test.ts`), with the down payment VAT finding above open ([docs/features/invoicing.md](docs/features/invoicing.md)).
+- 5 Money that adds up: done for the schedule and the balance (property tests in `src/domain/invoicing/schedule.property.test.ts` and `src/domain/scenarios/quote-schedule.property.test.ts`) ([docs/features/invoicing.md](docs/features/invoicing.md)).
 - 6 Explain my price: done; the breakdown line by line and the term comparison ([docs/features/pricing.md](docs/features/pricing.md)).
 - 2 Fair early exit: not yet (wave 2); the D14 balance it rests on is built.
 - 3 Second-life matchmaking: not yet (wave 3).
