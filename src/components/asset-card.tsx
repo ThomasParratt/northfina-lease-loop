@@ -1,6 +1,6 @@
 // One catalogue item: its drawing with the life stamp, the make and model, the facts a
 // second-hand buyer checks (condition, usage, year), and its offer on a small tag: the monthly
-// price, or what it takes to finance it (several together, or a down payment).
+// price, the price with the down payment it needs, or why it cannot be financed.
 // A server component: it renders to HTML and ships no JavaScript. The whole card is one link
 // (the title's link stretches over it), so there is one tab stop per item.
 import Link from 'next/link';
@@ -27,12 +27,7 @@ export function AssetCard({ asset, offer, termMonths, locale, t }: AssetCardProp
   const headingId = `asset-${asset.id}`;
   const life = asset.previous_lives + 1;
   // The price page opens set up for the offer, so its price matches the card's.
-  const query =
-    offer.kind === 'needs_quantity'
-      ? `?quantity=${offer.quantity}`
-      : offer.kind === 'needs_down_payment'
-        ? `?down=${offer.downPaymentCents}`
-        : '';
+  const query = offer.kind === 'needs_down_payment' ? `?down=${offer.downPaymentCents}` : '';
 
   return (
     <article
@@ -87,21 +82,15 @@ export function AssetCard({ asset, offer, termMonths, locale, t }: AssetCardProp
             <PriceTag
               size="sm"
               className="w-fit min-w-44"
-              label={
-                offer.kind === 'needs_quantity'
-                  ? t('catalogue.card.monthlyFor', { quantity: offer.quantity })
-                  : t('catalogue.card.monthly')
-              }
+              label={t('catalogue.card.monthly')}
               amount={<Money cents={offer.quote.monthlyGrossCents} locale={locale} />}
               sub={
-                offer.kind === 'needs_quantity'
-                  ? t('catalogue.card.together', { quantity: offer.quantity, months: termMonths })
-                  : offer.kind === 'needs_down_payment'
-                    ? t('catalogue.card.withDown', {
-                        down: formatEuro(offer.downPaymentCents, intlLocale[locale]),
-                        months: termMonths,
-                      })
-                    : t('catalogue.card.terms', { months: termMonths })
+                offer.kind === 'needs_down_payment'
+                  ? t('catalogue.card.withDown', {
+                      down: formatEuro(offer.downPaymentCents, intlLocale[locale]),
+                      months: termMonths,
+                    })
+                  : t('catalogue.card.terms', { months: termMonths })
               }
             />
           )}

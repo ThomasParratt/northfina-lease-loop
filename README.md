@@ -101,6 +101,7 @@ One page per slice under `docs/features/` ([template](docs/features/README.md));
 - [Exits: buy out, return, pass on and the early exit](docs/features/exits.md)
 - [Circular impact and the passport](docs/features/circular-impact.md)
 - [Row schemas](docs/features/row-schemas.md)
+- [The look: tokens, the price tag, life stamps and drawings](docs/features/look.md)
 - [The tamper-evident audit chain](docs/features/audit-chain.md)
 
 ## Team notes

@@ -2,8 +2,8 @@
 
 /*
  * The Lease Loop look (docs/decisions.md D21, revised 2026-11-05): warm cream paper, forest
- * green for the brand, terracotta as the one accent, deep teal for information. From the
- * team's design concept D. Pages never use these raw colours: they use the roles below.
+ * green for the brand, terracotta as the one accent, deep teal for information. Pages never
+ * use these raw colours: they use the roles below.
  *
  * Fonts: Fredoka (rounded, semibold) for headings only, Nunito for text and numbers; both
  * through next/font in the layout, falling back to system-ui.

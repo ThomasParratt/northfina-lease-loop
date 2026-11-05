@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { QuestionFlow } from '@/components/question-flow';
 import { LinkButton, Money, Notice, PageHeader, PriceTag } from '@/components/ui';
-import { loadQuestions } from '@/data/load';
+import { loadPriceLists, loadQuestions } from '@/data/load';
 import { formatEuro } from '@/domain/money';
 import { answersFromCustomer } from '@/domain/question-flow/answers';
 import { whyWeAsk } from '@/domain/question-flow/engine';
@@ -17,7 +17,7 @@ import { flowSetupFor } from '@/server/applications';
 import { getCustomer } from '@/server/customers';
 import { db } from '@/server/db';
 import { todayForRequest } from '@/server/demo-clock';
-import { getQuote, loadPricingData, storedQuoteStatusOn } from '@/server/quotes';
+import { getQuote, storedQuoteStatusOn } from '@/server/quotes';
 
 export async function generateMetadata({
   params,
@@ -49,27 +49,31 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
   if (!found.ok) return page(<Notice tone="warning">{t('apply.quoteNotFound')}</Notice>);
   const { context } = found.setup;
   // The quote the price page stored when the customer pressed "Apply at this price" (D7).
-  const quote = await getQuote(db, quoteId);
-  // An expired quote is said up front, not after every question (wave 1 review finding 7): the
-  // submit would refuse it with quote_expired. Same rule as the price page and the signing.
-  const today = await todayForRequest(); // read once here, passed down
-  if (quote) {
-    const { priceLists } = await loadPricingData();
-    if (storedQuoteStatusOn(quote, today, priceLists).status === 'expired') {
-      return page(
-        <Notice tone="warning">
-          {t('quote.expiredNotice')}
-          <LinkButton
-            href={`/${locale}/assets/${quote.breakdown.assetId}`}
-            variant="secondary"
-            size="sm"
-            className="mt-3"
-          >
-            {t('quote.cheaper.action')}
-          </LinkButton>
-        </Notice>
-      );
-    }
+  const [quote, today, priceLists] = await Promise.all([
+    getQuote(db, quoteId),
+    todayForRequest(),
+    loadPriceLists(),
+  ]);
+  // Only a quote that is still valid shows "price locked until"; an expired one is refused
+  // when the application is sent, so the page must not promise the price.
+  const status = quote ? storedQuoteStatusOn(quote, today, priceLists).status : null;
+  const locked = quote && status === 'valid' ? quote : null;
+  // An expired quote is said up front instead of the questions (wave 1 review finding 7): the
+  // submit would refuse it with quote_expired after every answer was given.
+  if (quote && status === 'expired') {
+    return page(
+      <Notice tone="warning">
+        {t('quote.expiredNotice')}
+        <LinkButton
+          href={`/${locale}/assets/${quote.breakdown.assetId}`}
+          variant="secondary"
+          size="sm"
+          className="mt-3"
+        >
+          {t('quote.cheaper.action')}
+        </LinkButton>
+      </Notice>
+    );
   }
 
   const bank = (await loadQuestions()).questions;
@@ -87,16 +91,16 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
 
   return page(
     <>
-      {quote ? (
+      {locked ? (
         <PriceTag
           size="sm"
           className="mb-8 max-w-md"
-          label={t('apply.locked', { date: formatIsoDate(quote.validUntil, locale) })}
-          amount={<Money cents={quote.breakdown.monthlyGrossCents} locale={locale} />}
+          label={t('apply.locked', { date: formatIsoDate(locked.validUntil, locale) })}
+          amount={<Money cents={locked.breakdown.monthlyGrossCents} locale={locale} />}
           sub={t('apply.lockedSub', {
-            months: quote.breakdown.termMonths,
-            version: quote.breakdown.priceListVersion,
-            quoteDate: formatIsoDate(quote.quoteDate, locale),
+            months: locked.breakdown.termMonths,
+            version: locked.breakdown.priceListVersion,
+            quoteDate: formatIsoDate(locked.quoteDate, locale),
           })}
         />
       ) : null}
