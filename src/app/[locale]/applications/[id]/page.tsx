@@ -188,7 +188,7 @@ export default async function ApplicationPage({
           <span aria-hidden="true">←</span> {t('decision.home')}
         </LinkButton>
         <LinkButton href={`/${locale}/catalogue`} variant="secondary">
-          {t('home.cta.catalogue')}
+          {t('decision.catalogue')}
         </LinkButton>
       </div>
     </div>
