@@ -6,6 +6,7 @@ import { buildSchedule } from '@/domain/invoicing';
 import { insertContract, seedPack } from '../../tests/helpers/invoice-fixture';
 import { createTestDb } from '../../tests/helpers/test-db';
 import { withAudit } from './audit';
+import { contractCustomerId as ownerContractCustomerId } from './contracts';
 import { clearHandlers, onEvent } from './events';
 import {
   contractCustomerId,
@@ -85,6 +86,10 @@ describe('the access lookups', () => {
     expect(await contractCustomerId(db, contractId)).toBe('cust-aino');
     expect(await invoiceCustomerId(db, 'nope')).toBeNull();
     expect(await contractCustomerId(db, 'nope')).toBeNull();
+  });
+
+  it('reads the contract through the contract slice, not its own query (wave 1 finding 3)', () => {
+    expect(contractCustomerId).toBe(ownerContractCustomerId);
   });
 });
 
