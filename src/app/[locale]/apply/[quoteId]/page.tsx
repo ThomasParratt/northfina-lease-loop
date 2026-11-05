@@ -15,6 +15,7 @@ import { readActor } from '@/server/actor';
 import { flowSetupFor } from '@/server/applications';
 import { getCustomer } from '@/server/customers';
 import { db } from '@/server/db';
+import { todayForRequest } from '@/server/demo-clock';
 
 export async function generateMetadata({
   params,
@@ -32,6 +33,7 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
   const t = getT(locale);
 
   const actor = await readActor(db);
+  const today = await todayForRequest();
   const customer = await getCustomer(db, actor);
   const header = <PageHeader title={t('apply.title')} intro={t('apply.intro')} />;
   const page = (body: React.ReactNode) => (
@@ -71,6 +73,7 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
         locale={locale}
         quoteId={quoteId}
         customerId={customer.id}
+        today={today}
         bank={bank}
         context={context}
         texts={texts}
@@ -88,6 +91,8 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
           error: t('apply.error'),
           required: t('apply.required'),
           invalid: t('apply.invalid'),
+          birthDateRange: raw('apply.birthDateRange'),
+          signatoryIsApplicant: t('apply.signatoryIsApplicant'),
           pruned: raw('apply.pruned'),
           moneyHint: t('apply.moneyHint'),
           listHint: t('apply.listHint'),
