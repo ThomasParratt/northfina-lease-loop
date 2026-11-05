@@ -4,7 +4,7 @@
 
 The applicant answers only the questions of `data/questions.json` that apply to their deal, one at a time, with "why we ask" for each; going back and changing an answer removes the answers that no longer apply and says so. On submit, the eligibility rules give a clear yes, no, "a person will check" or "waiting for the signatory", each with reasons as codes the page writes in the visitor's language (CHALLENGE.md smart problem 4, spine 3).
 
-## The rules, worked through the cards
+## The rule
 
 ### Which questions appear (`ask_when`)
 
@@ -70,13 +70,13 @@ Seven digits, a hyphen, a check digit. Multiply the digits by **7 9 10 5 8 4 2**
 
 Typo Trading Oy (`cust-broken-id`) has **1234567-8**: 1·7 + 2·9 + 3·10 + 4·5 + 5·8 + 6·4 + 7·2 = 153; 153 mod 11 = 10; check digit 11 − 10 = **1**, not 8. Rejected with `invalid_business_id { businessId: 1234567-8 }`. Every other business id in `customers.json` is valid. A wrong check digit is a valid _answer_ (the form takes it) and a _reason_ (the rules reject it), so the applicant sees why.
 
-## Decisions it implements
+## Decisions
 
 - **D9** eligibility: the rules above, every check a code with params.
 - **D10** manual review and the signatory: the four statuses; the admin decides a manual review, the named signatory signs.
 - Inside the slice (see `docs/log/wave1-questions.md`): `customer_type` follows the applicant's answer; a PEP known from the record counts below 10 000 EUR; affordability only where the bank asks for income; a failed rule always rejects.
 
-## Signatures
+## Pure functions
 
 ```ts
 // engine.ts
