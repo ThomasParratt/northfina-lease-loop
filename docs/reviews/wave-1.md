@@ -1,11 +1,11 @@
 # Review: wave 1
 
-Reviewer: the wave 1 upkeep session (Opus), 2026-11-05 20:14–21:00, on `chore/wave1-upkeep` from `main` at `d6bd4f5` plus `origin/feat/pricing` (PR #11) and `origin/feat/invoices` (PR #12, squash-merged as `83ca83a` during the review and merged in again).
+Reviewer: the wave 1 upkeep session (Opus), 2026-11-05 20:14–20:35, on `chore/wave1-upkeep` from `main` at `d6bd4f5` plus `origin/feat/pricing` (PR #11) and `origin/feat/invoices` (PR #12, squash-merged as `83ca83a` during the review and merged in again).
 Scope: circular impact and the passport (`4ab4a62`, PR #6), the question flow (`a34320c`, PR #7; its page `d6bd4f5`, PR #10), the asset statuses `leased` / `sold` (`46e343b`, PR #8, a teammate's PR written without the agent rules), pricing (PR #11) and invoicing (PR #12).
 
 ## What was checked, for every slice
 
-- `npm run check:all` on the merge of the two branches: green (51 test files, 550 tests, coverage, the build, lint, types, file sizes, no-AI). Run again on the branch head before the push.
+- `npm run check:all` on the merge of the two branches: green (51 test files, 550 tests, coverage, the build, lint, types, file sizes, no-AI). Green again on the branch head before the push (51 files, 550 tests, build).
 - `tests/meta-rules.test.ts` passes: no file over 600 lines, no AI, every domain module has a test, the domain is pure, every route uses `handleRoute`, every write goes through `withAudit`.
 - Domain purity by grep over `src/domain/`: no `Date.now`, no `new Date()` without arguments, no `Math.random`, no `fetch`, no import from `@/server` or Prisma. The one `new Date(Date.UTC(…))` (`src/domain/invoicing/dates.ts`) was calendar arithmetic on a passed-in day, not a clock; it is gone with finding 10, and no `Date` is left in `src/domain/`.
 - Money: every rounding of cents goes through `roundHalfUpDiv` / `applyMillionths` / `splitVat` in `src/domain/money-math.ts` (D1), except the question flow's local VAT copy (finding 1, fixed). The other `Math.floor` / `Math.ceil` calls are thresholds, calendar arithmetic or the test tolerance, each with its rule in a comment.
