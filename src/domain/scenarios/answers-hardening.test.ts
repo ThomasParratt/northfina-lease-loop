@@ -30,10 +30,11 @@ const laptops = (quantity: number) => ({
 
 /** `{ decision, codes }` of a completed application, or the step it stopped at. */
 function outcome(app: Application) {
-  if (!app.ok)
-    return app.step === 'invalid'
-      ? `${app.step}:${app.questionId}:${app.problem.code}`
-      : `${app.step}:${app.questionId ?? ''}`;
+  if (!app.ok) {
+    if (app.step === 'quote') return `quote:${app.quote.ok ? '' : app.quote.reason.code}`;
+    if (app.step === 'invalid') return `invalid:${app.questionId}:${app.problem.code}`;
+    return `incomplete:${app.questionId}`;
+  }
   return `${app.result.decision}:${app.result.reasons.map((r) => r.code).join('+')}`;
 }
 
