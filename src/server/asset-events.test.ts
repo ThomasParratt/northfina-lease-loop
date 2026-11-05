@@ -110,12 +110,13 @@ describe('readPassport', () => {
 
 describe('readFleetImpact', () => {
   it('totals the fleet from the past lives and the log', async () => {
-    const impact = await readFleetImpact(db, '2028-11-05');
-    expect(impact.perCategory.find((row) => row.category === 'e_bike')).toEqual({
+    const { fleet, assets } = await readFleetImpact(db, '2028-11-05');
+    expect(fleet.perCategory.find((row) => row.category === 'e_bike')).toEqual({
       category: 'e_bike',
       assetsWithLaterLife: 1,
       kg: 58,
     });
-    expect(impact.totalKg).toBe(58);
+    expect(fleet.totalKg).toBe(58);
+    expect(assets.map((item) => [item.asset.id, item.kg])).toEqual([['ebike-008', 58]]);
   });
 });

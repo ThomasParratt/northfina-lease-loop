@@ -92,8 +92,14 @@ export async function readPassport(
   return { asset, passport, co2 };
 }
 
+export type FleetImpactRead = {
+  fleet: FleetImpact;
+  /** The items with a life after their first, with what each saved, most first. */
+  assets: { asset: Asset; kg: number }[];
+};
+
 /** The whole fleet's CO2 saved as on `asOf`, from the past lives and the event log. */
-export async function readFleetImpact(db: PrismaClient, asOf: string): Promise<FleetImpact> {
+export async function readFleetImpact(db: PrismaClient, asOf: string): Promise<FleetImpactRead> {
   const [assets, rows, factors] = await Promise.all([
     listAssets(db),
     db.assetEvent.findMany({ orderBy: { id: 'asc' } }),
@@ -103,13 +109,19 @@ export async function readFleetImpact(db: PrismaClient, asOf: string): Promise<F
   for (const row of rows) {
     byAsset.set(row.asset_id, [...(byAsset.get(row.asset_id) ?? []), toPassportEvent(row)]);
   }
-  return fleetImpact(
-    co2Method(factors),
-    assets.map((asset) => ({
-      category: asset.category,
-      lives: passportFor(asset, byAsset.get(asset.id) ?? [], asOf).lives.map((life) => ({
-        months: life.months ?? 0,
-      })),
-    }))
-  );
+  const method = co2Method(factors);
+  const lived = assets.map((asset) => ({
+    asset,
+    category: asset.category,
+    lives: passportFor(asset, byAsset.get(asset.id) ?? [], asOf).lives.map((life) => ({
+      months: life.months ?? 0,
+    })),
+  }));
+  return {
+    fleet: fleetImpact(method, lived),
+    assets: lived
+      .filter((item) => item.lives.length > 1)
+      .map((item) => ({ asset: item.asset, kg: co2SavedForAsset(method, item).totalKg }))
+      .sort((a, b) => b.kg - a.kg || a.asset.id.localeCompare(b.asset.id)),
+  };
 }
