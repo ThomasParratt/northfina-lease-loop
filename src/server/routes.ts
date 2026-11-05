@@ -6,7 +6,7 @@
 // Contract first (AGENTS.md, team rule 2): a slice's first commit adds its row here.
 import { z } from 'zod';
 import { assetCategorySchema, assetSchema, assetStatusSchema, isoDateSchema } from '@/data/schemas';
-import { applicationDecisionSchema } from '@/domain/statuses';
+import { applicationDecisionSchema, assetEventKindSchema } from '@/domain/statuses';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -111,6 +111,41 @@ export const applicationSchema = z.object({
   createdAt: z.iso.datetime(),
 });
 
+// ---------- passport and impact ----------
+
+const passportEventSchema = z.object({
+  id: z.number().int(),
+  kind: assetEventKindSchema,
+  on_date: isoDateSchema,
+  contract_id: z.string().nullable(),
+  details: z.unknown(),
+});
+
+const lifeSchema = z.object({
+  index: z.number().int().nonnegative(),
+  start: isoDateSchema.nullable(),
+  end: isoDateSchema.nullable(),
+  contractId: z.string().nullable(),
+  months: z.number().int().nonnegative().nullable(),
+  endKind: z.enum(['returned', 'bought', 'passed_on']).nullable(),
+  estimated: z.boolean(),
+  between: z.array(passportEventSchema),
+});
+
+/** `GET /api/assets/[id]/passport`: the asset, its lives as of today and the CO2 they saved. */
+export const passportResponseSchema = z.object({
+  asset: assetSchema,
+  asOf: isoDateSchema,
+  before: z.array(passportEventSchema),
+  lives: z.array(lifeSchema),
+  co2: z.object({
+    /** Per life, whole kg; the first life is always 0. */
+    perLifeKg: z.array(z.number().int().nonnegative()),
+    /** Rounded once from the unrounded grams, so not always the sum of `perLifeKg`. */
+    totalKg: z.number().int().nonnegative(),
+  }),
+});
+
 // ---------- the table ----------
 
 export const ROUTES: readonly RouteDefinition[] = [
@@ -145,6 +180,14 @@ export const ROUTES: readonly RouteDefinition[] = [
     params: assetIdParamsSchema,
     body: changeAssetStatusBodySchema,
     response: assetSchema,
+  },
+  {
+    method: 'GET',
+    path: '/api/assets/[id]/passport',
+    summary: "An asset's passport: its lives across leases and the CO2 its later lives saved (D15)",
+    tag: 'passport',
+    params: assetIdParamsSchema,
+    response: passportResponseSchema,
   },
   {
     method: 'POST',
