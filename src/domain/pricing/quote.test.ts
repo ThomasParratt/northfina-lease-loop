@@ -1,0 +1,296 @@
+import { beforeAll, describe, expect, it } from 'vitest';
+import { loadCoefficientTable, loadPriceLists, loadVatRates } from '@/data/load';
+import { breakdownFromFrozen, priceQuote, splitEvenly, type PricingData } from './quote';
+
+// Against the real data pack, so a changed data file fails the pinned card numbers.
+let data: PricingData;
+beforeAll(async () => {
+  data = {
+    priceLists: await loadPriceLists(),
+    table: await loadCoefficientTable(),
+    vatRates: await loadVatRates(),
+  };
+});
+
+const base = { quantity: 1, downPaymentCents: 0, isoDate: '2026-11-05' };
+
+function quoteOf(input: Parameters<typeof priceQuote>[1]) {
+  const result = priceQuote(data, input);
+  if (!result.ok) throw new Error(`expected a quote, got ${result.reason.code}`);
+  return result.quote;
+}
+
+describe('priceQuote, card 1 (the worked example: ebike-003, 36 months, no down payment)', () => {
+  it('reproduces every line of the worked example', () => {
+    const quote = quoteOf({ ...base, assetId: 'ebike-003', termMonths: 36 });
+    expect(quote).toMatchObject({
+      priceListVersion: 1,
+      unitListPriceCents: 389_000,
+      listPriceCents: 389_000,
+      downPaymentCents: 0,
+      financedCents: 389_000,
+      band: 'B',
+      factorMillionths: 27_584,
+      monthlyNetCents: 10_730,
+      vatRateBasisPoints: 2550,
+      monthlyVatCents: 2736,
+      monthlyGrossCents: 13_466,
+      buyoutPercentBasisPoints: 1500,
+      buyoutCents: 58_350,
+      perUnit: null,
+    });
+  });
+
+  it('gives the total cost two ways (D6): 36 × 13 466 if you return, plus 58 350 if you buy', () => {
+    const quote = quoteOf({ ...base, assetId: 'ebike-003', termMonths: 36 });
+    expect(quote.totalIfReturnCents).toBe(36 * 13_466);
+    expect(quote.totalIfBuyCents).toBe(36 * 13_466 + 58_350);
+    expect(quote.vatIsEstimate).toBe(true);
+  });
+
+  it('adds the down payment to both totals', () => {
+    const quote = quoteOf({
+      ...base,
+      assetId: 'ebike-003',
+      termMonths: 36,
+      downPaymentCents: 89_000,
+    });
+    expect(quote.financedCents).toBe(300_000);
+    expect(quote.totalIfReturnCents).toBe(89_000 + 36 * quote.monthlyGrossCents);
+    expect(quote.totalIfBuyCents).toBe(quote.totalIfReturnCents + quote.buyoutCents);
+  });
+});
+
+describe('priceQuote, card 2 (laptop-004 across the price-list change, band B, 36 months)', () => {
+  it('prices on list v1 on 2026-11-05: 349 000 → 9 627', () => {
+    const quote = quoteOf({ ...base, assetId: 'laptop-004', termMonths: 36 });
+    expect(quote).toMatchObject({
+      priceListVersion: 1,
+      unitListPriceCents: 349_000,
+      band: 'B',
+      monthlyNetCents: 9627,
+    });
+  });
+
+  it('prices on list v2 on 2026-11-06: 321 100 → 8 857', () => {
+    const quote = quoteOf({
+      ...base,
+      assetId: 'laptop-004',
+      termMonths: 36,
+      isoDate: '2026-11-06',
+    });
+    expect(quote).toMatchObject({
+      priceListVersion: 2,
+      unitListPriceCents: 321_100,
+      band: 'B',
+      monthlyNetCents: 8857,
+    });
+  });
+});
+
+describe('priceQuote, card 6 (the fleet: four ebike-004, 36 months, D8)', () => {
+  it('finances list × quantity, which moves the four bikes into band C: 58 993 a month', () => {
+    const quote = quoteOf({ ...base, assetId: 'ebike-004', quantity: 4, termMonths: 36 });
+    expect(quote).toMatchObject({
+      quantity: 4,
+      unitListPriceCents: 549_000,
+      listPriceCents: 2_196_000,
+      financedCents: 2_196_000,
+      band: 'C',
+      factorMillionths: 26_864,
+      monthlyNetCents: 58_993,
+    });
+  });
+
+  it('prices one bike alone in band B at 15 144', () => {
+    const quote = quoteOf({ ...base, assetId: 'ebike-004', termMonths: 36 });
+    expect(quote).toMatchObject({ band: 'B', monthlyNetCents: 15_144 });
+  });
+
+  it('splits the fleet rent per unit so the shares add up to the total exactly', () => {
+    const quote = quoteOf({ ...base, assetId: 'ebike-004', quantity: 4, termMonths: 36 });
+    // 58 993 / 4 = 14 748 r 1: one bike carries the extra cent.
+    expect(quote.perUnit?.monthlyNetCents).toEqual({ shareCents: 14_748, remainderCents: 1 });
+    const gross = quote.perUnit!.monthlyGrossCents;
+    expect(gross.shareCents * 4 + gross.remainderCents).toBe(quote.monthlyGrossCents);
+    const buyout = quote.perUnit!.buyoutCents;
+    expect(buyout.shareCents * 4 + buyout.remainderCents).toBe(quote.buyoutCents);
+  });
+});
+
+describe('priceQuote, card 7 (farm-002, 48 months, 2 000 000 down: the half cent)', () => {
+  it('rounds 272 037.5 half up to 272 038 and buys out at 8 %', () => {
+    const quote = quoteOf({
+      ...base,
+      assetId: 'farm-002',
+      termMonths: 48,
+      downPaymentCents: 2_000_000,
+    });
+    expect(quote).toMatchObject({
+      listPriceCents: 14_500_000,
+      financedCents: 12_500_000,
+      band: 'D',
+      factorMillionths: 21_763,
+      monthlyNetCents: 272_038,
+      buyoutCents: 1_000_000,
+    });
+  });
+});
+
+describe('priceQuote, the traps', () => {
+  it('keeps laptop-002 at 199 999 in band A and puts laptop-003 at 200 000 in band B', () => {
+    expect(quoteOf({ ...base, assetId: 'laptop-002', termMonths: 24 }).band).toBe('A');
+    expect(quoteOf({ ...base, assetId: 'laptop-003', termMonths: 24 }).band).toBe('B');
+  });
+
+  it('refuses ebike-010, below the lowest band, with the minimum as a param', () => {
+    const result = priceQuote(data, { ...base, assetId: 'ebike-010', termMonths: 12 });
+    expect(result).toEqual({
+      ok: false,
+      reason: { code: 'below_minimum', params: { financedCents: 28_900, minimumCents: 30_000 } },
+    });
+  });
+
+  it('refuses farm-006, above the highest band, with the maximum as a param', () => {
+    const result = priceQuote(data, { ...base, assetId: 'farm-006', termMonths: 48 });
+    expect(result).toEqual({
+      ok: false,
+      reason: {
+        code: 'above_maximum',
+        params: { financedCents: 26_000_000, maximumCents: 25_000_000 },
+      },
+    });
+  });
+
+  it('lets a down payment bring farm-006 back into band D', () => {
+    const quote = quoteOf({
+      ...base,
+      assetId: 'farm-006',
+      termMonths: 48,
+      downPaymentCents: 1_000_000,
+    });
+    expect(quote).toMatchObject({ financedCents: 25_000_000, band: 'D' });
+  });
+
+  it('refuses a quantity of 0, a negative or a fractional quantity', () => {
+    for (const quantity of [0, -1, 1.5]) {
+      const result = priceQuote(data, { ...base, assetId: 'ebike-003', termMonths: 36, quantity });
+      expect(result).toEqual({
+        ok: false,
+        reason: { code: 'invalid_quantity', params: { quantity } },
+      });
+    }
+  });
+
+  it('refuses a down payment equal to the price (nothing left to finance)', () => {
+    const result = priceQuote(data, {
+      ...base,
+      assetId: 'ebike-003',
+      termMonths: 36,
+      downPaymentCents: 389_000,
+    });
+    expect(result).toEqual({
+      ok: false,
+      reason: {
+        code: 'down_payment_too_high',
+        params: { downPaymentCents: 389_000, listPriceCents: 389_000 },
+      },
+    });
+  });
+
+  it('measures the down payment against list × quantity', () => {
+    const result = priceQuote(data, {
+      ...base,
+      assetId: 'ebike-004',
+      quantity: 2,
+      termMonths: 36,
+      downPaymentCents: 549_000,
+    });
+    expect(result).toMatchObject({ ok: true, quote: { financedCents: 549_000 } });
+  });
+
+  it('refuses a negative or fractional down payment', () => {
+    for (const downPaymentCents of [-1, 0.5]) {
+      const result = priceQuote(data, {
+        ...base,
+        assetId: 'ebike-003',
+        termMonths: 36,
+        downPaymentCents,
+      });
+      expect(result).toEqual({
+        ok: false,
+        reason: { code: 'invalid_down_payment', params: { downPaymentCents } },
+      });
+    }
+  });
+
+  it('refuses a term the table does not have and lists the ones it does', () => {
+    const result = priceQuote(data, { ...base, assetId: 'ebike-003', termMonths: 30 });
+    expect(result).toEqual({
+      ok: false,
+      reason: { code: 'unknown_term', params: { termMonths: 30, terms: [12, 24, 36, 48] } },
+    });
+  });
+
+  it('refuses an asset with no price', () => {
+    const result = priceQuote(data, { ...base, assetId: 'rocket-001', termMonths: 36 });
+    expect(result).toEqual({
+      ok: false,
+      reason: { code: 'unknown_asset', params: { assetId: 'rocket-001' } },
+    });
+  });
+
+  it('refuses a day no price list covers', () => {
+    const result = priceQuote(data, {
+      ...base,
+      assetId: 'ebike-003',
+      termMonths: 36,
+      isoDate: '2025-12-31',
+    });
+    expect(result).toEqual({
+      ok: false,
+      reason: { code: 'no_price_list_on_date', params: { isoDate: '2025-12-31' } },
+    });
+  });
+
+  it('refuses a day with no VAT rate (substituted data)', () => {
+    const result = priceQuote(
+      { ...data, vatRates: { ...data.vatRates, rates: [] } },
+      { ...base, assetId: 'ebike-003', termMonths: 36 }
+    );
+    expect(result).toEqual({
+      ok: false,
+      reason: { code: 'no_vat_rate_on_date', params: { isoDate: '2026-11-05' } },
+    });
+  });
+
+  it('uses the VAT rate of the quote date: 26 % in 2027 (fictional change)', () => {
+    const quote = quoteOf({
+      ...base,
+      assetId: 'farm-002',
+      termMonths: 48,
+      isoDate: '2027-01-04',
+    });
+    expect(quote.vatRateBasisPoints).toBe(2600);
+  });
+});
+
+describe('breakdownFromFrozen', () => {
+  it('rebuilds the same breakdown from the stored numbers without the data pack', () => {
+    const quote = quoteOf({ ...base, assetId: 'ebike-004', quantity: 4, termMonths: 36 });
+    expect(breakdownFromFrozen(quote)).toEqual(quote);
+  });
+});
+
+describe('splitEvenly', () => {
+  it('gives every unit the floor share and the remainder to the first units', () => {
+    expect(splitEvenly(58_993, 4)).toEqual({ shareCents: 14_748, remainderCents: 1 });
+    expect(splitEvenly(100, 4)).toEqual({ shareCents: 25, remainderCents: 0 });
+    expect(splitEvenly(0, 3)).toEqual({ shareCents: 0, remainderCents: 0 });
+  });
+
+  it('throws on a programming error', () => {
+    expect(() => splitEvenly(10, 0)).toThrow(RangeError);
+    expect(() => splitEvenly(1.5, 2)).toThrow(RangeError);
+  });
+});
