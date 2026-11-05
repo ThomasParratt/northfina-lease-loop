@@ -5,7 +5,6 @@ import type { ListPriceResult } from '@/domain/price-list';
 import { formatNumber } from '@/i18n/format';
 import type { Translate } from '@/i18n/get-t';
 import type { Locale } from '@/i18n/locales';
-import Link from 'next/link';
 import { Badge, Card, DefinitionList, Money } from './ui';
 
 type AssetCardProps = {
