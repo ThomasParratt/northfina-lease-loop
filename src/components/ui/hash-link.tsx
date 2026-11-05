@@ -35,6 +35,8 @@ export function onSectionLinkClick(
 ) {
   if (event.defaultPrevented || event.button !== 0) return;
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  // The phone menu is a <details>: close it, or its panel covers the section it led to.
+  event.currentTarget.closest('details')?.removeAttribute('open');
   if (scrollToSection(href, pathname)) event.preventDefault();
 }
 
