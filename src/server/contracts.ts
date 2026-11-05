@@ -234,6 +234,18 @@ function toContractRowData(contract: PlannedContract) {
   };
 }
 
+/** One contract by id, or null. The owner's read other slices use (team rule 3). */
+export async function getContract(db: PrismaClient, id: string): Promise<ContractView | null> {
+  const row = await db.contract.findUnique({ where: { id } });
+  return row ? toContractView(row) : null;
+}
+
+/** The customer of a contract, for the access checks. Null for an unknown contract. */
+export async function contractCustomerId(db: PrismaClient, id: string): Promise<string | null> {
+  const row = await db.contract.findUnique({ where: { id }, select: { customer_id: true } });
+  return row?.customer_id ?? null;
+}
+
 /** One contract with its quote day and price-lock explanation on `today`, or null. */
 export async function getContractDetails(
   db: PrismaClient,

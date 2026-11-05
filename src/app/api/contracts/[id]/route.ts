@@ -3,10 +3,9 @@
 // why the price holds (card 2). Only the contract's customer or admin may read it.
 import { ADMIN_ACTOR, readActor } from '@/server/actor';
 import { fail, handleRoute, ok } from '@/server/api-response';
-import { getContractDetails } from '@/server/contracts';
+import { contractCustomerId, getContractDetails } from '@/server/contracts';
 import { db } from '@/server/db';
 import { todayForRequest } from '@/server/demo-clock';
-import { contractCustomerId } from '@/server/invoices';
 
 export const GET = handleRoute(
   async (_request, { params }: RouteContext<'/api/contracts/[id]'>) => {

@@ -8,7 +8,7 @@ import { listAssetEvents } from './asset-events';
 import { getAsset } from './assets';
 import { withAudit } from './audit';
 import { AssetNotAvailableError, leaseAvailableAsset } from './catalogue-handlers';
-import { getContractDetails, signContract } from './contracts';
+import { contractCustomerId, getContract, getContractDetails, signContract } from './contracts';
 import { listInvoices } from './invoices';
 import type { PrismaClient } from './prisma-client';
 import { createQuote, loadPricingData } from './quotes';
@@ -285,6 +285,24 @@ describe('signContract refusals write nothing', () => {
     );
     expect(far.ok || far.reason.code).toBe('start_too_far');
     expect(await writesSoFar()).toEqual({ contracts: 0, invoices: 0, passport: 0, audit: 0 });
+  });
+});
+
+describe('the owner reads', () => {
+  it('getContract and contractCustomerId read a signed contract, null for an unknown id', async () => {
+    const applicationId = await application();
+    const result = await signContract(
+      db,
+      { applicationId, actor: 'cust-aino' },
+      '2026-11-05',
+      data
+    );
+    if (!result.ok) throw new Error(result.reason.code);
+    const { id } = result.details.contract;
+    expect(await getContract(db, id)).toEqual(result.details.contract);
+    expect(await contractCustomerId(db, id)).toBe('cust-aino');
+    expect(await getContract(db, 'nope')).toBeNull();
+    expect(await contractCustomerId(db, 'nope')).toBeNull();
   });
 });
 

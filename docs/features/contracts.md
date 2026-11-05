@@ -35,8 +35,8 @@ The server (`signContract`) adds: the signer must be the application's customer 
 ## Files
 
 - `src/domain/contracts/` (`sign.ts`, `number.ts`, `index.ts` and their tests)
-- `src/server/contracts.ts`: `signContract(db, { applicationId, startDate?, actor }, today, data?)`, `getContractDetails(db, id, today, data?)`, `toContractView`
-- `src/server/catalogue-handlers.ts`: `leaseAvailableAsset(tx, assetId)` and `AssetNotAvailableError`
+- `src/server/contracts.ts`: `signContract(db, { applicationId, startDate?, actor }, today, data?)`, `getContractDetails(db, id, today, data?)`, `toContractView`, and the owner's reads `getContract(db, id)` and `contractCustomerId(db, id)` (wave 1 review finding 3). `GET /api/contracts/[id]` and the page use them; `src/server/invoices.ts` still has its own `contractCustomerId` and `invoiceCustomerId` on the `Contract` table and swaps to these in the next upkeep
+- `src/server/catalogue-handlers.ts`: `leaseAvailableAsset(tx, assetId)` and `AssetNotAvailableError`. This write is the catalogue's `leased` transition (D22) for now, done in the contract slice because the catalogue has no `tx`-taking status write yet (`changeAssetStatus` opens its own transaction; wave 1 review finding 4). It parses `available` and `leased` with `assetStatusSchema` before the write (D23)
 - `src/server/contract-schemas.ts`, the two rows in `src/server/routes.ts`, `docs/openapi.json`
 - `src/app/api/contracts/route.ts` (`POST`, 201; 404 unknown application, 403 not the applicant, 409 already signed or asset taken, 422 the other refusals, all with the code and params in `details`)
 - `src/app/api/contracts/[id]/route.ts` (`GET`, the contract's customer or admin)
