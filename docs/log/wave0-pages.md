@@ -1,0 +1,12 @@
+# Time log: wave 0c, the UI kit, the layout nav, the demo page and the audit page
+
+Real clock, Helsinki. Coding agent: Opus, in the worktree slot `dazzling-hugle-bf713b` (branch `claude/dazzling-hugle-bf713b`), cut from `0ae9cea` (the base `2908278` plus the AGENTS.md docs commit).
+
+| When             | What                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-05 17:38 | Start. Node 22.22.2 present. `npm ci && npm run db:setup` started in the background; four `npm ci` ran at once (the three wave 0 slots plus one more), so the install took far longer than usual.                                                             |
+| 17:40            | Read the brief (sections 4 and 8), the layout, the catalogue, the asset card, `globals.css`, `today.ts`, `audit.ts`, `api-response.ts`, the i18n helpers and the stack notes (cookies are read-only in a server component).                                   |
+| 17:42            | Tests first: `src/server/demo-clock.test.ts` (`isIsoDay`, `resolveToday` valid / invalid / none, `todayForRequest` and `readDemoClock` over a mocked cookie store). Then `src/server/demo-clock.ts` and `POST /api/demo/clock`.                               |
+| 17:45            | The palette as tokens in `globals.css` (D21) and the kit in `src/components/ui/`. The asset card and the catalogue rebuilt on the kit; the catalogue reads the day through `todayForRequest()`.                                                               |
+| 17:48            | `formatTimestamp` in `src/i18n/format.ts` (Helsinki time) with its tests, for the audit table. The layout nav (`NavLinks`, with `aria-current`), the actor-picker slot, the demo page with its client `ClockForm`, the audit page. 42 message keys × 4 files. |
+| 17:52            | D21, the README's "Pages" and "Demo clock" sections, this log.                                                                                                                                                                                                |
