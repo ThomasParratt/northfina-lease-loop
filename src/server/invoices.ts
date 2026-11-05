@@ -9,6 +9,7 @@ import {
   type InvoiceKind,
   type InvoiceStatus,
 } from '@/domain/statuses';
+import { invoiceRowSchema } from '@/domain/rows/invoice';
 import { withAudit, type TransactionClient } from './audit';
 import { emit } from './events';
 import type { PrismaClient } from './prisma-client';
@@ -61,20 +62,23 @@ export async function writeSchedule(
   invoices: readonly ScheduledInvoice[]
 ): Promise<number> {
   const { count } = await tx.invoice.createMany({
-    data: invoices.map((invoice) => ({
-      contract_id: contractId,
-      sequence: invoice.sequence,
-      period_start: invoice.periodStart,
-      period_end: invoice.periodEnd,
-      issue_date: invoice.issueDate,
-      due_date: invoice.dueDate,
-      net_cents: invoice.netCents,
-      vat_rate_bp: invoice.vatRateBasisPoints,
-      vat_cents: invoice.vatCents,
-      gross_cents: invoice.grossCents,
-      kind: invoice.kind,
-      status: 'issued',
-    })),
+    // Every row parsed first (D27): gross = net + VAT, the period, the status.
+    data: invoices.map((invoice) =>
+      invoiceRowSchema.parse({
+        contract_id: contractId,
+        sequence: invoice.sequence,
+        period_start: invoice.periodStart,
+        period_end: invoice.periodEnd,
+        issue_date: invoice.issueDate,
+        due_date: invoice.dueDate,
+        net_cents: invoice.netCents,
+        vat_rate_bp: invoice.vatRateBasisPoints,
+        vat_cents: invoice.vatCents,
+        gross_cents: invoice.grossCents,
+        kind: invoice.kind,
+        status: 'issued',
+      })
+    ),
   });
   return count;
 }

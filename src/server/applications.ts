@@ -11,6 +11,12 @@ import {
 } from '@/domain/question-flow/answers';
 import { evaluate } from '@/domain/question-flow/eligibility';
 import {
+  answersFromJson,
+  applicationDecisionUpdateSchema,
+  applicationRowSchema,
+  reasonsFromJson,
+} from '@/domain/rows/application';
+import {
   nextQuestion,
   pruneAnswers,
   type Answer,
@@ -43,9 +49,9 @@ export function toApplicationView(row: ApplicationRow): ApplicationView {
     id: row.id,
     customerId: row.customer_id,
     quoteId: row.quote_id,
-    answers: JSON.parse(row.answers_json),
+    answers: answersFromJson(row.answers_json),
     decision: applicationDecisionSchema.parse(row.decision),
-    reasons: JSON.parse(row.reasons_json),
+    reasons: reasonsFromJson(row.reasons_json),
     decidedOn: row.decided_on,
     reviewedBy: row.reviewed_by,
     createdAt: row.created_at.toISOString(),
@@ -168,7 +174,7 @@ export async function createApplication(
     },
     (tx) =>
       tx.application.create({
-        data: {
+        data: applicationRowSchema.parse({
           id,
           customer_id: input.customerId,
           quote_id: input.quoteId,
@@ -176,7 +182,7 @@ export async function createApplication(
           decision: result.decision,
           reasons_json: JSON.stringify(result.reasons),
           decided_on: input.today,
-        },
+        }),
       })
   );
   return { ok: true, application: toApplicationView(row) };
@@ -244,12 +250,12 @@ export async function decideApplication(
     (tx) =>
       tx.application.update({
         where: { id: input.id },
-        data: {
+        data: applicationDecisionUpdateSchema.parse({
           decision,
           reasons_json: JSON.stringify([...current.reasons, reason]),
           decided_on: input.today,
           reviewed_by: input.reviewedBy,
-        },
+        }),
       })
   );
   return { ok: true, application: toApplicationView(row) };

@@ -2,6 +2,7 @@
 // transaction as the change. If either write fails, both are rolled back, so the database
 // can never hold a change that nobody can explain.
 import type { Prisma, PrismaClient } from '@/generated/prisma/client';
+import { auditEntrySchema } from '@/domain/rows/audit-entry';
 
 export type AuditEntry = {
   /** Who did it (a user id or name; there is no login in the starter). */
@@ -29,6 +30,8 @@ export async function withAudit<T>(
   entry: AuditEntry,
   work: (tx: TransactionClient) => Promise<T>
 ): Promise<T> {
+  // Checked before the change runs: an entry that cannot be written must not cost the work.
+  auditEntrySchema.parse(entry);
   return db.$transaction(async (tx) => {
     const result = await work(tx);
     await tx.auditLog.create({
