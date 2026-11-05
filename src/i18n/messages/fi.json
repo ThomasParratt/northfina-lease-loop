@@ -339,7 +339,7 @@
   "contract.refusal.quote_expired": "Tarjous oli voimassa {validUntil} asti. Pyydä uusi tarjous tämän päivän hinnalla allekirjoittaaksesi.",
   "contract.refusal.asset_not_available": "Valitettavasti tämä tuote vuokrattiin juuri toiselle.",
   "contract.refusal.start_before_signing": "Vuokrakausi ei voi alkaa ({startDate}) ennen allekirjoituspäivää ({signedOn}).",
-  "contract.refusal.start_too_far": "Vuokrakauden on alettava {maxDays} päivän kuluessa allekirjoituksesta, viimeistään {latestStartDate}.",
+  "contract.refusal.start_too_far": "Vuokrakauden on alettava {maxMonths} kuukauden kuluessa allekirjoituksesta, viimeistään {maxStartDate}.",
   "contract.refusal.already_signed": "Hakemus on jo allekirjoitettu.",
   "contract.refusal.not_allowed_to_sign": "Vain hakija voi allekirjoittaa sopimuksen.",
   "contract.refusal.application_not_found": "Hakemusta ei löytynyt.",

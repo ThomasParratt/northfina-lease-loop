@@ -275,7 +275,7 @@ describe('signContract refusals write nothing', () => {
     }
   );
 
-  it('quote_expired after the 14 days, start_too_far past 90 days', async () => {
+  it('quote_expired after the 14 days, start_too_far past one year (D38)', async () => {
     const applicationId = await application();
     expect(
       await signContract(db, { applicationId, actor: 'cust-aino' }, '2026-11-20', data)
@@ -285,7 +285,7 @@ describe('signContract refusals write nothing', () => {
     });
     const far = await signContract(
       db,
-      { applicationId, startDate: '2027-03-01', actor: 'cust-aino' },
+      { applicationId, startDate: '2027-11-06', actor: 'cust-aino' },
       '2026-11-05',
       data
     );
