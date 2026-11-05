@@ -38,9 +38,15 @@ type QuoteCalculatorProps = {
 const DEBOUNCE_MS = 200;
 const MAX_QUANTITY = 20;
 
-/** The down payment moves in steps of 1 % of the price, rounded to whole euros. */
-function downPaymentStep(totalCents: number): number {
-  return Math.max(100, Math.round(totalCents / 100 / 100) * 100);
+/**
+ * The down payment moves in steps of 1 % of the price, rounded to whole euros. When the page
+ * opens on a preset that is not on that grid (the catalogue's 10 000 € for a 260 000 € item,
+ * whose 1 % step is 2 600 €), it moves in whole euros instead, so the slider can show the
+ * preset exactly and get back to it.
+ */
+function downPaymentStep(totalCents: number, presetCents: number): number {
+  const percent = Math.max(100, Math.round(totalCents / 100 / 100) * 100);
+  return presetCents % percent === 0 ? percent : 100;
 }
 
 export function QuoteCalculator(props: QuoteCalculatorProps) {
@@ -60,7 +66,7 @@ export function QuoteCalculator(props: QuoteCalculatorProps) {
 
   const termMonths = terms[termIndex] ?? terms[0]!;
   const totalPriceCents = unitPriceCents * quantity;
-  const step = downPaymentStep(totalPriceCents);
+  const step = downPaymentStep(totalPriceCents, props.initial.downPaymentCents);
 
   useEffect(() => {
     if (firstRun.current) {
@@ -280,7 +286,12 @@ export function QuoteCalculator(props: QuoteCalculatorProps) {
       </div>
 
       <div className="space-y-4">
-        <Disclosure title={t('pricing.breakdown.title')} summary={t('pricing.breakdown.summary')}>
+        <Disclosure
+          title={t('pricing.breakdown.title')}
+          summary={t('pricing.breakdown.summary')}
+          // Opened by a catalogue preset (e.g. the down payment an item needs): show why.
+          defaultOpen={props.initial.downPaymentCents > 0 || props.initial.quantity > 1}
+        >
           {quote ? (
             <QuoteBreakdownList quote={quote} locale={locale} t={t} />
           ) : (
@@ -289,7 +300,7 @@ export function QuoteCalculator(props: QuoteCalculatorProps) {
         </Disclosure>
         <Disclosure
           title={t('pricing.compare.title')}
-          summary={t('pricing.compare.summary')}
+          summary={t('pricing.compare.summary', { terms: terms.join(', ') })}
           padded={false}
         >
           <TermTable comparison={preview.comparison} selected={termMonths} locale={locale} />

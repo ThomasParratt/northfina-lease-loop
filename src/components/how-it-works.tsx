@@ -7,7 +7,7 @@ export function HowItWorks({ t }: { t: Translate }) {
   const choices = ['buy', 'return', 'passOn'] as const;
   return (
     <section id="how-it-works" aria-labelledby="how-title" className="scroll-mt-6 bg-muted">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.1fr]">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.1fr]">
         <EndOfTermFork t={t} />
         <div>
           <h2 id="how-title" className="text-4xl">
