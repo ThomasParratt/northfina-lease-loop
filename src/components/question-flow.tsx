@@ -8,7 +8,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Notice, inputClasses } from '@/components/ui';
 import type { Question } from '@/data/schemas';
 import { formatEuro } from '@/domain/money';
-import { parseEurosToCents, validateAnswer } from '@/domain/question-flow/answers';
+import {
+  answerProblem,
+  birthDateRange,
+  parseEurosToCents,
+  type AnswerProblem,
+} from '@/domain/question-flow/answers';
 import {
   nextQuestion,
   pruneAnswers,
@@ -31,6 +36,9 @@ export type QuestionFlowLabels = {
   error: string;
   required: string;
   invalid: string;
+  /** Raw, with {earliest} and {latest}. */
+  birthDateRange: string;
+  signatoryIsApplicant: string;
   pruned: string;
   moneyHint: string;
   listHint: string;
@@ -41,6 +49,8 @@ type QuestionFlowProps = {
   locale: Locale;
   quoteId: string;
   customerId: string;
+  /** The request's day (demo clock), for the birth-date range (D37). */
+  today: string;
   bank: Question[];
   context: FlowContext;
   /** Question id → its text and "why we ask" in the page's language. */
@@ -167,6 +177,9 @@ export function QuestionFlow(props: QuestionFlowProps) {
           text={texts[question.id]}
           options={props.options}
           initial={answers[question.id]}
+          answers={answers}
+          today={props.today}
+          locale={props.locale}
           labels={labels}
           headingRef={headingRef}
           canGoBack={position > 1}
@@ -215,6 +228,20 @@ export function QuestionFlow(props: QuestionFlowProps) {
   );
 }
 
+/** The sentence for an answer the flow cannot take (team rule 6: the domain gives the code). */
+function problemText(problem: AnswerProblem, labels: QuestionFlowLabels, locale: Locale): string {
+  switch (problem.code) {
+    case 'birth_date_out_of_range':
+      return labels.birthDateRange
+        .replace('{earliest}', formatIsoDate(problem.params.earliest, locale))
+        .replace('{latest}', formatIsoDate(problem.params.latest, locale));
+    case 'signatory_is_applicant':
+      return labels.signatoryIsApplicant;
+    case 'invalid':
+      return labels.invalid;
+  }
+}
+
 /** Cents as digits → "3200,50" for editing. */
 function centsToEuroInput(cents: string): string {
   const n = Number(cents);
@@ -228,6 +255,10 @@ type StepProps = {
   text: { text: string; why: string } | undefined;
   options: Record<string, string>;
   initial: Answer | undefined;
+  /** The other answers so far, for the checks across answers (D39). */
+  answers: Record<string, Answer>;
+  today: string;
+  locale: Locale;
   labels: QuestionFlowLabels;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
   canGoBack: boolean;
@@ -248,6 +279,7 @@ function QuestionStep(props: StepProps) {
   const [draft, setDraft] = useState(initialDraft);
   const [error, setError] = useState<string | null>(null);
   const id = `question-${question.id}`;
+  const range = birthDateRange(props.today);
   const title = text?.text ?? question.id;
 
   function submit(event: React.FormEvent) {
@@ -265,14 +297,42 @@ function QuestionStep(props: StepProps) {
         .map((line) => line.trim())
         .filter(Boolean);
     }
-    if (!validateAnswer(question, value)) return setError(labels.invalid);
+    const problem = answerProblem(question, value, { today: props.today, answers: props.answers });
+    if (problem) return setError(problemText(problem, labels, props.locale));
     onSave(value);
   }
 
+  // Teal, narrow and with a chevron, so it reads as a note to open and not as one more option.
   const why = (
-    <details className="rounded-md border border-line p-3 text-sm">
-      <summary className="cursor-pointer font-medium">{labels.why}</summary>
-      <p className="mt-2 text-ink-muted">{text?.why}</p>
+    <details className="group w-fit max-w-prose rounded-lg border border-info-line bg-info-soft text-sm text-info-ink">
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 font-semibold [&::-webkit-details-marker]:hidden">
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="size-4 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5M12 8h.01" />
+        </svg>
+        {labels.why}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="size-4 shrink-0 transition-transform group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </summary>
+      <p className="px-3 pb-3">{text?.why}</p>
     </details>
   );
 
@@ -342,6 +402,9 @@ function QuestionStep(props: StepProps) {
                   }
                   inputMode={question.type === 'money' ? 'decimal' : undefined}
                   autoComplete={question.type === 'email' ? 'email' : undefined}
+                  {...(question.id === 'q_birth_date'
+                    ? { min: range.earliest, max: range.latest }
+                    : {})}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   className={inputClasses}
