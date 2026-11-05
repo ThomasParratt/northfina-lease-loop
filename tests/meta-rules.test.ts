@@ -148,7 +148,7 @@ const TABLE_CLEARING: readonly Check[] = [
 const HANDLER_SETUP: readonly Check[] = [
   {
     pattern: /['"](\.{1,2}\/|@\/server\/)[\w./-]*event-handlers['"]/,
-    problem: 'imports event-handlers; call useProductionHandlers() from ' + HANDLER_HELPER,
+    problem: 'imports event-handlers; call withProductionHandlers() from ' + HANDLER_HELPER,
   },
   { pattern: /\bclearHandlers\(/, problem: 'clears the handler registry; use ' + HANDLER_HELPER },
 ];
