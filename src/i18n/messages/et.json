@@ -74,5 +74,11 @@
   "audit.col.entity": "Objekt",
   "audit.col.details": "Üksikasjad",
   "audit.noDetails": "Puuduvad",
-  "footer.skeleton": "Algmall — asenda mind"
+  "footer.skeleton": "Algmall — asenda mind",
+  "actor.label": "Jätka kasutajana",
+  "actor.anonymous": "Mitte keegi (ainult vaatan)",
+  "actor.admin": "Administraator",
+  "actor.submit": "Jätka",
+  "actor.clear": "Lõpeta",
+  "actor.error": "Vahetamine ei õnnestunud. Proovi uuesti."
 }

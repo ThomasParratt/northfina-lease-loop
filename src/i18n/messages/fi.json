@@ -74,5 +74,11 @@
   "audit.col.entity": "Kohde",
   "audit.col.details": "Tiedot",
   "audit.noDetails": "Ei tietoja",
-  "footer.skeleton": "Aloituspohja — korvaa minut"
+  "footer.skeleton": "Aloituspohja — korvaa minut",
+  "actor.label": "Jatka käyttäjänä",
+  "actor.anonymous": "Ei kukaan (vain selaan)",
+  "actor.admin": "Ylläpitäjä",
+  "actor.submit": "Jatka",
+  "actor.clear": "Lopeta",
+  "actor.error": "Vaihto ei onnistunut. Yritä uudelleen."
 }
