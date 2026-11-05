@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { QuestionFlow } from '@/components/question-flow';
-import { Money, Notice, PageHeader, PriceTag } from '@/components/ui';
+import { LinkButton, Money, Notice, PageHeader, PriceTag } from '@/components/ui';
 import { loadQuestions } from '@/data/load';
 import { formatEuro } from '@/domain/money';
 import { answersFromCustomer } from '@/domain/question-flow/answers';
@@ -16,7 +16,8 @@ import { readActor } from '@/server/actor';
 import { flowSetupFor } from '@/server/applications';
 import { getCustomer } from '@/server/customers';
 import { db } from '@/server/db';
-import { getQuote } from '@/server/quotes';
+import { todayForRequest } from '@/server/demo-clock';
+import { getQuote, loadPricingData, storedQuoteStatusOn } from '@/server/quotes';
 
 export async function generateMetadata({
   params,
@@ -49,6 +50,27 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
   const { context } = found.setup;
   // The quote the price page stored when the customer pressed "Apply at this price" (D7).
   const quote = await getQuote(db, quoteId);
+  // An expired quote is said up front, not after every question (wave 1 review finding 7): the
+  // submit would refuse it with quote_expired. Same rule as the price page and the signing.
+  const today = await todayForRequest(); // read once here, passed down
+  if (quote) {
+    const { priceLists } = await loadPricingData();
+    if (storedQuoteStatusOn(quote, today, priceLists).status === 'expired') {
+      return page(
+        <Notice tone="warning">
+          {t('quote.expiredNotice')}
+          <LinkButton
+            href={`/${locale}/assets/${quote.breakdown.assetId}`}
+            variant="secondary"
+            size="sm"
+            className="mt-3"
+          >
+            {t('quote.cheaper.action')}
+          </LinkButton>
+        </Notice>
+      );
+    }
+  }
 
   const bank = (await loadQuestions()).questions;
   const dictionary: Record<string, string> = messages[locale];
