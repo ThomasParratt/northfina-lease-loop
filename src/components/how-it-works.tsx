@@ -51,7 +51,7 @@ function EndOfTermFork({ t }: { t: Translate }) {
   ] as const;
   return (
     <svg
-      viewBox="0 0 420 220"
+      viewBox="0 0 500 220"
       className="w-full"
       role="img"
       aria-label={t('how.diagram')}

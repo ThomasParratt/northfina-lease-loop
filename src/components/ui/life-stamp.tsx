@@ -32,7 +32,7 @@ export function LifeStamp({
         'life-stamp inline-flex shrink-0 flex-col items-center justify-center rounded-full',
         'border-[5px] border-double text-center font-heading leading-tight font-semibold uppercase',
         later ? 'border-accent-ink text-accent-ink' : 'border-brand text-brand-text',
-        size === 'sm' ? 'size-18 text-[0.65rem]' : 'size-24 text-xs',
+        size === 'sm' ? 'size-21 text-[0.58rem]' : 'size-27 text-[0.68rem]',
         className
       )}
     >

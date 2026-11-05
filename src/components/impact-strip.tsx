@@ -61,7 +61,7 @@ export async function ImpactStrip({ today, locale, t }: ImpactStripProps) {
             <LifeStamp
               life={t('stamp.life', { n: 3 })}
               note={t('stamp.checked')}
-              later={false}
+              later
               size="lg"
               tilt={-4}
             />

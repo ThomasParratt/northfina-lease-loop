@@ -11,7 +11,7 @@ const variants: Record<ButtonVariant, string> = {
   secondary: 'border-2 border-brand bg-transparent text-brand-text hover:bg-brand-soft',
   danger: 'bg-danger-solid text-raised hover:bg-danger-hover',
   /** On a dark strip (the staff strip): outlined in the strip's own text colour. */
-  onDark: 'border-2 border-current/60 bg-transparent text-current hover:bg-white/10',
+  onDark: 'border-2 border-current/60 bg-transparent text-current hover:bg-staff-hover',
 };
 
 const sizes: Record<ButtonSize, string> = {

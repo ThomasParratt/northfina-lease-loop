@@ -32,7 +32,7 @@ export function SiteHeader({ locale, t, actor, customers }: SiteHeaderProps) {
 
   return (
     <>
-      <div className="bg-staff text-staff-contrast">
+      <div className="staff-zone bg-staff text-staff-contrast">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
             <span className="font-bold tracking-wide uppercase opacity-80 max-sm:hidden">
@@ -44,7 +44,7 @@ export function SiteHeader({ locale, t, actor, customers }: SiteHeaderProps) {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="block rounded-full px-3 py-1 font-semibold underline-offset-4 hover:bg-white/10 hover:underline"
+                      className="block rounded-full px-3 py-1 font-semibold underline-offset-4 hover:bg-staff-hover hover:underline"
                     >
                       {link.label}
                     </Link>

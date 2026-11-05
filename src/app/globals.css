@@ -48,6 +48,11 @@
   --color-ochre-200: #e7c98b;
   --color-ochre-500: #b7811c;
   --color-ochre-900: #5c3f08;
+
+  /* Shadows in the ink's hue: a card at rest, a raised panel, an item card. */
+  --shadow-card: 0 1px 0 var(--line), 0 8px 24px -16px rgb(31 42 42 / 0.25);
+  --shadow-panel: 0 24px 60px -30px rgb(31 42 42 / 0.45);
+  --shadow-item: 0 8px 24px -18px rgb(31 42 42 / 0.35);
 }
 
 /*
@@ -117,6 +122,7 @@
 
   --staff: var(--color-teal-800);
   --staff-contrast: var(--color-paper);
+  --staff-hover: rgb(255 251 243 / 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -169,6 +175,7 @@
 
     --staff: #1e4d48;
     --staff-contrast: #f3ecdf;
+    --staff-hover: rgb(243 236 223 / 0.14);
   }
 }
 
@@ -220,6 +227,7 @@
 
   --color-staff: var(--staff);
   --color-staff-contrast: var(--staff-contrast);
+  --color-staff-hover: var(--staff-hover);
 }
 
 @layer base {
@@ -249,6 +257,11 @@
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* On the teal staff strip the forest ring would vanish (about 1:1), so it is light there. */
+.staff-zone {
+  --focus: var(--staff-contrast);
 }
 
 /* The dashed rule of the paper look, for dividers that are not borders of a box. */

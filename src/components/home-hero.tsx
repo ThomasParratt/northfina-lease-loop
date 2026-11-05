@@ -37,7 +37,7 @@ export function HomeHero({ locale, t }: { locale: Locale; t: Translate }) {
         </div>
       </div>
 
-      <div className="rounded-xl bg-raised p-6 shadow-[0_20px_50px_-30px_rgb(31_42_42/0.45)] sm:p-8">
+      <div className="rounded-xl bg-raised p-6 shadow-panel sm:p-8">
         <h2 className="text-sm font-extrabold tracking-[0.14em] text-ink-muted uppercase">
           {t('home.steps.title')}
         </h2>

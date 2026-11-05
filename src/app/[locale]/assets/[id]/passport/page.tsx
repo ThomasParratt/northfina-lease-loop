@@ -134,7 +134,7 @@ export default async function PassportPage({
                         <LifeStamp
                           life={t('stamp.life', { n: life.index + 1 })}
                           note={life.index === 0 ? t('stamp.new') : t('stamp.checked')}
-                          later={life.index % 2 === 1}
+                          later={life.index > 0}
                           tilt={life.index % 2 === 0 ? -8 : 6}
                         />
                         <h3 id={`life-${life.index}`} className="text-2xl">

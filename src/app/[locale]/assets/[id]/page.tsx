@@ -134,14 +134,6 @@ export default async function PricePage({
           {t('quote.notFound')}
         </Notice>
       ) : null}
-      {storedForAsset ? (
-        <StoredQuoteSection
-          quote={storedForAsset}
-          status={storedQuoteStatusOn(storedForAsset, today, data.priceLists)}
-          locale={locale}
-          t={t}
-        />
-      ) : null}
 
       {price.ok ? (
         <QuoteCalculator
@@ -163,6 +155,18 @@ export default async function PricePage({
           </Notice>
         </>
       )}
+
+      {/* After the item, so the page's h1 (the model) comes before the quote's h2. */}
+      <div className="mt-12">
+        {storedForAsset ? (
+          <StoredQuoteSection
+            quote={storedForAsset}
+            status={storedQuoteStatusOn(storedForAsset, today, data.priceLists)}
+            locale={locale}
+            t={t}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -185,7 +189,7 @@ function StoredQuoteSection({
       id="quote"
       title={t('quote.title')}
       titleId="quote-title"
-      className="mb-12 scroll-mt-6"
+      className="scroll-mt-6"
     >
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Badge status={status.status === 'valid' ? 'quoted' : 'expired'}>

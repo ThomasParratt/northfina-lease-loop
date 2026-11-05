@@ -132,7 +132,7 @@ export function QuoteCalculator(props: QuoteCalculatorProps) {
 
         <section
           aria-labelledby={`${ids}-title`}
-          className="rounded-xl bg-raised p-4 shadow-[0_24px_60px_-30px_rgb(31_42_42/0.45)] sm:p-6 lg:sticky lg:top-6"
+          className="rounded-xl bg-raised p-4 shadow-panel sm:p-6 lg:sticky lg:top-6"
         >
           <h2 id={`${ids}-title`} className="sr-only">
             {t('pricing.calculator.title')}

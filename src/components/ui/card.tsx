@@ -25,7 +25,7 @@ export function Card({
     <Element
       aria-labelledby={title && titleId ? titleId : undefined}
       className={cx(
-        'rounded-xl border border-line bg-raised shadow-[0_1px_0_var(--line),0_8px_24px_-16px_rgb(31_42_42/0.25)]',
+        'rounded-xl border border-line bg-raised shadow-card',
         padded && 'p-4 sm:p-6',
         className
       )}

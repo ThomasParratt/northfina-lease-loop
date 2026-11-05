@@ -27,7 +27,7 @@ export function AssetCard({ asset, monthly, termMonths, locale, t }: AssetCardPr
   return (
     <article
       aria-labelledby={headingId}
-      className="group relative flex h-full flex-col rounded-xl border border-line bg-raised p-3 shadow-[0_8px_24px_-18px_rgb(31_42_42/0.35)] transition-transform focus-within:-translate-y-0.5 hover:-translate-y-0.5"
+      className="group relative flex h-full flex-col rounded-xl border border-line bg-raised p-3 shadow-item transition-transform focus-within:-translate-y-0.5 hover:-translate-y-0.5"
     >
       <div className="relative rounded-lg bg-muted px-6 pt-8 pb-2">
         <ItemArt category={asset.category} model={asset.model} />
