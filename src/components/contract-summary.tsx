@@ -92,7 +92,7 @@ export function ContractSummary({ details, asset, locale, t }: ContractSummaryPr
               total: true,
             },
             {
-              label: t('pricing.line.buyout'),
+              label: t('pricing.line.buyout', { months: contract.termMonths }),
               value: <Money cents={contract.buyoutCents} locale={locale} />,
               numeric: true,
             },
