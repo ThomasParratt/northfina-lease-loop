@@ -19,11 +19,19 @@ import {
   invoiceKindSchema,
   invoiceStatusSchema,
 } from '@/domain/statuses';
+import { auditChainVerdictSchema } from './audit-schemas';
 import {
   contractIdParamsSchema,
   contractResponseSchema,
   signContractBodySchema,
 } from './contract-schemas';
+import {
+  exitBodySchema,
+  exitParamsSchema,
+  exitPreviewQuerySchema,
+  exitPreviewResponseSchema,
+  exitResponseSchema,
+} from './exit-schemas';
 import {
   createQuoteBodySchema,
   previewQuoteQuerySchema,
@@ -253,6 +261,14 @@ export const ROUTES: readonly RouteDefinition[] = [
   },
   {
     method: 'GET',
+    path: '/api/audit-log/verify',
+    summary:
+      'Walk the audit hash chain: intact with its length and head hash, or the first broken row (read-only, every actor)',
+    tag: 'audit',
+    response: auditChainVerdictSchema,
+  },
+  {
+    method: 'GET',
     path: '/api/invoices',
     summary: "A contract's invoices in sequence order (the contract's customer or admin)",
     tag: 'invoices',
@@ -337,6 +353,26 @@ export const ROUTES: readonly RouteDefinition[] = [
     tag: 'contracts',
     params: contractIdParamsSchema,
     response: contractResponseSchema,
+  },
+  {
+    method: 'GET',
+    path: '/api/contracts/[id]/exit-preview',
+    summary:
+      "What buying, returning or passing on would cost on the request's day, line by line (D14), without writing",
+    tag: 'exits',
+    params: exitParamsSchema,
+    query: exitPreviewQuerySchema,
+    response: exitPreviewResponseSchema,
+  },
+  {
+    method: 'POST',
+    path: '/api/contracts/[id]/exit',
+    summary:
+      "Buy out, return or pass on on the request's day: sets the status, emits the event, bills the exit (the customer or admin)",
+    tag: 'exits',
+    params: exitParamsSchema,
+    body: exitBodySchema,
+    response: exitResponseSchema,
   },
 ];
 
