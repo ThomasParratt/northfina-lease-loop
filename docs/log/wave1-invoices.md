@@ -14,11 +14,12 @@ Real clock, Helsinki. Agent: Opus, worktree `friendly-blackwell-6149aa`, base `1
 | 19:27            | Route rows, the two routes (customer or admin only, the day from `todayForRequest()`), `npm run openapi`, `invoice.*` keys in four languages, `firstVatChange`, `invoice-table.tsx`. Typecheck and lint clean. Commit.                                                                                            |
 | 19:32            | Docs: `docs/features/invoicing.md`, README "Features" and "Invoices", the D2–D5 and D14 statuses. `npm run check:all`.                                                                                                                                                                                            |
 | 19:40            | `npm run check:all` green: 356 tests, coverage 97.7 %, build OK. Pushed and opened the PR. Closed in about 45 minutes of the 90.                                                                                                                                                                                  |
+| 19:57            | Fable: add `signedOn` to `CONTRACT_SIGNED`; done with its test, handler reads it from the event. Merged `origin/main` twice (impact, upkeep, question flow), kept both sides, regenerated `docs/openapi.json`. Branch renamed to `feat/invoices`.                                                                 |
 
 ## Choices made here (not in the brief)
 
 - No invoice 0 when the down payment is 0.
-- The `CONTRACT_SIGNED` handler reads `signed_on` from the contract row in the same transaction, because the event has no `signedOn`.
+- `signedOn` added to `CONTRACT_SIGNED` (`src/domain/events.ts`, a shared file) on Fable's decision; the handler takes it from the event.
 - `src/server/event-handlers.ts` is the registration module (it did not exist). The pay route imports it; wave 2's signing service must import it too.
 - `tests/helpers/invoice-fixture.ts` is a new shared test helper. It writes a quote, application and contract the way signing will.
 - The amortisation tolerance is derived, not the brief's 1 c per 1 000 € (see the feature doc).
@@ -27,5 +28,5 @@ Real clock, Helsinki. Agent: Opus, worktree `friendly-blackwell-6149aa`, base `1
 
 - No route-level tests for the two API routes. The logic under them is tested, and the access check is three lines in each route.
 - The invoice table is not mounted anywhere yet; wave 2 mounts it on the contract page. It has not been rendered in a browser.
-- `signedOn` on the event, and the end-of-term drift policy (snap the last month or not), are open for wave 2.
+- The end-of-term drift policy (snap the last month or not) is open for wave 2.
 - The impact session's handlers need their own line in `src/server/event-handlers.ts`.

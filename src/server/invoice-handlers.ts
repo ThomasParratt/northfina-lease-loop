@@ -10,22 +10,14 @@ import type { TransactionClient } from './audit';
 import { onEvent } from './events';
 import { writeSchedule } from './invoices';
 
-/**
- * Writes the schedule of a just-signed contract. The signing day comes from the contract row
- * the signing wrote earlier in this same transaction, because the event carries no `signedOn`
- * (it is the down payment's invoice day, D5).
- */
+/** Writes the schedule of a just-signed contract, invoice 0 on the signing day (D5). */
 export async function handleContractSigned(
   tx: TransactionClient,
   event: EventOf<'CONTRACT_SIGNED'>,
   vatRates?: VatRates
 ): Promise<number> {
-  const contract = await tx.contract.findUniqueOrThrow({
-    where: { id: event.contractId },
-    select: { signed_on: true },
-  });
   const schedule = buildSchedule({
-    signedOn: contract.signed_on,
+    signedOn: event.signedOn,
     startDate: event.startDate,
     termMonths: event.termMonths,
     downPaymentCents: event.downPaymentCents,

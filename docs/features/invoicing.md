@@ -66,7 +66,7 @@ D1 (rounding), D2 (VAT on the invoice date), D3 (the schedule, billed in advance
 Choices made in this wave, beyond the brief:
 
 - No invoice 0 when the down payment is 0 (above).
-- **`CONTRACT_SIGNED` carries no `signedOn`.** The handler reads the contract row's `signed_on`, which the signing wrote earlier in the same transaction. This is a read of the contract slice's table. Once wave 2 has a read function, or adds `signedOn` to the event, switch to that.
+- **`CONTRACT_SIGNED` carries `signedOn`** (added in this wave, as Fable decided): the signing day and the start day differ by design (D5, D7), and the handler dates invoice 0 from the event, without reading the contract row.
 - The display status is derived and never stored: `upcoming` before the issue day, `due` from issue to due, `overdue` after, `paid` once paid.
 - The pay route takes no body. The day is `todayForRequest()` and the actor is the cookie. Only the contract's customer or admin may list or pay; anyone else gets 403.
 - Paying early is allowed (it is an advance payment). Paying twice answers 409 `INVOICE_ALREADY_PAID`; a lost race rolls back without an audit row.
@@ -100,7 +100,7 @@ payInvoice(db, { id, paidOn, actor }): Promise<{ ok: true; invoice } | { ok: fal
 invoiceCustomerId(db, invoiceId) / contractCustomerId(db, contractId): Promise<string | null>
 
 // src/server/invoice-handlers.ts — registered on CONTRACT_SIGNED via src/server/event-handlers.ts
-handleContractSigned(tx, event, vatRates?): Promise<number>
+handleContractSigned(tx, event, vatRates?): Promise<number>   // event.signedOn dates invoice 0
 
 // src/components/invoice-table.tsx (server component)
 <InvoiceTable contractId today locale t />
@@ -138,4 +138,3 @@ handleContractSigned(tx, event, vatRates?): Promise<number>
 
 - **A prepaid invoice paid late across a rate change.** Under D2, an invoice issued on 31 Dec 2026 and paid on 3 Jan 2027 would legally take 26 % (VAT Act section 15: an advance payment is taxed when it is received). The app keeps the invoice-date rate and says so. Fixing it would mean re-issuing the line on payment.
 - **The end-of-term drift.** Charge the computed balance, or snap the last month to the buyout (above)? This is wave 2's call, with the early exit.
-- **`signedOn` on `CONTRACT_SIGNED`.** Add it to the event, or keep the handler's read of the contract row (above)?

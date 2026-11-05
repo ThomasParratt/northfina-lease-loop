@@ -96,6 +96,7 @@ export async function insertContract(
     customerId: 'cust-aino',
     assetId: 'ebike-003',
     quantity: 1,
+    signedOn: terms.signedOn,
     startDate: terms.startDate,
     endDate: terms.endDate,
     termMonths: terms.termMonths,
