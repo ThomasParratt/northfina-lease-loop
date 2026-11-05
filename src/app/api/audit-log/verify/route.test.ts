@@ -31,7 +31,7 @@ beforeEach(async () => {
 const write = (minute: number) =>
   withAudit(
     holder.db,
-    { actor: 'admin', action: 'demo.noted', entityType: 'demo', entityId: String(minute) },
+    { actor: 'admin', action: 'asset.noted', entityType: 'asset', entityId: `ebike-00${minute}` },
     async () => null,
     `2026-11-05T10:0${minute}:00.000Z`
   );

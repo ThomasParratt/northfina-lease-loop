@@ -13,6 +13,8 @@ import {
   type AuditChainVerdict,
 } from '@/domain/audit';
 import type { Prisma, PrismaClient } from '@/generated/prisma/client';
+import { auditEntrySchema } from '@/domain/rows/audit-entry';
+import { parseRow } from './row-rules';
 
 export type AuditEntry = {
   /** Who did it (a user id or name; there is no login in the starter). */
@@ -42,6 +44,8 @@ export async function withAudit<T>(
   /** The row's instant (ISO); the server clock, read once here, when not given. */
   now: string = new Date().toISOString()
 ): Promise<T> {
+  // Checked before the change runs: an entry that cannot be written must not cost the work.
+  parseRow('audit entry', auditEntrySchema, entry);
   // Normalised to the millisecond ISO form the database gives back, so the hash re-verifies.
   const createdAt = new Date(now).toISOString();
   return db.$transaction(async (tx) => {
