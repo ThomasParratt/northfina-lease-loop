@@ -50,7 +50,7 @@ Card 7's rent lands on an exact half cent and the schema accepts only the rounde
 ## Files
 
 - `src/domain/rows/`: `fields.ts` (the shared fields, `ON_VALID_FIELDS`), `locked-price.ts`, `quote.ts`, `contract.ts`, `invoice.ts`, `application.ts`, `return-assessment.ts`, `asset-usage.ts`, `audit-entry.ts`.
-- Wired in: `src/server/quotes.ts` (`createQuote`), `src/server/invoices.ts` (`writeSchedule`), `src/server/applications.ts` (create, decide, and the JSON read back), `src/server/audit.ts` (`withAudit` checks the entry before the work runs). `src/domain/events.ts` takes the bounded VAT rate.
+- Wired in: `src/server/quotes.ts` (`createQuote`), `src/server/contracts.ts` (signing), `src/server/invoices.ts` (`writeSchedule`), `src/server/applications.ts` (create, decide, and the JSON read back), `src/server/audit.ts` (`withAudit` checks the entry before the work runs). `src/domain/events.ts` takes the bounded VAT rate.
 - `tests/schema-columns.test.ts`, `tests/helpers/row-examples.ts`.
 
 ## Tests that pin the numbers
@@ -63,6 +63,6 @@ Card 7's rent lands on an exact half cent and the schema accepts only the rounde
 
 ## Open questions
 
-- The contract number's format is the contract slice's to choose; the schema only bounds its length.
-- D28 and D29 need the contract slice's migration and the fleet decision (D8).
+- The contract number is `LL-<signing day>-<id tail>` (`src/domain/contracts/number.ts`); the schema only bounds its length, so the format stays the contract slice's.
+- D28 needs the contract slice's migration. D29's guarded write is built (`leaseAvailableAsset`); the optional `current_contract_id` column waits for the fleet decision (D8).
 - `AssetEvent.details_json` is still read as `unknown`; a schema per event kind belongs to the passport's owner.

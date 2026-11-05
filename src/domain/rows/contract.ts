@@ -1,5 +1,5 @@
 // The write schema of a `Contract` row (prisma/schema.prisma): the signed lease, its prices
-// copied from the quote at signing. Ready for the contract slice's signing (wave 2).
+// copied from the quote at signing. Signing parses with it (src/server/contracts.ts).
 import { z } from 'zod';
 import { termEndDate } from '../invoicing/dates';
 import { contractStatusSchema } from '../statuses';
