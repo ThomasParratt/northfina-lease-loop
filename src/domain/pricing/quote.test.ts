@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadCoefficientTable, loadPriceLists, loadVatRates } from '@/data/load';
+import { buildSchedule, scheduleTotals } from '../invoicing/schedule';
 import { breakdownFromFrozen, priceQuote, splitEvenly, type PricingData } from './quote';
 
 // Against the real data pack, so a changed data file fails the pinned card numbers.
@@ -293,6 +294,44 @@ describe('priceQuote, the traps', () => {
       isoDate: '2027-01-04',
     });
     expect(quote.vatRateBasisPoints).toBe(2600);
+  });
+});
+
+describe('the quote total and the invoices (D6, review of PR #11)', () => {
+  function scheduleGross(quote: ReturnType<typeof quoteOf>, signedOn: string) {
+    const schedule = buildSchedule({
+      signedOn,
+      startDate: signedOn,
+      termMonths: quote.termMonths,
+      downPaymentCents: quote.downPaymentCents,
+      monthlyNetCents: quote.monthlyNetCents,
+      vatRates: data.vatRates,
+    });
+    if (!schedule.ok) throw new Error(schedule.reason);
+    return scheduleTotals(schedule.invoices).grossCents;
+  }
+
+  it("the quote's total if you return it equals the sum of the invoicing schedule for the same contract", () => {
+    // Card 7 dated in 2027, so all 49 invoices (down payment + 48 rents) fall in the open-ended 26 %.
+    const quote = quoteOf({
+      ...base,
+      assetId: 'farm-002',
+      termMonths: 48,
+      downPaymentCents: 2_000_000,
+      isoDate: '2027-01-04',
+    });
+    expect(quote.totalIfReturnCents).toBe(scheduleGross(quote, '2027-01-04'));
+  });
+
+  it('is an estimate when the lease crosses a VAT change: the invoices of card 7 from 2026-11-05 sum higher', () => {
+    const quote = quoteOf({
+      ...base,
+      assetId: 'farm-002',
+      termMonths: 48,
+      downPaymentCents: 2_000_000,
+    });
+    expect(quote.vatIsEstimate).toBe(true);
+    expect(scheduleGross(quote, '2026-11-05')).toBeGreaterThan(quote.totalIfReturnCents);
   });
 });
 
