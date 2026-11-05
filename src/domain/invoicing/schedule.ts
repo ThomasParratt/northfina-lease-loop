@@ -117,7 +117,7 @@ export function buildSchedule(input: ScheduleInput): ScheduleResult {
 }
 
 /** Sums net, VAT and gross over the given invoices. */
-export function scheduleTotals(invoices: readonly ScheduledInvoice[]): ScheduleTotals {
+export function scheduleTotals(invoices: readonly ScheduleTotals[]): ScheduleTotals {
   return invoices.reduce<ScheduleTotals>(
     (sum, invoice) => ({
       netCents: sum.netCents + invoice.netCents,
@@ -131,4 +131,39 @@ export function scheduleTotals(invoices: readonly ScheduledInvoice[]): ScheduleT
 /** True when two neighbouring invoices carry different VAT rates: the page explains why. */
 export function hasVatRateChange(invoices: readonly { vatRateBasisPoints: number }[]): boolean {
   return new Set(invoices.map((invoice) => invoice.vatRateBasisPoints)).size > 1;
+}
+
+export type VatChange = {
+  oldRateBasisPoints: number;
+  newRateBasisPoints: number;
+  /** The last day the old rate is in force. */
+  lastOldDay: string;
+  /** The day the new rate takes effect, from the rates table (not the invoice day). */
+  firstNewDay: string;
+};
+
+/**
+ * The first VAT rate change between neighbouring invoices, with the days it happens on, for
+ * the explanation under the invoice table; null when every invoice has the same rate.
+ */
+export function firstVatChange(
+  invoices: readonly { issueDate: string; vatRateBasisPoints: number }[],
+  vatRates: VatRates
+): VatChange | null {
+  for (let index = 1; index < invoices.length; index += 1) {
+    const previous = invoices[index - 1];
+    const current = invoices[index];
+    if (!previous || !current || previous.vatRateBasisPoints === current.vatRateBasisPoints) {
+      continue;
+    }
+    const rate = vatRateOn(vatRates, current.issueDate);
+    const firstNewDay = rate.ok ? rate.validFrom : current.issueDate;
+    return {
+      oldRateBasisPoints: previous.vatRateBasisPoints,
+      newRateBasisPoints: current.vatRateBasisPoints,
+      lastOldDay: addDays(firstNewDay, -1),
+      firstNewDay,
+    };
+  }
+  return null;
 }

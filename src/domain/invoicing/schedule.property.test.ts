@@ -66,7 +66,9 @@ type Priced = {
 };
 
 /** Prices a random contract the way signing will; null when the pack cannot finance it. */
-function price(sample: fc.RecordValue<typeof contractArb>): Priced | null {
+type ContractSample = typeof contractArb extends fc.Arbitrary<infer T> ? T : never;
+
+function price(sample: ContractSample): Priced | null {
   const asset = assets[sample.assetIndex % assets.length]!;
   const listed = listPriceOn(priceLists, asset.id, sample.pricedOn);
   if (!listed.ok) return null;

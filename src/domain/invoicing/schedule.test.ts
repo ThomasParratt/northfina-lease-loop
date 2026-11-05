@@ -3,6 +3,7 @@ import { loadVatRates } from '@/data/load';
 import type { VatRates } from '@/data/schemas';
 import {
   buildSchedule,
+  firstVatChange,
   hasVatRateChange,
   rentPeriod,
   scheduleTotals,
@@ -225,5 +226,35 @@ describe('buildSchedule: edges', () => {
 
   it('sums an empty list to zero', () => {
     expect(scheduleTotals([])).toEqual({ netCents: 0, vatCents: 0, grossCents: 0 });
+  });
+});
+
+describe('firstVatChange (the explanation under the table)', () => {
+  it('finds card 3’s change: 25.5 % until 2026-12-31, 26 % from 2027-01-01', () => {
+    const invoices = schedule({
+      signedOn: '2026-09-15',
+      startDate: '2026-09-15',
+      termMonths: 24,
+      downPaymentCents: 0,
+      monthlyNetCents: 6_957,
+    });
+    expect(firstVatChange(invoices, vatRates)).toEqual({
+      oldRateBasisPoints: 2_550,
+      newRateBasisPoints: 2_600,
+      lastOldDay: '2026-12-31',
+      firstNewDay: '2027-01-01',
+    });
+  });
+
+  it('is null when every invoice has one rate, and for no invoices', () => {
+    const invoices = schedule({
+      signedOn: '2027-03-01',
+      startDate: '2027-03-01',
+      termMonths: 12,
+      downPaymentCents: 0,
+      monthlyNetCents: 1_000,
+    });
+    expect(firstVatChange(invoices, vatRates)).toBeNull();
+    expect(firstVatChange([], vatRates)).toBeNull();
   });
 });

@@ -5,7 +5,14 @@
 //
 // Contract first (AGENTS.md, team rule 2): a slice's first commit adds its row here.
 import { z } from 'zod';
-import { assetCategorySchema, assetSchema, assetStatusSchema, isoDateSchema } from '@/data/schemas';
+import {
+  assetCategorySchema,
+  assetSchema,
+  assetStatusSchema,
+  centsSchema,
+  isoDateSchema,
+} from '@/data/schemas';
+import { invoiceKindSchema, invoiceStatusSchema } from '@/domain/statuses';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -70,6 +77,30 @@ export const auditLogEntrySchema = z.object({
   details: z.unknown(),
 });
 
+// ---------- invoices ----------
+
+export const listInvoicesQuerySchema = z.object({ contractId: z.string().min(1) });
+
+export const invoiceIdParamsSchema = z.object({ id: z.string().min(1) });
+
+/** One invoice: money in cents, the VAT rate in basis points (2550 = 25.5 %). */
+export const invoiceViewSchema = z.object({
+  id: z.string(),
+  contractId: z.string(),
+  sequence: z.number().int().nonnegative(),
+  kind: invoiceKindSchema,
+  periodStart: isoDateSchema.nullable(),
+  periodEnd: isoDateSchema.nullable(),
+  issueDate: isoDateSchema,
+  dueDate: isoDateSchema,
+  netCents: centsSchema,
+  vatRateBasisPoints: z.number().int().nonnegative(),
+  vatCents: centsSchema,
+  grossCents: centsSchema,
+  status: invoiceStatusSchema,
+  paidOn: isoDateSchema.nullable(),
+});
+
 // ---------- the table ----------
 
 export const ROUTES: readonly RouteDefinition[] = [
@@ -120,6 +151,23 @@ export const ROUTES: readonly RouteDefinition[] = [
     summary: 'The 50 newest audit rows, newest first',
     tag: 'audit',
     response: z.array(auditLogEntrySchema),
+  },
+  {
+    method: 'GET',
+    path: '/api/invoices',
+    summary: "A contract's invoices in sequence order (the contract's customer or admin)",
+    tag: 'invoices',
+    query: listInvoicesQuerySchema,
+    response: z.array(invoiceViewSchema),
+  },
+  {
+    method: 'POST',
+    path: '/api/invoices/[id]/pay',
+    summary:
+      "Pay an invoice on the request's day: audited, emits INVOICE_PAID (the contract's customer or admin)",
+    tag: 'invoices',
+    params: invoiceIdParamsSchema,
+    response: invoiceViewSchema,
   },
 ];
 

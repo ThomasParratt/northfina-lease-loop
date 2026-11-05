@@ -3,7 +3,12 @@
 // signing transaction; paying an invoice is one audited change that emits INVOICE_PAID.
 import type { Invoice as InvoiceRow } from '@/generated/prisma/client';
 import type { ScheduledInvoice } from '@/domain/invoicing';
-import { invoiceKindSchema, invoiceStatusSchema } from '@/domain/statuses';
+import {
+  invoiceKindSchema,
+  invoiceStatusSchema,
+  type InvoiceKind,
+  type InvoiceStatus,
+} from '@/domain/statuses';
 import { withAudit, type TransactionClient } from './audit';
 import { emit } from './events';
 import type { PrismaClient } from './prisma-client';
@@ -13,7 +18,7 @@ export type InvoiceView = {
   id: string;
   contractId: string;
   sequence: number;
-  kind: ReturnType<typeof invoiceKindSchema.parse>;
+  kind: InvoiceKind;
   periodStart: string | null;
   periodEnd: string | null;
   issueDate: string;
@@ -22,7 +27,7 @@ export type InvoiceView = {
   vatRateBasisPoints: number;
   vatCents: number;
   grossCents: number;
-  status: ReturnType<typeof invoiceStatusSchema.parse>;
+  status: InvoiceStatus;
   paidOn: string | null;
 };
 
