@@ -95,6 +95,7 @@ One page per feature slice under `docs/features/` (template: [docs/features/READ
 - `docs/decisions.md`: every decision with its reason; `docs/stack-notes.md`: the traps of this stack; `docs/log/`: one time log per task; `docs/reviews/`: the wave reviews.
 - `tests/meta-rules.test.ts`: the engineering rules checked against the repository itself, in `npm test`.
 - The practice repo (`ThomasParratt/leasing-platform`) is a read-only parts bin cloned beside this one; port functions with their tests, never structure.
+- A branch is named after the feature it builds, `<type>/<slice>` with the conventional-commit type as prefix: `feat/pricing`, `feat/invoices`, `chore/wave0-upkeep`, `test/wave1-hardening`; a session that starts on a generated name renames it with `git branch -m` before its first push.
 - Nobody pushes to `main` directly, not even docs or tooling: every change is a branch and a pull request on the fork, CI runs on the PR, and it is squash-merged with a conventional subject.
 
 ### Database
