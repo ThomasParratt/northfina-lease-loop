@@ -13,7 +13,7 @@ Session: Opus, from the coordinating session's brief. Base `origin/main` at `c7a
 | 22:44 | Fix 4: `contractBalanceOn` skips `cancelled` (`632a7ca`). Fix 5: the apply page's expired notice, checked on a dev server on two demo days (`38068a8`).                                                                 |
 | 22:48 | Fix 6: six owner reads take a transaction client (`3256762`). Fix 7 needed nothing: Thomas fixed every #18 finding before merging.                                                                                      |
 | 22:51 | Review finding: a second half-up in `market-value.ts` (`5013487`).                                                                                                                                                      |
-| 22:53 | Decisions: statuses, D36 found truncated on `main` and rewritten, the test-isolation pointer and the start-date row (`ef54f1b`); the mentor questions (`326320f`).                                                      |
+| 22:53 | Decisions: statuses, D36 found truncated on `main` and rewritten, the test-isolation row and the start-date row (`ef54f1b`); the mentor questions (`326320f`).                                                          |
 | 22:56 | README: team notes to `docs/team-notes.md`, Features one link per page, `tests/readme-original.test.ts` (checked to fail on a reworded heading) (`d543c45`).                                                            |
 | 22:58 | STATUS and the feature pages (`e611dcc`); every log closed (`85cda8b`).                                                                                                                                                 |
 | 23:04 | #19 and #23 had been squash-merged meanwhile. Merging `main` showed that the earlier merge of the branch heads left keys the squash dropped; rebuilt the merge as main's tree plus this branch's own diff (`f2d6e69`).  |
@@ -26,7 +26,7 @@ Session: Opus, from the coordinating session's brief. Base `origin/main` at `c7a
 
 ## Left undone
 
-- `docs/features/test-isolation.md` was not on `origin` yet, so D41 is a pointer row; the hardening PR fills the text.
+- D41 (test isolation) was filled from `docs/features/test-isolation.md` once #26 landed.
 - The "Tests that pin the numbers" lines in `contracts.md` (still "the 90-day boundary"), `catalogue.md` and `invoicing.md` (the new transition and D35 tests): the hardening session's sections.
 - #25's validation was merged, not reviewed.
 - The 375 px check of every page after #19 (Johannes's TODO) is in the hardening brief.
