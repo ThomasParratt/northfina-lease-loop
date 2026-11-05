@@ -24,25 +24,27 @@ monthly net      = financed × factorMillionths / 1 000 000, rounded half up   (
 monthly VAT      = monthly net × rate in basis points / 10 000, half up        (D1, rounded from the net, per line)
 monthly gross    = monthly net + monthly VAT
 buyout           = financed × buyout % of the term, half up                     (15 % at 36 months)
-total if return  = down payment + term × monthly gross                          (D6)
-total if buy     = total if return + buyout                                     (D6)
+down, buyout VAT = down payment, buyout × the same rate, half up, per line        (like invoice 0 and the buyout invoice)
+total if return  = gross down payment + term × monthly gross                    (D6)
+total if buy     = total if return + gross buyout                               (D6)
 ```
 
-The VAT in the totals is the quote day's rate and is labelled an estimate: VAT is charged at each invoice's date (D2), so the fictional 26 % from 1 Jan 2027 moves the later rents of a lease that crosses it. The down payment and the buyout are shown VAT excluded, as the data pack gives them.
+The VAT in the totals is the quote day's rate and is labelled an estimate: VAT is charged at each invoice's date (D2), so the fictional 26 % from 1 Jan 2027 moves the later rents of a lease that crosses it. The down payment and the buyout are listed net (as the data pack gives them) with their with-VAT amount beside them, and the totals use the with-VAT amounts, so a total is what the invoices add up to while the rate stays the same.
 
 ### Card 1, line by line (`ebike-003`, 36 months, no down payment, 5 Nov 2026)
 
-| Line                   | Number                                          |
-| ---------------------- | ----------------------------------------------- |
-| List price (v1)        | 389 000                                         |
-| Financed               | 389 000 − 0 = 389 000 → band B                  |
-| Factor (B, 36)         | 0.027584 → 27 584 millionths                    |
-| Monthly net            | 389 000 × 27 584 / 10⁶ = 10 730.18 → **10 730** |
-| VAT 25.5 %             | 10 730 × 2550 / 10⁴ = 2 736.15 → **2 736**      |
-| Monthly gross          | **13 466**                                      |
-| Buyout (15 %)          | **58 350**                                      |
-| Total if you return it | 36 × 13 466 = **484 776**                       |
-| Total if you buy it    | 484 776 + 58 350 = **543 126**                  |
+| Line                   | Number                                                     |
+| ---------------------- | ---------------------------------------------------------- |
+| List price (v1)        | 389 000                                                    |
+| Financed               | 389 000 − 0 = 389 000 → band B                             |
+| Factor (B, 36)         | 0.027584 → 27 584 millionths                               |
+| Monthly net            | 389 000 × 27 584 / 10⁶ = 10 730.18 → **10 730**            |
+| VAT 25.5 %             | 10 730 × 2550 / 10⁴ = 2 736.15 → **2 736**                 |
+| Monthly gross          | **13 466**                                                 |
+| Buyout (15 %)          | **58 350**                                                 |
+| Total if you return it | 36 × 13 466 = **484 776**                                  |
+| Buyout VAT             | 58 350 × 25.5 % = 14 879.25 → **14 879**; gross **73 229** |
+| Total if you buy it    | 484 776 + 73 229 = **558 005**                             |
 
 ### Card 6, four bikes (`ebike-004`, 36 months)
 
@@ -102,20 +104,19 @@ Server (`src/server/quotes.ts`): `loadPricingData()`, `createQuote(db, { assetId
 
 ## Tests that pin the numbers
 
-| Number                                                                                    | Test                                                                                                                                                           |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Card 1: B, 27 584, 10 730, 2 736, 13 466, 58 350, both totals                             | `quote.test.ts` "card 1"; `compare.test.ts` row 36; `quotes.test.ts` stored row                                                                                |
-| Card 2: 349 000 → 9 627, 321 100 → 8 857, locked, v2 cheaper                              | `quote.test.ts` "card 2"; `quote-status.test.ts`; `quotes.test.ts` "getQuote, card 2"                                                                          |
-| Card 6: 2 196 000, band C, 58 993; one alone B 15 144; the split                          | `quote.test.ts` "card 6"; `quotes.test.ts` "card 6"                                                                                                            |
-| Card 7: 12 500 000, band D, 272 038, buyout 1 000 000                                     | `quote.test.ts` "card 7"                                                                                                                                       |
-| `laptop-002` A, `laptop-003` B; `ebike-010` below; `farm-006` above                       | `quote.test.ts` "the traps"                                                                                                                                    |
-| Quantity 0, down = price, bad term, unknown asset, no list, no VAT                        | `quote.test.ts` "the traps"                                                                                                                                    |
-| Valid until 2026-11-19, expired on the 20th, leap days                                    | `days.test.ts`, `quote-status.test.ts`                                                                                                                         |
-| Reserved `ebike-009` cannot be quoted; nothing written on refusal                         | `quotes.test.ts`                                                                                                                                               |
-| Cards 1, 2, 6, 7, the band edges and the table limits on the data pack (scenario harness) | `src/domain/scenarios/card-01-happy-path.test.ts`, `card-02-price-lock.test.ts`, `card-06-who-can-sign.test.ts`, `card-07-big-ticket.test.ts`, `traps.test.ts` |
+| Number                                                              | Test                                                                                  |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Card 1: B, 27 584, 10 730, 2 736, 13 466, 58 350, both totals       | `quote.test.ts` "card 1"; `compare.test.ts` row 36; `quotes.test.ts` stored row       |
+| Card 2: 349 000 → 9 627, 321 100 → 8 857, locked, v2 cheaper        | `quote.test.ts` "card 2"; `quote-status.test.ts`; `quotes.test.ts` "getQuote, card 2" |
+| Card 6: 2 196 000, band C, 58 993; one alone B 15 144; the split    | `quote.test.ts` "card 6"; `quotes.test.ts` "card 6"                                   |
+| Card 7: 12 500 000, band D, 272 038, buyout 1 000 000               | `quote.test.ts` "card 7"                                                              |
+| `laptop-002` A, `laptop-003` B; `ebike-010` below; `farm-006` above | `quote.test.ts` "the traps"                                                           |
+| Quantity 0, down = price, bad term, unknown asset, no list, no VAT  | `quote.test.ts` "the traps"                                                           |
+| Valid until 2026-11-19, expired on the 20th, leap days              | `days.test.ts`, `quote-status.test.ts`                                                |
+| Reserved `ebike-009` cannot be quoted; nothing written on refusal   | `quotes.test.ts`                                                                      |
 
 ## Open questions
 
-- **D8, for the mentors:** is "4 ×" in card 6 meant as one financed amount (band C, our reading) or four separate leases (band B each)? Every asset in the pack is one serialised unit and there is one `ebike-004`; this slice prices the fleet and does not assign units (that is the contract's job).
-- Should the totals add VAT to the down payment and the buyout for a consumer? The data pack gives both net; we show them net and say so.
+- **D8, for the mentors:** is "4 ×" in card 6 meant as one financed amount (band C, our reading) or four separate leases (band B each)? Every asset in the pack is one serialised unit and there is one `ebike-004`; this slice prices the fleet and does not assign units (that is the contract's job). The catalogue has one row per asset id, so a quote for four `ebike-004` checks only that one row is `available`, and a contract that locks the asset would lock that one row for all four units. Before the contract slice builds on it, confirm whether D8 means N units on one asset row or N rows (one per serialised unit), which would need a unit table or a quantity per asset.
+- Settled in review (PR #11): the totals put VAT on the down payment and the buyout at the quote-date rate, so they match the invoices (card 7: 510 000 of VAT on the 2 000 000 down payment, 255 000 on the 1 000 000 buyout).
 - The quote shows the totals at the quote-day VAT rate. A lease that crosses 1 Jan 2027 will invoice later months at 26 %; the invoicing slice owns that, and the quote's note says the totals are an estimate.

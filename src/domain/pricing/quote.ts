@@ -63,9 +63,15 @@ export type QuoteBreakdown = FrozenQuote & {
   monthlyGrossCents: number;
   /** The buyout as a share of the financed amount, in basis points (1500 = 15 %). */
   buyoutPercentBasisPoints: number;
-  /** Down payment + every month's gross rent (D6). */
+  /** VAT on the down payment at the quote-date rate (it is invoiced as invoice 0, D5). */
+  downPaymentVatCents: number;
+  downPaymentGrossCents: number;
+  /** VAT on the buyout at the quote-date rate (the buyout is invoiced when the customer buys). */
+  buyoutVatCents: number;
+  buyoutGrossCents: number;
+  /** Gross down payment + every month's gross rent (D6): what the invoices add up to. */
   totalIfReturnCents: number;
-  /** Down payment + every month's gross rent + the buyout (D6). */
+  /** The same + the gross buyout (D6). */
   totalIfBuyCents: number;
   /** Always true: VAT is charged at each invoice's date, so a later rate change moves the
    * totals. The quote shows them at the quote-date rate and says they are an estimate. */
@@ -187,12 +193,16 @@ export function priceQuote(data: PricingData, input: QuoteInput): QuoteResult {
 
 /**
  * The full breakdown from the frozen numbers alone: VAT and gross per month (D1, VAT rounded
- * from the net), the totals both ways (D6) and the per-unit split (D8). Needs no data pack,
+ * from the net), the totals both ways (D6) and the per-unit split (D8). Every line of the totals
+ * carries VAT at the quote-date rate, rounded per line like an invoice line, so the totals are
+ * what the invoices add up to when the rate does not change. Needs no data pack,
  * so a stored quote is shown exactly as it was priced.
  */
 export function breakdownFromFrozen(frozen: FrozenQuote): QuoteBreakdown {
   const { vatCents, grossCents } = splitVat(frozen.monthlyNetCents, frozen.vatRateBasisPoints);
-  const totalIfReturnCents = frozen.downPaymentCents + grossCents * frozen.termMonths;
+  const down = splitVat(frozen.downPaymentCents, frozen.vatRateBasisPoints);
+  const buyout = splitVat(frozen.buyoutCents, frozen.vatRateBasisPoints);
+  const totalIfReturnCents = down.grossCents + grossCents * frozen.termMonths;
   const perUnit =
     frozen.quantity > 1
       ? {
@@ -222,8 +232,12 @@ export function breakdownFromFrozen(frozen: FrozenQuote): QuoteBreakdown {
     // because one cent of buyout rounding is under half a basis point from 300 € up.
     buyoutPercentBasisPoints: roundHalfUpDiv(frozen.buyoutCents * 10_000, frozen.financedCents),
     buyoutCents: frozen.buyoutCents,
+    downPaymentVatCents: down.vatCents,
+    downPaymentGrossCents: down.grossCents,
+    buyoutVatCents: buyout.vatCents,
+    buyoutGrossCents: buyout.grossCents,
     totalIfReturnCents,
-    totalIfBuyCents: totalIfReturnCents + frozen.buyoutCents,
+    totalIfBuyCents: totalIfReturnCents + buyout.grossCents,
     vatIsEstimate: true,
     perUnit,
   };

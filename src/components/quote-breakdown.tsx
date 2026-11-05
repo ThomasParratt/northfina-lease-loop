@@ -76,7 +76,9 @@ export function QuoteBreakdownList({ quote, locale, t }: QuoteBreakdownListProps
   items.push(
     {
       label: t('pricing.line.downPayment'),
-      hint: t('pricing.hint.downPayment'),
+      hint: t('pricing.hint.downPayment', {
+        gross: formatEuro(quote.downPaymentGrossCents, intlLocale[locale]),
+      }),
       value: money(quote.downPaymentCents),
       numeric: true,
     },
@@ -133,6 +135,7 @@ export function QuoteBreakdownList({ quote, locale, t }: QuoteBreakdownListProps
       label: t('pricing.line.buyout', { months: quote.termMonths }),
       hint: t('pricing.hint.buyout', {
         percent: formatBasisPoints(quote.buyoutPercentBasisPoints, locale),
+        gross: formatEuro(quote.buyoutGrossCents, intlLocale[locale]),
       }),
       value: money(quote.buyoutCents),
       numeric: true,

@@ -2359,6 +2359,26 @@
                               "minimum": 0,
                               "maximum": 9007199254740991
                             },
+                            "downPaymentVatCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "downPaymentGrossCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "buyoutVatCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "buyoutGrossCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
                             "totalIfReturnCents": {
                               "type": "integer",
                               "minimum": 0,
@@ -2461,6 +2481,10 @@
                             "monthlyGrossCents",
                             "buyoutPercentBasisPoints",
                             "buyoutCents",
+                            "downPaymentVatCents",
+                            "downPaymentGrossCents",
+                            "buyoutVatCents",
+                            "buyoutGrossCents",
                             "totalIfReturnCents",
                             "totalIfBuyCents",
                             "vatIsEstimate",
@@ -2737,6 +2761,26 @@
                               "minimum": 0,
                               "maximum": 9007199254740991
                             },
+                            "downPaymentVatCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "downPaymentGrossCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "buyoutVatCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "buyoutGrossCents": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
                             "totalIfReturnCents": {
                               "type": "integer",
                               "minimum": 0,
@@ -2839,6 +2883,10 @@
                             "monthlyGrossCents",
                             "buyoutPercentBasisPoints",
                             "buyoutCents",
+                            "downPaymentVatCents",
+                            "downPaymentGrossCents",
+                            "buyoutVatCents",
+                            "buyoutGrossCents",
                             "totalIfReturnCents",
                             "totalIfBuyCents",
                             "vatIsEstimate",
@@ -3137,6 +3185,26 @@
                                   "minimum": 0,
                                   "maximum": 9007199254740991
                                 },
+                                "downPaymentVatCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "downPaymentGrossCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "buyoutVatCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "buyoutGrossCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
                                 "totalIfReturnCents": {
                                   "type": "integer",
                                   "minimum": 0,
@@ -3239,6 +3307,10 @@
                                 "monthlyGrossCents",
                                 "buyoutPercentBasisPoints",
                                 "buyoutCents",
+                                "downPaymentVatCents",
+                                "downPaymentGrossCents",
+                                "buyoutVatCents",
+                                "buyoutGrossCents",
                                 "totalIfReturnCents",
                                 "totalIfBuyCents",
                                 "vatIsEstimate",
