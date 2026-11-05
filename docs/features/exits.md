@@ -98,6 +98,8 @@ Market value: age (D11) = 12 × (2027 − 2026) + (6 − 1) = **17 months**. The
 
 ## Open questions
 
+The first five are written up as proposed decisions D30 to D34 in `docs/decisions.md` (the D11 age for card 8, `ended_early`, the cancelled rents, the end-of-term return, what a cancelled invoice owes); the team decides them.
+
 - **The market value of card 8.** D11 (from the model year) gives 243 125 as new on 2027-06-04 and 202 523 as good with 1 800 km. The brief's 311 200 is the curve at 7 months from the start of the lease. Should D11 use the contract's start date as the first-lease date for a first-life item? Changing it is one argument: call `monthsBetween(startDate, today)` instead of `ageInMonths`.
 - **The condition and usage are self-reported** until the assessment (wave 3). The exit bills on what the customer says. The assessment may find another condition, and nothing re-bills yet.
 - **A return at the end of the term issues no invoice.** The cost shown is the refurbishment, but the invoice kinds (`down_payment`, `rent`, `buyout`, `early_exit`) have no refurbishment charge, so nothing is billed and the page says the lessor bears it. Options: add a `refurbishment` kind (a text column, no migration), or decide that normal wear at the end is the lessor's.

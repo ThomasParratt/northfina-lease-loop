@@ -4,7 +4,8 @@
 // slice's `endContract` (the row parsed, a conditional write on `active`, so a second exit finds
 // nothing to change), then one event emitted on the same `tx`. The handlers do the other
 // slices' parts: the invoices bill the exit and cancel the unpaid rents, the catalogue sets the
-// asset `sold` or `returned` (D22), the passport writes its entry. A handler that throws rolls the whole exit back.
+// asset `sold` or `returned` (D22), the passport writes its entry. A handler that throws
+// rolls the whole exit back.
 import type { AssetCondition, UsageUnit } from '@/data/schemas';
 import { planExit, type ExitMode, type ExitRefusal, type PlannedExit } from '@/domain/exits';
 import { ADMIN_ACTOR } from './actor';
