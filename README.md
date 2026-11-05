@@ -86,6 +86,7 @@ Kept by each wave's hardening agent (AGENTS.md rule 9); the draft of the submiss
 One page per feature slice under `docs/features/` (template: [docs/features/README.md](docs/features/README.md)):
 
 - [Catalogue, demo clock, actor and audit trail](docs/features/catalogue.md) (wave 0)
+- [Circular impact and the passport](docs/features/circular-impact.md) (wave 1)
 
 ## Team notes
 
@@ -115,6 +116,10 @@ When one change touches several slices' rows at one instant, the owner emits one
 ### Pages
 
 `/[locale]` is the catalogue, `/[locale]/demo` the demo page (the clock and, from wave 1, one button per scenario card), `/[locale]/audit` the newest 50 audit rows. The header nav links all three, beside the "continue as" actor picker and the language switcher; it wraps on a phone. The layout reads the customers and the current actor once per request for the picker. Pages are built from the kit in `src/components/ui` (`PageHeader`, `Card`, `Button`, `LinkButton`, `Badge`, `DefinitionList`, `Field`, `Notice`, `Money`, `DateText`, `NavLinks`, one `index.ts`) and the team's design tokens in `src/app/globals.css` (D21): pages use the roles `brand`, `focus`, `success`, `warning`, `danger`, `info`, `neutral`, `surface`, `raised`, `muted`, `line`, `line-strong`, `ink`, `ink-muted` (e.g. `bg-brand`, `text-ink-muted`, `bg-success-soft`), never raw colour classes or the scales under them. Each token switches with the colour scheme, so no page needs a `dark:` class.
+
+### Passport and impact
+
+Every lease, return, buyout and pass-on writes a row to the asset event log (`AssetEvent`, ordered by id) through the handlers in `src/server/passport-handlers.ts`, registered by `src/server/event-handlers.ts` (a service that emits imports that module). `src/domain/passport.ts` folds the log into lives (`livesFromEvents`, `passportFor`; the lives `previous_lives` counts come first, undated, 24 months assumed). `src/domain/second-life/co2.ts` is the CO2 method of D15: a later life avoids footprint × (1 − refurbishment share) × its months ÷ the design life, capped at the design life that is left; the first life earns nothing; grams rounded once to whole kg. `GET /api/assets/[id]/passport` returns the asset, its lives and the CO2; the page is `/[locale]/assets/[id]/passport`, and the catalogue shows the fleet total in the impact strip. Card 10: `ebike-008` has saved 29 kg from its second life and reaches 58 kg after a 24-month third life. The method, worked example and open questions: [docs/features/circular-impact.md](docs/features/circular-impact.md).
 
 ### Demo clock
 
