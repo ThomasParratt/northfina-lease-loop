@@ -4,7 +4,8 @@
 // numbers and never re-prices (D7); a later price list only changes what the page explains.
 import { assetStatusSchema, isoDateSchema } from '@/data/schemas';
 import { contractSignedSchema, type ContractSigned } from '@/domain/events';
-import { addDays, termEndDate } from '@/domain/invoicing/dates';
+import { addDays } from '@/domain/civil-days';
+import { termEndDate } from '@/domain/invoicing/dates';
 import type { FrozenQuote, QuoteStatus } from '@/domain/pricing';
 import { applicationDecisionSchema, type ContractStatus } from '@/domain/statuses';
 import { contractNumber } from './number';
