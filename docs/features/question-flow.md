@@ -45,9 +45,9 @@ Each answer is checked for its shape (a choice is one of the options, a date a r
 
 The server runs the same checks on submit and answers 400 `INVALID_ANSWER` with `{ questionId, problem }`.
 
-### Answers against the customer record (D36)
+### Answers against the customer record (D36, D38)
 
-The applicant is a customer we know. `recordMismatches` compares four answers with the record: customer type, birth date, country (a country outside FI, SE, EE on record is answered "other") and business id (spaces ignored). A difference is not refused, but the case is never approved by a rule: it goes to `manual_review` with `answer_differs_from_record { question }` for each, after `pep`; the decision page names the question in the visitor's language. A failed rule still rejects first.
+The applicant is a customer we know, and only that customer applies in their own name: the `customerId` of `POST /api/applications` must be the actor (D17), else 403 `NOT_APPLICANT` (D38). Without it, Mikko could send Aino's id with her answers and be approved in her name. `recordMismatches` compares four answers with the record: customer type, birth date, country (a country outside FI, SE, EE on record is answered "other") and business id (spaces ignored). A difference is not refused, but the case is never approved by a rule: it goes to `manual_review` with `answer_differs_from_record { question }` for each, after `pep`; the decision page names the question in the visitor's language. A failed rule still rejects first.
 
 **The trap**: Mikko (`cust-mikko`, a consumer born 2009-03-10) answers "Who is leasing?" with **company** and a valid business id. The age question is not asked any more, so the rules alone would approve him; with the record check he goes to `manual_review` with `answer_differs_from_record { question: q_customer_type }`.
 
@@ -94,6 +94,7 @@ Typo Trading Oy (`cust-broken-id`) has **1234567-8**: 1·7 + 2·9 + 3·10 + 4·5
 - **D35** birth dates from 120 years ago up to today; under 18 stays a reason.
 - **D36** an answer that differs from the customer record holds the case for a person.
 - **D37** only the named signatory signs, on the company's account; the applicant cannot name themself.
+- **D38** only the acting customer applies, in their own name.
 - Inside the slice (see `docs/log/wave1-questions.md`): `customer_type` follows the applicant's answer; a PEP known from the record counts below 10 000 EUR; affordability only where the bank asks for income; a failed rule always rejects.
 
 ## Pure functions
@@ -137,7 +138,7 @@ sameEmail(a?: string, b?: string): boolean;
 mayDecideAsSignatory({ actor, applicantId, signatoryEmail, claimedBy }): boolean;
 
 // src/server/applications.ts
-createApplication(db, { quoteId, customerId, answers, today, actor }); // → { ok, application } | { ok: false, reason }
+createApplication(db, { quoteId, customerId, answers, today, actor }); // not_applicant unless actor = customerId (D38) // → { ok, application } | { ok: false, reason }
 decideApplication(db, { id, decision, reviewedBy, today, actor }); // not_signatory (D37)
 getApplication(db, id): Promise<ApplicationView | null>;
 ```
@@ -164,6 +165,7 @@ getApplication(db, id): Promise<ApplicationView | null>;
 | Admin review, signatory sign-off, final states                                  | `applications.test.ts` "decideApplication (D10)"                                                                                    |
 | Birth date range 1906-11-05 to 2026-11-05; 2030 and 1800 refused                | `answers.test.ts` "birthDateRange", "answerProblem"; `applications.test.ts` "a birth date in the future …"                          |
 | Mikko answering "company" → `manual_review`, not approved                       | `record-check.test.ts`, `eligibility.test.ts` "answers that differ …"; `applications.test.ts` "card 5 Mikko answering …"            |
+| Mikko cannot apply in Aino's name; nor the admin or anonymous                   | `applications.test.ts` "card 5 Mikko cannot apply in Aino's name …"                                                                 |
 | Only the named signatory signs, on the company's account; not oneself           | `signatory.test.ts`; `applications.test.ts` "card 6 cannot be signed by …", "cannot name themself …"                                |
 | Two decisions at the same instant: one wins, the other writes nothing           | `applications.test.ts` "two decisions at the same instant …"                                                                        |
 | Cards 5, 6, 7 and every customer × category on the data pack (scenario harness) | `src/domain/scenarios/card-05-too-young.test.ts`, `card-06-who-can-sign.test.ts`, `card-07-big-ticket.test.ts`, `customers.test.ts` |
@@ -171,7 +173,6 @@ getApplication(db, id): Promise<ApplicationView | null>;
 ## Open questions
 
 - The signatory signs by giving the named e-mail on the company's account (no login, D17, D37); the actor is audited. Anyone at the company's account who knows that address can still sign: a real flow would e-mail the signatory a one-time link.
-- The applicant's `customerId` in the body of `POST /api/applications` is not checked against the actor cookie, so one customer can apply in another's name. Found with D36, not fixed here.
 - Quantity is not limited by customer type: a consumer can lease 20 e-bikes "for commuting" (with D8, issue #13).
 - Should a PEP below 10 000 EUR (not asked by the bank, known from the record) go to manual review? We say yes; the bank's targeting suggests the question only matters from 10 000 EUR.
 - Affordability uses the chosen term's gross rent; the page could suggest the shortest term that passes (Mikko's 36 months).

@@ -123,6 +123,7 @@ export type CreateApplicationResult =
         | 'quote_not_found'
         | 'customer_not_found'
         | 'quote_expired'
+        | 'not_applicant'
         | 'incomplete_answers'
         | 'invalid_answer';
       questionId?: string;
@@ -131,7 +132,8 @@ export type CreateApplicationResult =
     };
 
 /**
- * Prunes the answers to the questions that apply, checks that every one is answered and
+ * Only the customer who is acting applies, in their own name (D38): not another customer, not
+ * the admin, not anonymous. Then it prunes the answers to the questions that apply, checks that every one is answered and
  * valid on the day (D35, D37), compares them with the customer record (D36), evaluates the
  * eligibility rules and writes the application with its audit row.
  */
@@ -139,6 +141,7 @@ export async function createApplication(
   db: PrismaClient,
   input: CreateApplicationInput
 ): Promise<CreateApplicationResult> {
+  if (input.actor !== input.customerId) return { ok: false, reason: 'not_applicant' };
   const found = await flowSetupFor(db, input.quoteId, input.customerId);
   if (!found.ok) return found;
   const { context, quoteValidUntil, customerIsPep } = found.setup;

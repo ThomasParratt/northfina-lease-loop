@@ -190,6 +190,29 @@ describe('createApplication', () => {
     });
   });
 
+  it('the trap: card 5 Mikko cannot apply in Aino’s name with her answers (D38)', async () => {
+    const result = await createApplication(db, {
+      quoteId: await card5(),
+      customerId: 'cust-aino',
+      answers: answersOf('cust-aino'),
+      today: TODAY,
+      actor: 'cust-mikko',
+    });
+    expect(result).toEqual({ ok: false, reason: 'not_applicant' });
+    for (const actor of ['admin', 'anonymous']) {
+      const other = await createApplication(db, {
+        quoteId: await card1(),
+        customerId: 'cust-aino',
+        answers: answersOf('cust-aino'),
+        today: TODAY,
+        actor,
+      });
+      expect(other, actor).toEqual({ ok: false, reason: 'not_applicant' });
+    }
+    expect(await db.application.count()).toBe(0);
+    expect(await db.auditLog.count()).toBe(0);
+  });
+
   it('unknown quote, unknown customer and an expired quote', async () => {
     expect(await apply('nope', 'cust-aino')).toEqual({ ok: false, reason: 'quote_not_found' });
     const quoteId = await card1();

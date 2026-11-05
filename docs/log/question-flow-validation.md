@@ -9,9 +9,9 @@ Real clock, Helsinki. Coding agent: Opus, in the main checkout, branch `fix/ques
 | 22:33            | Domain: `answerProblem` and `birthDateRange` in `answers.ts` (D35, D37), `record-check.ts` (D36), `signatory.ts` (D37), the held reason in `eligibility.ts`. Server: `createApplication` and `decideApplication`, 403 `NOT_SIGNATORY`. 544 tests green.                                                                                        |
 | 22:34            | Pages: the flow's specific error messages and the date picker's `min`/`max`; the decision page names the differing question and shows the sign form on the company's account only. Message keys in the four files.                                                                                                                             |
 | 22:35            | Decisions D35 to D37 (D30 to D34 are taken by the open exits PR #20), the feature page, this log.                                                                                                                                                                                                                                              |
+| 22:41            | The survey's last hole, fixed on the same branch: `createApplication` answered for any `customerId` in the body, so Mikko could apply as Aino with her answers. Test first (failed), then `not_applicant` unless the actor is the customer, 403 `NOT_APPLICANT`; D38.                                                                          |
 
 ## Left undone
 
 - The signatory's identity is still only an e-mail typed on the company's account; a real check needs an e-mailed one-time link.
-- `POST /api/applications` does not check the body's `customerId` against the actor (open question in `question-flow.md`).
 - The other findings of the survey (quantity by customer type, sanity of income, revenue and registry answers) were left out on purpose: the user chose the first three.
