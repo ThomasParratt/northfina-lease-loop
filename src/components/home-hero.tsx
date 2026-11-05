@@ -15,7 +15,7 @@ export function HomeHero({ locale, t }: { locale: Locale; t: Translate }) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="mx-auto grid max-w-6xl items-center gap-10 px-4 pt-12 pb-14 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:pt-20"
+      className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-4 pt-12 pb-14 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:pt-20"
     >
       <div>
         <h1

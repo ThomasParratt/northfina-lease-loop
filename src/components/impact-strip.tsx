@@ -16,7 +16,7 @@ export async function ImpactStrip({ today, locale, t }: ImpactStripProps) {
 
   return (
     <section aria-labelledby="impact-title" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
+      <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
         <div>
           <h2 id="impact-title" className="text-4xl">
             {t('impact.title')}
@@ -41,7 +41,7 @@ export async function ImpactStrip({ today, locale, t }: ImpactStripProps) {
         </div>
 
         <div className="rounded-xl bg-brand-soft p-6 sm:p-8">
-          <div aria-hidden="true" className="flex items-center justify-center gap-2 sm:gap-4">
+          <div aria-hidden="true" className="flex items-center justify-center gap-1 sm:gap-4">
             <LifeStamp
               life={t('stamp.life', { n: 1 })}
               note={t('stamp.new')}
@@ -49,7 +49,7 @@ export async function ImpactStrip({ today, locale, t }: ImpactStripProps) {
               size="lg"
               tilt={-8}
             />
-            <span className="w-6 border-t-4 border-dotted border-line-strong sm:w-10" />
+            <span className="hidden w-10 border-t-4 border-dotted border-line-strong sm:block" />
             <LifeStamp
               life={t('stamp.life', { n: 2 })}
               note={t('stamp.checked')}
@@ -57,7 +57,7 @@ export async function ImpactStrip({ today, locale, t }: ImpactStripProps) {
               size="lg"
               tilt={6}
             />
-            <span className="w-6 border-t-4 border-dotted border-line-strong sm:w-10" />
+            <span className="hidden w-10 border-t-4 border-dotted border-line-strong sm:block" />
             <LifeStamp
               life={t('stamp.life', { n: 3 })}
               note={t('stamp.checked')}
