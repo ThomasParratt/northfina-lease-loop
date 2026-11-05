@@ -91,7 +91,7 @@ export type EarlyExitCost = {
 };
 
 function refurbishmentLines(plan: RefurbishmentPlan, quantity: number): ExitLine[] {
-  return plan.steps.map((step) =>
+  return plan.steps.map((step): ExitLine =>
     step.kind === 'fixed'
       ? {
           code: 'refurb_fixed',

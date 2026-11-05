@@ -14,7 +14,7 @@ import type { AssetCategory, AssetCondition, ResidualCurves, UsageUnit } from '@
 import { factorToMillionths, percentToBasisPoints } from '../money-math';
 
 type CurvePoint = readonly [number, number];
-type UsageRule = ResidualCurves['usage_adjustment'][string];
+type UsageRule = ResidualCurves['usage_adjustment'][AssetCategory];
 export type Usage = { unit: UsageUnit; value: number };
 
 /** A percent in basis points as an exact fraction: 62.5 % is 6250 / 1, 62.25 % is 74 700 / 12. */
