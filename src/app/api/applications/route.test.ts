@@ -302,16 +302,18 @@ describe('POST /api/applications/[id]/decision', () => {
     );
   });
 
-  it('a manual review is 403 ADMIN_ONLY for the applicant, anonymous and another customer', async () => {
+  it.each([
+    ['the applicant', 'cust-haapala'],
+    ['anonymous', undefined],
+    ['another customer', 'cust-aino'],
+  ])('a manual review is 403 ADMIN_ONLY for %s', async (_who, actor) => {
     const id = await pending('cust-haapala');
-    for (const actor of ['cust-haapala', undefined, 'cust-aino']) {
-      actAs(actor);
-      expectRefusal(
-        await postDecision(id, { decision: 'approved', reviewedBy: 'me' }),
-        403,
-        'ADMIN_ONLY'
-      );
-    }
+    actAs(actor);
+    expectRefusal(
+      await postDecision(id, { decision: 'approved', reviewedBy: 'me' }),
+      403,
+      'ADMIN_ONLY'
+    );
     expect(await holder.db.auditLog.count({ where: { action: 'application.decided' } })).toBe(0);
   });
 
