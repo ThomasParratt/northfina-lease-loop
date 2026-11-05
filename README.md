@@ -27,6 +27,8 @@ You should see the asset catalogue in English. Switch to Finnish, Swedish or Est
 
 | Command                 | What it does                                                   |
 | ----------------------- | -------------------------------------------------------------- |
+| `npm run setup`         | Set up a checkout or worktree: dependencies, database, hooks   |
+| `npm run setup`         | Set up a checkout or worktree: dependencies, database, hooks   |
 | `npm run dev`           | Start the app with hot reload                                  |
 | `npm test`              | Run all tests once (`npm run test:watch` to keep them running) |
 | `npm run test:coverage` | Tests with the 60 % coverage gate                              |
@@ -62,6 +64,14 @@ Everything in the skeleton is replaceable. Keep the rules, not necessarily the c
 - `docs/decisions.md`: every decision with its reason; `docs/stack-notes.md`: the traps of this stack; `docs/log/`: one time log per task; `docs/reviews/`: the wave reviews.
 - `tests/meta-rules.test.ts`: the engineering rules checked against the repository itself, in `npm test`.
 - The practice repo (`ThomasParratt/leasing-platform`) is a read-only parts bin cloned beside this one; port functions with their tests, never structure.
+
+### Database
+
+SQLite through Prisma 7, schema in `prisma/schema.prisma`, `snake_case` columns. Models: `Asset` and `Customer` (both seeded from the data pack by `npm run db:setup`, idempotently), `Quote`, `Application`, `Contract`, `Invoice`, `AssetEvent` (the passport; its autoincrement id is the order), `ReturnAssessment` and `AuditLog`. Who owns and writes each model is `docs/kickoff-brief.md` section 6. Money is integer cents, rent factors integer millionths, VAT rates basis points, business dates ISO day strings. SQLite has no enums: the allowed decisions, contract and invoice statuses, invoice kinds and event kinds are Zod enums in `src/domain/statuses.ts`. Customers are read through `listCustomers` / `getCustomer` in `src/server/customers.ts`, in the `Customer` shape of `src/data/schemas.ts`.
+
+### Who is acting
+
+There is no login (D17). The "continue as" picker (`src/components/actor-picker.tsx`) posts `{ actor }` (a customer id or `admin`) to `POST /api/actor`, which sets the `lease-loop-actor` cookie; `DELETE /api/actor` clears it. Pages and routes call `readActor(db)` from `src/server/actor.ts` once per request and pass the actor to `withAudit`; an unknown or missing cookie reads as `anonymous`.
 
 ### API
 
