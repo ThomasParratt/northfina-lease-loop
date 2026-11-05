@@ -1,0 +1,9 @@
+# Time log: hardening the question flow's tests
+
+Real clock, Helsinki. Coding agent: Opus, in a worktree slot, branch `test/question-flow-hardening` cut from `origin/fix/question-flow-validation` at `4d89a1a` (Thomas's PR #25, which already carried `main` at `a271bca`). Stacked on that PR: a draft PR with base `fix/question-flow-validation`.
+
+| When             | What                                                                                                                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-05 22:52 | Read `AGENTS.md`, the PR's domain modules (`answers.ts`, `record-check.ts`, `signatory.ts`), `engine.ts`, `eligibility.ts`, `src/server/applications.ts`, the routes, the question bank, the customers, the feature page. Branch cut; `git merge origin/main` was a no-op (the PR had it). |
+| 22:58            | `npm run setup` (1 min 54 s, `node_modules` copied) and `npm run db:setup` inside it. Baseline `npm run check:all` in the background: green at 23:05, 97 files, 984 tests, 11 todo.                                                                                                        |
+| 23:06            | The scenario harness `applyFor` now takes the same steps as `createApplication`: `answerProblem` on every answer and `recordMismatches` against the record, so the themed tests run on real deals without a database.                                                                      |
