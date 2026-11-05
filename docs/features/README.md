@@ -12,6 +12,6 @@ One page per feature slice, shipped in the same pull request as its code (AGENTS
 - [row-schemas.md](row-schemas.md): the write schema of the stored rows and the test that holds them to `schema.prisma` (wave 2).
 - [look.md](look.md): the colour roles, the price tag, the life stamp, the drawings and the staff strip (D21).
 - [audit-chain.md](audit-chain.md): the tamper-evident audit chain, its verifier, the badge with the head hash and the tamper demo (wave 2).
-- [test-isolation.md](test-isolation.md): how the tests stay independent: one reset, named handlers, no concurrency (D41, wave 2).
+- [test-isolation.md](test-isolation.md): how the tests stay independent: one reset, named handlers, no concurrency (D43, wave 2).
 
 The team's per-feature state (missing, in progress, done, verified) is [STATUS.md](STATUS.md); the README's "Status" table is the per-card view for the judges.
