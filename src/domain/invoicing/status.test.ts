@@ -52,6 +52,22 @@ describe('contractBalanceOn', () => {
     expect(contractBalanceOn(invoices, { i2: '2026-12-25' }, '2026-12-20').openCents).toBe(13_466);
   });
 
+  it('skips a cancelled rent: an early exit replaced it, so it owes nothing (D35)', () => {
+    const withCancelled = [
+      ...invoices,
+      { ...rent('i4', '2027-02-05', 13_520), status: 'cancelled' as const },
+    ];
+    const result = contractBalanceOn(withCancelled, {}, '2027-03-01');
+    expect(result).toEqual({
+      openCents: 13_466 + 13_520,
+      overdueCents: 13_466 + 13_520,
+      upcomingCents: 0,
+      paidCents: 13_466,
+      openInvoiceIds: ['i2', 'i3'],
+      overdueInvoiceIds: ['i2', 'i3'],
+    });
+  });
+
   it('shows an invoice due today as open but not overdue', () => {
     const result = contractBalanceOn(invoices, {}, '2027-01-05');
     expect(result.openInvoiceIds).toEqual(['i2', 'i3']);
