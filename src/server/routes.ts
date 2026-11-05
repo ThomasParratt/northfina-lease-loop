@@ -5,7 +5,7 @@
 //
 // Contract first (AGENTS.md, team rule 2): a slice's first commit adds its row here.
 import { z } from 'zod';
-import { assetCategorySchema, assetSchema, assetStatusSchema } from '@/data/schemas';
+import { assetCategorySchema, assetSchema, assetStatusSchema, isoDateSchema } from '@/data/schemas';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -45,6 +45,18 @@ export const actorBodySchema = z.strictObject({
 
 /** A customer id, `admin` or `anonymous`. */
 export const actorResponseSchema = z.object({ actor: z.string().min(1) });
+
+// ---------- demo clock ----------
+
+/** Body of `POST /api/demo/clock`: a real day to travel to, or `null` to go back to today. */
+export const demoClockBodySchema = z.strictObject({
+  asOf: isoDateSchema.nullable(),
+});
+
+export const demoClockResponseSchema = z.object({
+  asOf: isoDateSchema.nullable(),
+  today: isoDateSchema,
+});
 
 // ---------- audit log ----------
 
@@ -92,6 +104,15 @@ export const ROUTES: readonly RouteDefinition[] = [
     params: assetIdParamsSchema,
     body: changeAssetStatusBodySchema,
     response: assetSchema,
+  },
+  {
+    method: 'POST',
+    path: '/api/demo/clock',
+    summary:
+      'Set the demo clock to a day, or clear it with null (the one date the browser may send)',
+    tag: 'demo',
+    body: demoClockBodySchema,
+    response: demoClockResponseSchema,
   },
   {
     method: 'GET',
