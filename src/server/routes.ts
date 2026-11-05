@@ -36,6 +36,16 @@ export const changeAssetStatusBodySchema = z.strictObject({
   actor: z.string().trim().min(1).max(100),
 });
 
+// ---------- actor ----------
+
+/** Body of `POST /api/actor`. Whether the actor exists is checked against the database. */
+export const actorBodySchema = z.strictObject({
+  actor: z.string().min(1).max(100),
+});
+
+/** A customer id, `admin` or `anonymous`. */
+export const actorResponseSchema = z.object({ actor: z.string().min(1) });
+
 // ---------- audit log ----------
 
 export const auditLogEntrySchema = z.object({
@@ -51,6 +61,21 @@ export const auditLogEntrySchema = z.object({
 // ---------- the table ----------
 
 export const ROUTES: readonly RouteDefinition[] = [
+  {
+    method: 'POST',
+    path: '/api/actor',
+    summary: 'Act as a customer or admin: sets the actor cookie (no login, D17)',
+    tag: 'actor',
+    body: actorBodySchema,
+    response: actorResponseSchema,
+  },
+  {
+    method: 'DELETE',
+    path: '/api/actor',
+    summary: 'Stop acting: clears the actor cookie, so the visitor is anonymous',
+    tag: 'actor',
+    response: actorResponseSchema,
+  },
   {
     method: 'GET',
     path: '/api/assets',
