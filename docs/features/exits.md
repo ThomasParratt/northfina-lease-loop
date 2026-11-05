@@ -15,7 +15,7 @@ A customer (or admin) ends an active contract by buying the item, giving it back
 
 **Market value** (`data/residual-curves.json`, read exactly as its `how_to_use` says): net list price at the first lease × curve(age) × condition multiplier × usage adjustment.
 
-- Age (D11): whole months from 1 January of the model year to the valuation day.
+- Age (D31, provisional; refines D11): a first-life item (no previous lives) counts the whole months since its lease started; an item with previous lives keeps D11, whole months from 1 January of the model year to the valuation day.
 - Curve: linear interpolation between the two points around the age; the last value is held beyond the last point.
 - Usage: `percent_per_step` for each whole `step` of usage, never beyond `max_total_percent` (e-bike: −2 % per 1 000 km, at most −20 %).
 - Rounding (D1): each factor becomes an exact integer (the curve as a fraction of basis points, the condition in millionths, the usage in basis points). The product is taken in BigInt and rounded half up to the cent once.
@@ -35,25 +35,25 @@ A customer (or admin) ends an active contract by buying the item, giving it back
 
 ### Card 8, worked line by line
 
-Card 1: `ebike-003` (Nordvolt Trail 500, model year 2026), 36 months, no down payment, signed and started 2026-11-05, financed 389 000, band B (7.9 % a year), rent 10 730 net, buyout 58 350, last day 2029-11-04. Aino has paid 7 rents and leaves on **2027-06-04**, the last day of month 7. She reports **good, 1 800 km** (an assumption of the tests: the pack says nothing about her bike).
+Card 1: `ebike-003` (Nordvolt Trail 500, model year 2026), 36 months, no down payment, signed and started 2026-11-05, financed 389 000, band B (7.9 % a year), rent 10 730 net, buyout 58 350, last day 2029-11-04. Aino has paid 7 rents and leaves on **2027-06-05**, when month 7 is complete: the 8th period starts that day, unpaid, and is cancelled with the rest. She reports **good, 1 800 km** (an assumption of the tests: the pack says nothing about her bike).
 
-| Line                                            | Buy                        | Return / pass on           |
-| ----------------------------------------------- | -------------------------- | -------------------------- |
-| Rents paid                                      | 7 of 36                    | 7 of 36                    |
-| Still owed after 7 rents (D14)                  | 330 675                    | 330 675                    |
-| For comparison: the 29 rents still to come      | 311 170                    | –                          |
-| For comparison: the buyout at the end           | 58 350                     | –                          |
-| Market value today                              | –                          | − 202 523                  |
-| Still owed after the value, never below 0       | –                          | = 128 152                  |
-| Refurbishment: safety inspection (always)       | –                          | + 4 500                    |
-| **You pay, net**                                | **330 675**                | **132 652**                |
-| Invoice (kind `early_exit`, 26 % on 2027-06-04) | 330 675 + 85 976 = 416 651 | 132 652 + 34 490 = 167 142 |
-| Contract status                                 | `ended_early`              | `ended_early`              |
-| Rents cancelled                                 | 29 (8 to 36)               | 29                         |
+| Line                                            | Buy                        | Return / pass on         |
+| ----------------------------------------------- | -------------------------- | ------------------------ |
+| Rents paid                                      | 7 of 36                    | 7 of 36                  |
+| Still owed after 7 rents (D14)                  | 330 675                    | 330 675                  |
+| For comparison: the 29 rents still to come      | 311 170                    | –                        |
+| For comparison: the buyout at the end           | 58 350                     | –                        |
+| Market value today                              | –                          | − 259 230                |
+| Still owed after the value, never below 0       | –                          | = 71 445                 |
+| Refurbishment: safety inspection (always)       | –                          | + 4 500                  |
+| **You pay, net**                                | **330 675**                | **75 945**               |
+| Invoice (kind `early_exit`, 26 % on 2027-06-05) | 330 675 + 85 976 = 416 651 | 75 945 + 19 746 = 95 691 |
+| Contract status                                 | `ended_early`              | `ended_early`            |
+| Rents cancelled                                 | 29 (8 to 36)               | 29                       |
 
-Market value: age (D11) = 12 × (2027 − 2026) + (6 − 1) = **17 months**. The curve between 12 months (70 %) and 24 months (52 %) gives 70 − 18 × 5 / 12 = **62.5 %**. Good is × 0.85; 1 800 km is one whole step, −2 %, so × 0.98. 389 000 × 0.625 × 0.85 × 0.98 = 202 523.125, so **202 523**. As new with 0 km it would be 389 000 × 0.625 = **243 125**, and the return 330 675 − 243 125 + 4 500 = 92 050.
+Market value (D31): the bike is on its first life, so its age is the whole months since the lease started, 2026-11-05 to 2027-06-05: **7 months**. The curve between 6 months (82 %) and 12 months (70 %) gives 82 − 1 × 12 / 6 = **80 %**. Good is × 0.85; 1 800 km is one whole step, −2 %, so × 0.98. 389 000 × 0.80 × 0.85 × 0.98 = 259 229.6, so **259 230**. As new with 0 km it is 389 000 × 0.80 = **311 200**, the brief's number, and the return 330 675 − 311 200 + 4 500 = **23 975**.
 
-**The gap from the brief's 311 200.** The brief pins card 8's market value at 311 200. That is 389 000 × **80 %**, the curve at **7 months** (82 % at 6, 70 % at 12, so 82 − 2), new, 0 km: the age counted from the start of the lease, not from the model year. D11 counts from 1 January 2026, so the data gives 17 months and 243 125 (as new). The tests pin what D11 and the pack give. `market-value.test.ts` also reproduces 311 200 with `monthsBetween('2026-11-05', '2027-06-05')` to show where the number comes from. For a first-life item the contract's start date is the first-lease date, so the decision may want to change; see open questions.
+**Chosen against (D11 for every item).** Counting from 1 January of the model year gives 17 months, 62.5 % on the curve: 202 523 as good with 1 800 km (return 132 652) and 243 125 as new (return 92 050). `market-value.test.ts` pins both rules.
 
 ### Card 9 and card 10: the exits they start from
 
@@ -63,17 +63,17 @@ Market value: age (D11) = 12 × (2027 − 2026) + (6 − 1) = **17 months**. The
 
 ## Decisions
 
-- **D11**: the age from 1 January of the model year (`ageInMonths`).
+- **D31** (provisional, 2026-11-06, to be confirmed with the mentors in the morning): the curve age of a first-life item from its lease start; **D11** (`ageInMonths`, from the model year) for an item with previous lives. `curveAgeInMonths` picks the rule.
 - **D14**: the balance by amortisation, buy = balance, return = max(0, balance − market value) + refurbishment, shown line by line.
 - **D16**: pass on names the next person (a picker of the customers, the leaving customer left out). It is assessed and costed like a return. The next person's application and the new contract with `previous_contract_id` are wave 3.
 - **D22**: `CONTRACT_BOUGHT_OUT` sets the asset `sold`; `UNIT_RETURNED` and `UNIT_PASSED_ON` set it `returned`, on the bus (`src/server/catalogue-handlers.ts`), each a conditional write on `leased`.
 - **D23**: every status (the contract's, the invoice's, the asset's), mode, condition, reason and invoice kind is parsed with its schema before use or write; a bad value throws.
 - **D1, D2**: one half-up rounding per amount, the VAT per invoice line at the rate of the invoice day.
-- The rule for `ended_early` and the cancelled rents are this slice's: written above and listed under open questions for `docs/decisions.md`.
+- **D32 to D35** (proposed): `ended_early` for every exit before the end, every unpaid rent cancelled, no bill for an end-of-term return, a cancelled invoice owes nothing.
 
 ## Pure functions
 
-- `ageInMonths(modelYear, isoDay) → number` (`src/domain/residual/age.ts`): D11, at least 0. `monthsBetween(fromIso, toIso) → number`: whole months, the day clamped like the invoice periods.
+- `curveAgeInMonths({ modelYear, previousLives, leaseStart }, isoDay) → number` (`src/domain/residual/age.ts`): D31, lease months for a first-life item, else D11. `ageInMonths(modelYear, isoDay) → number`: D11, at least 0. `monthsBetween(fromIso, toIso) → number`: whole months, the day clamped like the invoice periods.
 - `marketValueCents({ listPriceCents, category, ageMonths, condition, usage }, curves) → { valueCents, ageMonths, curvePercent, conditionMultiplier, usageSteps, usageAdjustmentPercent }` (`src/domain/residual/market-value.ts`). The page fields (`curvePercent`, …) are for display; the value uses the exact fractions. `curvePercent(points, age)` and `usageAdjustment(rule, usage)` are exported too.
 - `refurbishmentPlan({ category, condition, usage, targetCondition }, costs) → { steps, fixedCents, upgradeCents, totalCents, usageAfter, conditionAfter }` (`src/domain/refurbishment/plan.ts`). A step is `{ kind: 'fixed', id, costCents, resetsUsage, quantity }` or `{ kind: 'upgrade', id, from, to, costCents }`. `parseWhenRule(text)` throws on an unknown rule.
 - `earlyExitCost({ contract, annualInterestPercent, invoices, today, asset, reported, curves, costs }) → { atOrAfterEnd, monthsPaid, balanceCents, balanceRows, remainingRentsNetCents, marketValue, refurbishment, buy, return }` (`src/domain/exits/early-exit.ts`). `buy` and `return` are `{ totalCents, lines }`. A line is `{ code, effect: add | subtract | subtotal | info | total, params }`, with every amount in `params.amountCents`.
@@ -89,18 +89,18 @@ Market value: age (D11) = 12 × (2027 − 2026) + (6 − 1) = **17 months**. The
 
 ## Tests that pin the numbers
 
-- `src/domain/residual/age.test.ts`: 17 months on 2027-06-05, 0 on 2026-01-15, and card 9's `ebike-007` at 46 months.
-- `src/domain/residual/market-value.test.ts`: on a curve point 231 455, between two points 243 125, beyond the last 97 250, the half-up 1.5 → 2, card 8 = 202 523, and the brief's 311 200 reproduced at 7 months from the first lease.
+- `src/domain/residual/age.test.ts`: D11 17 months on 2027-06-05 and 0 on 2026-01-15; D31 7 months for card 8 on 2027-06-05 (6 on 2027-06-04); an item with previous lives on D11; card 9's `ebike-007` at 46 months.
+- `src/domain/residual/market-value.test.ts`: on a curve point 231 455, between two points 243 125, beyond the last 97 250, the half-up 1.5 → 2, card 8 by D31 311 200 as new, and by D11 (chosen against) 202 523 as good with 1 800 km.
 - `src/domain/refurbishment/plan.test.ts`: card 9 (35 000 + 4 500 + 12 000 = 51 500, usage 0; 39 500 when kept fair), 14 999 km, poor to good in order, no downgrade, the farm machine's started blocks, unknown rules throw.
-- `src/domain/exits/early-exit.test.ts`: card 8 buy 330 675 with 311 170 and 58 350 beside it, return 132 652 line by line, as new 92 050, never below zero, the end date (buyout 58 350, return refurbishment 51 500), months paid.
-- `src/domain/exits/exit-plan.test.ts`: card 8's buy event and its invoice 330 675 + 85 976 = 416 651, the return 132 652 + 34 490, 29 rents cancelled, an overdue rent cancelled too, the end-of-term statuses and the 58 350 + 15 171 buyout, every refusal, a zero exit without an invoice, D23 throws.
+- `src/domain/exits/early-exit.test.ts`: card 8 buy 330 675 with 311 170 and 58 350 beside it, return 75 945 line by line (market value 259 230), as new 23 975, never below zero, the end date (buyout 58 350, return refurbishment 51 500), months paid.
+- `src/domain/exits/exit-plan.test.ts`: card 8's buy event and its invoice 330 675 + 85 976 = 416 651, the return 75 945 + 19 746, 29 rents cancelled, an overdue rent cancelled too, the end-of-term statuses and the 58 350 + 15 171 buyout, every refusal, a zero exit without an invoice, D23 throws.
 - `src/server/exits.test.ts` (real test DB, signed through `signContract`, rents paid through `payInvoice`): every write of buy, return and pass-on together, preview = exit and writes nothing, a second exit refused with nothing written, a throwing handler rolls everything back.
 
 ## Open questions
 
-The first five are written up as proposed decisions D30 to D34 in `docs/decisions.md` (the D11 age for card 8, `ended_early`, the cancelled rents, the end-of-term return, what a cancelled invoice owes); the team decides them.
+Written up in `docs/decisions.md`: D31 (card 8's curve age, provisional) and D32 to D35 (proposed: `ended_early`, the cancelled rents, the end-of-term return, what a cancelled invoice owes).
 
-- **The market value of card 8.** D11 (from the model year) gives 243 125 as new on 2027-06-04 and 202 523 as good with 1 800 km. The brief's 311 200 is the curve at 7 months from the start of the lease. Should D11 use the contract's start date as the first-lease date for a first-life item? Changing it is one argument: call `monthsBetween(startDate, today)` instead of `ageInMonths`.
+- **Card 8: yes, provisional: market value by months since lease start (D31), mentor question open.** Decided by Johannes on 2026-11-06, to be confirmed with the mentors in the morning. If they answer D11 for every item, `curveAgeInMonths` returns `ageInMonths` for every item: a one-line change, and card 8 is 202 523 as good with 1 800 km.
 - **The condition and usage are self-reported** until the assessment (wave 3). The exit bills on what the customer says. The assessment may find another condition, and nothing re-bills yet.
 - **A return at the end of the term issues no invoice.** The cost shown is the refurbishment, but the invoice kinds (`down_payment`, `rent`, `buyout`, `early_exit`) have no refurbishment charge, so nothing is billed and the page says the lessor bears it. Options: add a `refurbishment` kind (a text column, no migration), or decide that normal wear at the end is the lessor's.
 - **`cancelled`** was added to `invoiceStatuses` (a text column, no migration). `contractBalanceOn` in invoicing does not know it yet: it would count a cancelled rent as open. Nothing calls it on an ended contract today; the invoicing owner should skip `cancelled` there.
