@@ -27,7 +27,7 @@ describe('compareTerms', () => {
       monthlyGrossCents: 13_466,
       buyoutCents: 58_350,
       totalIfReturnCents: 36 * 13_466,
-      totalIfBuyCents: 36 * 13_466 + 58_350,
+      totalIfBuyCents: 36 * 13_466 + 73_229,
     });
   });
 

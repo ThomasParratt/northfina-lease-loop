@@ -41,14 +41,16 @@ describe('priceQuote, card 1 (the worked example: ebike-003, 36 months, no down 
     });
   });
 
-  it('gives the total cost two ways (D6): 36 × 13 466 if you return, plus 58 350 if you buy', () => {
+  it('gives the total cost two ways (D6): 36 × 13 466 if you return, plus the gross buyout if you buy', () => {
     const quote = quoteOf({ ...base, assetId: 'ebike-003', termMonths: 36 });
     expect(quote.totalIfReturnCents).toBe(36 * 13_466);
-    expect(quote.totalIfBuyCents).toBe(36 * 13_466 + 58_350);
+    // The buyout carries VAT like every invoice line: 58 350 × 25.5 % = 14 879.25 → 14 879.
+    expect(quote).toMatchObject({ buyoutVatCents: 14_879, buyoutGrossCents: 73_229 });
+    expect(quote.totalIfBuyCents).toBe(36 * 13_466 + 73_229);
     expect(quote.vatIsEstimate).toBe(true);
   });
 
-  it('adds the down payment to both totals', () => {
+  it('adds the down payment with its VAT to both totals', () => {
     const quote = quoteOf({
       ...base,
       assetId: 'ebike-003',
@@ -56,8 +58,10 @@ describe('priceQuote, card 1 (the worked example: ebike-003, 36 months, no down 
       downPaymentCents: 89_000,
     });
     expect(quote.financedCents).toBe(300_000);
-    expect(quote.totalIfReturnCents).toBe(89_000 + 36 * quote.monthlyGrossCents);
-    expect(quote.totalIfBuyCents).toBe(quote.totalIfReturnCents + quote.buyoutCents);
+    // 89 000 × 25.5 % = 22 695: the down payment is invoiced with VAT (invoice 0, D5).
+    expect(quote).toMatchObject({ downPaymentVatCents: 22_695, downPaymentGrossCents: 111_695 });
+    expect(quote.totalIfReturnCents).toBe(111_695 + 36 * quote.monthlyGrossCents);
+    expect(quote.totalIfBuyCents).toBe(quote.totalIfReturnCents + quote.buyoutGrossCents);
   });
 });
 
@@ -134,6 +138,23 @@ describe('priceQuote, card 7 (farm-002, 48 months, 2 000 000 down: the half cent
       monthlyNetCents: 272_038,
       buyoutCents: 1_000_000,
     });
+  });
+
+  it('puts VAT on the 2 000 000 down payment and the buyout in the totals', () => {
+    const quote = quoteOf({
+      ...base,
+      assetId: 'farm-002',
+      termMonths: 48,
+      downPaymentCents: 2_000_000,
+    });
+    expect(quote).toMatchObject({
+      downPaymentVatCents: 510_000,
+      downPaymentGrossCents: 2_510_000,
+      buyoutVatCents: 255_000,
+      buyoutGrossCents: 1_255_000,
+    });
+    expect(quote.totalIfReturnCents).toBe(2_510_000 + 48 * quote.monthlyGrossCents);
+    expect(quote.totalIfBuyCents).toBe(quote.totalIfReturnCents + 1_255_000);
   });
 });
 
