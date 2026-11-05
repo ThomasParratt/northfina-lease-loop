@@ -6,6 +6,7 @@ import {
   eligibilityInputFromAnswers,
   grossFromNetCents,
   parseEurosToCents,
+  validateAnswer,
 } from './answers';
 import { isComplete, pruneAnswers, type FlowContext } from './engine';
 
@@ -101,6 +102,44 @@ describe('answersFromCustomer', () => {
           const answers = pruneAnswers(bank, ctx, answersFromCustomer(c));
           expect(isComplete(bank, ctx, answers)).toBe(true);
         }
+      }
+    }
+  });
+});
+
+describe('validateAnswer', () => {
+  const q = (id: string) => bank.find((x) => x.id === id)!;
+
+  it('choice answers must be one of the options', () => {
+    expect(validateAnswer(q('q_can_sign'), 'no')).toBe(true);
+    expect(validateAnswer(q('q_can_sign'), 'maybe')).toBe(false);
+  });
+
+  it('dates must be real ISO days', () => {
+    expect(validateAnswer(q('q_birth_date'), '2008-02-29')).toBe(true);
+    expect(validateAnswer(q('q_birth_date'), '2009-02-29')).toBe(false);
+    expect(validateAnswer(q('q_birth_date'), '10.3.2009')).toBe(false);
+  });
+
+  it('money is cents as digits, e-mail needs an @ and a dot, lists need an item', () => {
+    expect(validateAnswer(q('q_monthly_income'), '320000')).toBe(true);
+    expect(validateAnswer(q('q_monthly_income'), '3200.00')).toBe(false);
+    expect(validateAnswer(q('q_email'), 'a@example.com')).toBe(true);
+    expect(validateAnswer(q('q_email'), 'a@b')).toBe(false);
+    expect(validateAnswer(q('q_beneficial_owners'), ['Jussi Haapala (60 %)'])).toBe(true);
+    expect(validateAnswer(q('q_beneficial_owners'), [])).toBe(false);
+    expect(validateAnswer(q('q_beneficial_owners'), 'Jussi')).toBe(false);
+  });
+
+  it('a wrong business id check digit is still a valid answer (eligibility rejects it)', () => {
+    expect(validateAnswer(q('q_business_id'), '1234567-8')).toBe(true);
+    expect(validateAnswer(q('q_business_id'), '   ')).toBe(false);
+  });
+
+  it('every persona answer passes validation', () => {
+    for (const c of customers) {
+      for (const [id, answer] of Object.entries(answersFromCustomer(c))) {
+        expect(validateAnswer(q(id), answer), `${c.id} ${id}`).toBe(true);
       }
     }
   });

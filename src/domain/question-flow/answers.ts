@@ -1,5 +1,5 @@
 // From the applicant's answers to the eligibility input, and the small conversions around it.
-import type { Customer } from '@/data/schemas';
+import type { Customer, Question } from '@/data/schemas';
 import type { Answer, Answers, FlowContext } from './engine';
 import type { EligibilityInput } from './eligibility';
 
@@ -12,11 +12,45 @@ const text = (answer: Answer | undefined): string | undefined =>
  * an amount (negative, more than two decimals, letters).
  */
 export function parseEurosToCents(input: string): number | null {
-  const cleaned = input.replace(/[s€]/g, ''); // s includes the no-break space
+  const cleaned = input.replace(/[\s€]/g, ''); // \s includes the no-break space
   const match = /^(\d+)(?:[.,](\d{1,2}))?$/.exec(cleaned);
   if (!match) return null;
   const cents = Number(match[1]) * 100 + Number((match[2] ?? '').padEnd(2, '0'));
   return Number.isSafeInteger(cents) ? cents : null;
+}
+
+/**
+ * Whether an answer has the shape its question type needs. Choice: one of the options;
+ * date: an ISO day; money: integer cents as digits; email: something@something; list: at
+ * least one non-blank item; text: not blank. The business-id check digit is an eligibility
+ * rule (a wrong one is a reason, not a typo to bounce), so text only needs a value.
+ */
+export function validateAnswer(question: Question, answer: Answer): boolean {
+  if (question.type === 'list') {
+    return Array.isArray(answer) && answer.length > 0 && answer.every((a) => a.trim() !== '');
+  }
+  const value = text(answer);
+  if (value === undefined) return false;
+  switch (question.type) {
+    case 'choice':
+      return question.options?.includes(value) ?? false;
+    case 'date':
+      return /^\d{4}-\d{2}-\d{2}$/.test(value) && isRealDay(value);
+    case 'money':
+      return /^\d{1,13}$/.test(value);
+    case 'email':
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    case 'text':
+      return value.length <= 500;
+  }
+}
+
+function isRealDay(iso: string): boolean {
+  const [y, m, d] = iso.split('-').map(Number);
+  if (m < 1 || m > 12 || d < 1) return false;
+  const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+  return d <= days;
 }
 
 /** A money answer (integer cents as digits) → cents, or undefined. */
