@@ -30,6 +30,7 @@ export const POST = handleRoute(async (request) => {
     case 'invalid_answer':
       return fail(400, 'INVALID_ANSWER', 'An answer is not valid', {
         questionId: result.questionId,
+        problem: result.problem,
       });
   }
 });

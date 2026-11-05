@@ -4,12 +4,16 @@ import { randomUUID } from 'node:crypto';
 import type { Application as ApplicationRow } from '@/generated/prisma/client';
 import { loadCoefficientTable, loadQuestions } from '@/data/load';
 import { applicationDecisionSchema, type ApplicationDecision } from '@/domain/statuses';
+import type { Customer } from '@/data/schemas';
 import {
+  answerProblem,
   eligibilityInputFromAnswers,
   grossFromNetCents,
-  validateAnswer,
+  type AnswerProblem,
 } from '@/domain/question-flow/answers';
 import { evaluate } from '@/domain/question-flow/eligibility';
+import { recordMismatches } from '@/domain/question-flow/record-check';
+import { mayDecideAsSignatory } from '@/domain/question-flow/signatory';
 import {
   answersSchema,
   applicationDecisionUpdateSchema,
@@ -70,7 +74,12 @@ export async function flowSetupFor(
   quoteId: string,
   customerId: string
 ): Promise<
-  | { ok: true; setup: FlowSetup; quote: { monthlyNetCents: number; vatRateBp: number } }
+  | {
+      ok: true;
+      setup: FlowSetup;
+      quote: { monthlyNetCents: number; vatRateBp: number };
+      customer: Customer;
+    }
   | { ok: false; reason: 'quote_not_found' | 'customer_not_found' }
 > {
   const quote = await getQuote(db, quoteId);
@@ -93,6 +102,7 @@ export async function flowSetupFor(
       customerIsPep: customer.is_pep,
     },
     quote: { monthlyNetCents: deal.monthlyNetCents, vatRateBp: deal.vatRateBasisPoints },
+    customer,
   };
 }
 
@@ -116,11 +126,14 @@ export type CreateApplicationResult =
         | 'incomplete_answers'
         | 'invalid_answer';
       questionId?: string;
+      /** Why the answer of `questionId` was refused, for the page to write. */
+      problem?: AnswerProblem;
     };
 
 /**
  * Prunes the answers to the questions that apply, checks that every one is answered and
- * valid, evaluates the eligibility rules and writes the application with its audit row.
+ * valid on the day (D35, D37), compares them with the customer record (D36), evaluates the
+ * eligibility rules and writes the application with its audit row.
  */
 export async function createApplication(
   db: PrismaClient,
@@ -135,9 +148,11 @@ export async function createApplication(
   const answers = pruneAnswers(questions, context, input.answers);
   for (const question of questions) {
     const answer = answers[question.id];
-    if (answer !== undefined && !validateAnswer(question, answer)) {
-      return { ok: false, reason: 'invalid_answer', questionId: question.id };
-    }
+    const problem =
+      answer === undefined
+        ? null
+        : answerProblem(question, answer, { today: input.today, answers });
+    if (problem) return { ok: false, reason: 'invalid_answer', questionId: question.id, problem };
   }
   const missing = nextQuestion(questions, context, answers);
   if (missing) return { ok: false, reason: 'incomplete_answers', questionId: missing.id };
@@ -155,6 +170,7 @@ export async function createApplication(
         maxCents: Math.max(...table.bands.map((b) => b.max_financed_cents)),
       },
       knownPep: customerIsPep,
+      recordMismatches: recordMismatches(found.customer, answers),
     })
   );
 
@@ -206,17 +222,21 @@ export type DecideApplicationInput = {
   actor: string;
 };
 
+const stringAnswer = (answer: Answer | undefined) =>
+  typeof answer === 'string' ? answer : undefined;
+
 /** Thrown inside the transaction when another request decided first, so nothing is written. */
 class LostDecisionRace extends Error {}
 
 export type DecideApplicationResult =
   | { ok: true; application: ApplicationView }
-  | { ok: false; reason: 'not_found' | 'not_pending' | 'admin_only' };
+  | { ok: false; reason: 'not_found' | 'not_pending' | 'admin_only' | 'not_signatory' };
 
 /**
  * D10. A manual review is decided by an admin; a manual review that also needs a signatory
  * becomes `awaiting_signatory` when approved. An `awaiting_signatory` case is signed (approved)
- * or declined (rejected) by the named signatory. Any other state is final. Two decisions at
+ * or declined (rejected) by the named signatory only, on the company's own account (D37).
+ * Any other state is final. Two decisions at
  * the same instant: the first wins, the second answers `not_pending` and writes nothing.
  */
 export async function decideApplication(
@@ -230,6 +250,17 @@ export async function decideApplication(
   }
   if (current.decision === 'manual_review' && input.actor !== ADMIN_ACTOR) {
     return { ok: false, reason: 'admin_only' };
+  }
+  if (
+    current.decision === 'awaiting_signatory' &&
+    !mayDecideAsSignatory({
+      actor: input.actor,
+      applicantId: current.customerId,
+      signatoryEmail: stringAnswer(current.answers.q_signatory_email),
+      claimedBy: input.reviewedBy,
+    })
+  ) {
+    return { ok: false, reason: 'not_signatory' };
   }
 
   const code = current.decision === 'manual_review' ? 'reviewed' : 'signatory_decided';
