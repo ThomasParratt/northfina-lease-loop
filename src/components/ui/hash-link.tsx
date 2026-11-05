@@ -23,7 +23,10 @@ export function scrollToSection(href: string, pathname: string): boolean {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   focusSection(target);
-  window.history.replaceState(window.history.state, '', `#${encodeURIComponent(target.id)}`);
+  const hash = `#${encodeURIComponent(target.id)}`;
+  // A history entry, as a plain anchor adds, so Back undoes the jump. Next's own state is kept,
+  // and a click on a hash the URL already has adds nothing, so repeated clicks don't pile up.
+  if (window.location.hash !== hash) window.history.pushState(window.history.state, '', hash);
   return true;
 }
 
