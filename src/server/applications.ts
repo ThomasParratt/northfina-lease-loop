@@ -11,10 +11,10 @@ import {
 } from '@/domain/question-flow/answers';
 import { evaluate } from '@/domain/question-flow/eligibility';
 import {
-  answersFromJson,
+  answersSchema,
   applicationDecisionUpdateSchema,
   applicationRowSchema,
-  reasonsFromJson,
+  reasonsSchema,
 } from '@/domain/rows/application';
 import {
   nextQuestion,
@@ -27,6 +27,7 @@ import { listAssets } from './assets';
 import { withAudit } from './audit';
 import { getCustomer } from './customers';
 import type { PrismaClient } from './prisma-client';
+import { parseRow, parseStoredJson } from './row-rules';
 import { getQuote } from './quotes';
 
 /** A reason as stored: the eligibility codes plus the two decision codes of D10. */
@@ -49,9 +50,9 @@ export function toApplicationView(row: ApplicationRow): ApplicationView {
     id: row.id,
     customerId: row.customer_id,
     quoteId: row.quote_id,
-    answers: answersFromJson(row.answers_json),
+    answers: parseStoredJson('application.answers_json', answersSchema, row.answers_json),
     decision: applicationDecisionSchema.parse(row.decision),
-    reasons: reasonsFromJson(row.reasons_json),
+    reasons: parseStoredJson('application.reasons_json', reasonsSchema, row.reasons_json),
     decidedOn: row.decided_on,
     reviewedBy: row.reviewed_by,
     createdAt: row.created_at.toISOString(),
@@ -174,7 +175,7 @@ export async function createApplication(
     },
     (tx) =>
       tx.application.create({
-        data: applicationRowSchema.parse({
+        data: parseRow('application', applicationRowSchema, {
           id,
           customer_id: input.customerId,
           quote_id: input.quoteId,
@@ -250,7 +251,7 @@ export async function decideApplication(
     (tx) =>
       tx.application.update({
         where: { id: input.id },
-        data: applicationDecisionUpdateSchema.parse({
+        data: parseRow('application', applicationDecisionUpdateSchema, {
           decision,
           reasons_json: JSON.stringify([...current.reasons, reason]),
           decided_on: input.today,

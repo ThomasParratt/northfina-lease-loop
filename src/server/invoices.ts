@@ -13,6 +13,7 @@ import { invoiceRowSchema } from '@/domain/rows/invoice';
 import { withAudit, type TransactionClient } from './audit';
 import { emit } from './events';
 import type { PrismaClient } from './prisma-client';
+import { parseRow } from './row-rules';
 
 /** An invoice as the API and the pages see it. Money in cents, rates in basis points. */
 export type InvoiceView = {
@@ -64,7 +65,7 @@ export async function writeSchedule(
   const { count } = await tx.invoice.createMany({
     // Every row parsed first (D27): gross = net + VAT, the period, the status.
     data: invoices.map((invoice) =>
-      invoiceRowSchema.parse({
+      parseRow('invoice', invoiceRowSchema, {
         contract_id: contractId,
         sequence: invoice.sequence,
         period_start: invoice.periodStart,
