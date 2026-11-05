@@ -97,7 +97,7 @@ One page per feature slice under `docs/features/` (template: [docs/features/READ
 
 - [Catalogue, demo clock, actor and audit trail](docs/features/catalogue.md) (wave 0)
 - [Circular impact and the passport](docs/features/circular-impact.md) (wave 1)
-- [Pricing and quotes](docs/features/pricing.md) (wave 1): the price page with live sliders, the line-by-line breakdown, the term comparison, the catalogue's offer (`financeOffer`) and "Apply at this price", which locks the quote at its date and list version (cards 1, 2, 6, 7; smart problem 6)
+- [Pricing and quotes](docs/features/pricing.md) (wave 1): the price page with live sliders, the line-by-line breakdown, the term comparison, the catalogue's offer (`financeOffer`) and "Apply at this price", which locks the quote at its date and list version (cards 1, 2, 6, 7; smart problem 6); the maximum term per item category (D43: a laptop up to 36 months, from `data/term-limits.json`)
 - [The question flow and the application](docs/features/question-flow.md) (wave 1)
 - [Invoicing: the schedule, VAT by invoice date, the balance](docs/features/invoicing.md) (wave 1): the monthly schedule billed in advance, paying an invoice, the outstanding balance for an early exit
 - [Contracts: signing and the contract page](docs/features/contracts.md) (wave 2): signing an approved application from its stored quote, the last-unit race, the price lock explained (cards 1, 2) and the invoices under the contract (card 3)
