@@ -77,7 +77,9 @@ describe('card 1: the happy path (ebike-003, 36 months, 5 Nov 2026)', () => {
     expect(q.vatIsEstimate).toBe(true);
     expect(q.totalIfReturnCents).toBe(484_776);
     expect(scheduleTotals(schedule()).grossCents - q.totalIfReturnCents).toBe(34 * 54);
-    expect(q.totalIfBuyCents).toBe(543_126);
+    // The buyout carries its VAT at the quote-day rate: 58 350 + 14 879.
+    expect(q.buyoutGrossCents).toBe(73_229);
+    expect(q.totalIfBuyCents).toBe(558_005);
   });
 
   it('Aino is approved', () => {

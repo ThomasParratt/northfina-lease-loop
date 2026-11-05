@@ -67,11 +67,11 @@ describe('the quote and the invoices agree (property)', () => {
   );
 
   it(
-    "with no down payment and one VAT rate over the term, the invoices' gross is the quote's total",
+    "when one VAT rate covers the whole term, the invoices' gross is the quote's total if returned",
     () => {
       fc.assert(
         fc.property(dealArb, (deal) => {
-          const priced = pricedSchedule({ ...deal, downShareBp: 0 });
+          const priced = pricedSchedule(deal);
           fc.pre(priced !== null);
           const { quote, invoices } = priced!;
           const lastIssue = invoices.at(-1)!.issueDate;
@@ -101,25 +101,27 @@ describe('the quote and the invoices agree (property)', () => {
     TIMEOUT_MS
   );
 
-  // Finding for the pricing owner (D5/D6): invoice 0 charges VAT on the down payment, but the
-  // quote's totals add the down payment net (quote.test.ts pins 89 000 + 36 × gross, and the
-  // page's "You pay at the start" line is net). Card 7: 2 000 000 down carries 510 000 VAT that
-  // the quote's total leaves out. Flip to it() when the decision is made.
-  it.fails('FINDING: the quote total omits the down payment VAT (card 7: 510 000 short)', () => {
+  // Card 7 with its down payment: invoice 0 and the quote's down-payment line carry the same
+  // VAT (D5/D6). A hardening finding before the pricing slice put VAT on it (4ec3b2e).
+  it('card 7: invoice 0 is the quote down payment with its VAT, 2 000 000 + 510 000', () => {
     const deal = { assetId: 'farm-002', termMonths: 48, isoDate: '2026-11-05' };
     const q = quoteFor({ ...deal, downPaymentCents: 2_000_000 });
-    const s =
-      q.ok &&
-      buildSchedule({
-        signedOn: deal.isoDate,
-        startDate: deal.isoDate,
-        termMonths: 48,
-        downPaymentCents: 2_000_000,
-        monthlyNetCents: q.quote.monthlyNetCents,
-        vatRates: pricing.vatRates,
-      });
-    if (!q.ok || !s || !s.ok) throw new Error('card 7 does not price');
-    expect(s.invoices[0]).toMatchObject({ kind: 'down_payment', vatCents: 510_000 });
-    expect(scheduleTotals(s.invoices).grossCents).toBe(q.quote.totalIfReturnCents);
+    if (!q.ok) throw new Error('card 7 does not price');
+    const s = buildSchedule({
+      signedOn: deal.isoDate,
+      startDate: deal.isoDate,
+      termMonths: 48,
+      downPaymentCents: 2_000_000,
+      monthlyNetCents: q.quote.monthlyNetCents,
+      vatRates: pricing.vatRates,
+    });
+    if (!s.ok) throw new Error(s.reason);
+    expect(s.invoices[0]).toMatchObject({
+      kind: 'down_payment',
+      netCents: 2_000_000,
+      vatCents: 510_000,
+      grossCents: q.quote.downPaymentGrossCents,
+    });
+    expect(q.quote.downPaymentGrossCents).toBe(2_510_000);
   });
 });
