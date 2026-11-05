@@ -19,7 +19,7 @@ import {
   type QuoteStatus,
   type TermComparison,
 } from '@/domain/pricing';
-import { listAssets } from './assets';
+import { getAsset } from './assets';
 import { withAudit } from './audit';
 import type { PrismaClient } from './prisma-client';
 
@@ -104,7 +104,7 @@ export async function createQuote(
   });
   if (!priced.ok) return priced;
 
-  const asset = (await listAssets(db)).find((a) => a.id === input.assetId);
+  const asset = await getAsset(db, input.assetId);
   if (!asset)
     return { ok: false, reason: { code: 'unknown_asset', params: { assetId: input.assetId } } };
   if (asset.status !== 'available') {
