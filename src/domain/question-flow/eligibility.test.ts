@@ -249,7 +249,7 @@ describe('every customer in customers.json gets a decision without throwing', ()
   });
 });
 
-describe('evaluate: answers that differ from the customer record (D36)', () => {
+describe('evaluate: answers that differ from the customer record (D38)', () => {
   const company: EligibilityInput = {
     customerType: 'company',
     startDate: '2026-11-05',

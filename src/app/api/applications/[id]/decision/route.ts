@@ -1,6 +1,6 @@
 // POST /api/applications/:id/decision   body: { decision: "approved" | "rejected", reviewedBy }
 // D10: an admin decides a manual review; the named signatory signs (approved) or declines an
-// awaiting_signatory case, on the company's own account (D37). The actor comes from the actor
+// awaiting_signatory case, on the company's own account (D39). The actor comes from the actor
 // cookie (D17).
 import { readActor } from '@/server/actor';
 import { fail, handleRoute, ok, readJsonBody } from '@/server/api-response';

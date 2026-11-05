@@ -47,12 +47,12 @@ export function validateAnswer(question: Question, answer: Answer): boolean {
   }
 }
 
-/** The oldest applicant we take as a real answer, in years (D35). */
+/** The oldest applicant we take as a real answer, in years (D37). */
 export const MAX_AGE_YEARS = 120;
 
 /**
  * The birth dates that are real answers on `today`: from the same day 120 years ago up to
- * today (D35). On 29 February the earliest day falls on 28 February when that year has no
+ * today (D37). On 29 February the earliest day falls on 28 February when that year has no
  * 29th. "Too young" is an eligibility reason, not a typo: only a future day is refused here.
  */
 export function birthDateRange(today: string): { earliest: string; latest: string } {
@@ -71,8 +71,8 @@ export type AnswerProblem =
 /**
  * Why an answer cannot be taken, as a code for the page, or null when it can. First the
  * shape (`validateAnswer`), then the checks that need the day or the other answers: a birth
- * date from the future or more than 120 years back (D35), and a signatory e-mail that is the
- * applicant's own (D37), since the applicant would then sign for themself.
+ * date from the future or more than 120 years back (D37), and a signatory e-mail that is the
+ * applicant's own (D39), since the applicant would then sign for themself.
  */
 export function answerProblem(
   question: Question,
@@ -123,7 +123,7 @@ export type InputFromAnswers = {
   financedLimits?: { minCents: number; maxCents: number };
   /** The customer record knows a PEP even when the amount is too small to ask. */
   knownPep?: boolean;
-  /** Question ids answered other than the customer record (`recordMismatches`, D36). */
+  /** Question ids answered other than the customer record (`recordMismatches`, D38). */
   recordMismatches?: readonly string[];
 };
 

@@ -39,7 +39,7 @@ export type EligibilityInput = {
   financedCents: number;
   /** The coefficient table's lowest and highest financed amount. */
   financedLimits?: { minCents: number; maxCents: number };
-  /** Question ids answered other than the customer record (D36): each holds the case. */
+  /** Question ids answered other than the customer record (D38): each holds the case. */
   recordMismatches?: readonly string[];
 };
 
@@ -139,7 +139,7 @@ function rejections(ruleIds: ReadonlySet<string>, input: EligibilityInput): Reas
 
 /**
  * The decision, in this order: any failed rule → rejected (every failure listed); else a PEP
- * or an answer that differs from the customer record (D36) → manual_review (never
+ * or an answer that differs from the customer record (D38) → manual_review (never
  * auto-approved, every reason listed); else a company applicant who cannot sign →
  * awaiting_signatory (the named signatory signs); else approved. Rules not listed in
  * `rules` (by id) are not checked; unknown ids are ignored.

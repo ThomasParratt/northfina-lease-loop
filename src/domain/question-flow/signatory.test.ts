@@ -10,7 +10,7 @@ describe('sameEmail', () => {
   });
 });
 
-describe('mayDecideAsSignatory (D37)', () => {
+describe('mayDecideAsSignatory (D39)', () => {
   const card6 = {
     actor: 'cust-norvi',
     applicantId: 'cust-norvi',

@@ -10,7 +10,7 @@ type DecisionFormProps = {
   /** Who decides. Editable when `askWho` is given: the signatory names themself. */
   reviewer: string;
   askWho?: string;
-  /** `forbidden` is shown when the server answers 403 (D37: not the named signatory). */
+  /** `forbidden` is shown when the server answers 403 (D39: not the named signatory). */
   labels: { approve: string; reject: string; error: string; forbidden?: string };
 };
 

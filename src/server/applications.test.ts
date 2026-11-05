@@ -190,7 +190,7 @@ describe('createApplication', () => {
     });
   });
 
-  it('the trap: card 5 Mikko cannot apply in Aino’s name with her answers (D38)', async () => {
+  it('the trap: card 5 Mikko cannot apply in Aino’s name with her answers (D40)', async () => {
     const result = await createApplication(db, {
       quoteId: await card5(),
       customerId: 'cust-aino',

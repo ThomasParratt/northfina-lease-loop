@@ -36,7 +36,7 @@ Not asked: the consumer questions (name, birth date, country, employment, income
 
 After every answer, `pruneAnswers` drops the answers to questions that are no longer visible and repeats until nothing changes (a dropped answer can hide another question). Card 6's trap: the coordinator answers can-sign **no**, names `signatory@norvi.example.com`, goes back and changes to **yes**: the signatory answer goes, and the page says which answer was removed. Changing the customer type from company to consumer drops every company answer in one go. The server prunes again on submit, so a stale answer from the browser never reaches the rules.
 
-### Answers that cannot be taken (D35, D37)
+### Answers that cannot be taken (D37, D39)
 
 Each answer is checked for its shape (a choice is one of the options, a date a real day, money cents as digits) and then by `answerProblem` against the day and the other answers:
 
@@ -45,9 +45,9 @@ Each answer is checked for its shape (a choice is one of the options, a date a r
 
 The server runs the same checks on submit and answers 400 `INVALID_ANSWER` with `{ questionId, problem }`.
 
-### Answers against the customer record (D36, D38)
+### Answers against the customer record (D38, D40)
 
-The applicant is a customer we know, and only that customer applies in their own name: the `customerId` of `POST /api/applications` must be the actor (D17), else 403 `NOT_APPLICANT` (D38). Without it, Mikko could send Aino's id with her answers and be approved in her name. `recordMismatches` compares four answers with the record: customer type, birth date, country (a country outside FI, SE, EE on record is answered "other") and business id (spaces ignored). A difference is not refused, but the case is never approved by a rule: it goes to `manual_review` with `answer_differs_from_record { question }` for each, after `pep`; the decision page names the question in the visitor's language. A failed rule still rejects first.
+The applicant is a customer we know, and only that customer applies in their own name: the `customerId` of `POST /api/applications` must be the actor (D17), else 403 `NOT_APPLICANT` (D40). Without it, Mikko could send Aino's id with her answers and be approved in her name. `recordMismatches` compares four answers with the record: customer type, birth date, country (a country outside FI, SE, EE on record is answered "other") and business id (spaces ignored). A difference is not refused, but the case is never approved by a rule: it goes to `manual_review` with `answer_differs_from_record { question }` for each, after `pep`; the decision page names the question in the visitor's language. A failed rule still rejects first.
 
 **The trap**: Mikko (`cust-mikko`, a consumer born 2009-03-10) answers "Who is leasing?" with **company** and a valid business id. The age question is not asked any more, so the rules alone would approve him; with the record check he goes to `manual_review` with `answer_differs_from_record { question: q_customer_type }`.
 
@@ -75,7 +75,7 @@ Order: any failed rule → `rejected`, with **every** failure listed; else PEP �
 
 At 36 and 48 months the age is the only reason; at 24 both reasons are listed. On 2027-03-10 the age rule passes, on 2027-03-09 it does not. Someone born on 29 February turns 18 on 1 March in a year without one.
 
-**Card 6**: Norvi answers can-sign **no**: `awaiting_signatory` with `signatory_needed { signatoryEmail }`. The named signatory signs (approved) or declines (rejected) on the decision page (D37): on Norvi's own account, giving `signatory@norvi.example.com`. Any other name, another customer, anonymous or the admin gets 403 `NOT_SIGNATORY` and nothing is written; the sign form is shown on the company's account only.
+**Card 6**: Norvi answers can-sign **no**: `awaiting_signatory` with `signatory_needed { signatoryEmail }`. The named signatory signs (approved) or declines (rejected) on the decision page (D39): on Norvi's own account, giving `signatory@norvi.example.com`. Any other name, another customer, anonymous or the admin gets 403 `NOT_SIGNATORY` and nothing is written; the sign form is shown on the company's account only.
 
 **Card 7**: Haapala's owner is a PEP: `manual_review` with `pep`, never approved by a rule. An admin decides on the decision page; the decision and the reviewer are kept as a `reviewed` reason. A PEP case that also needs a signatory goes to `awaiting_signatory` once the admin approves.
 
@@ -91,10 +91,10 @@ Typo Trading Oy (`cust-broken-id`) has **1234567-8**: 1·7 + 2·9 + 3·10 + 4·5
 
 - **D9** eligibility: the rules above, every check a code with params.
 - **D10** manual review and the signatory: the four statuses; the admin decides a manual review, the named signatory signs.
-- **D35** birth dates from 120 years ago up to today; under 18 stays a reason.
-- **D36** an answer that differs from the customer record holds the case for a person.
-- **D37** only the named signatory signs, on the company's account; the applicant cannot name themself.
-- **D38** only the acting customer applies, in their own name.
+- **D37** birth dates from 120 years ago up to today; under 18 stays a reason.
+- **D38** an answer that differs from the customer record holds the case for a person.
+- **D39** only the named signatory signs, on the company's account; the applicant cannot name themself.
+- **D40** only the acting customer applies, in their own name.
 - Inside the slice (see `docs/log/wave1-questions.md`): `customer_type` follows the applicant's answer; a PEP known from the record counts below 10 000 EUR; affordability only where the bank asks for income; a failed rule always rejects.
 
 ## Pure functions
@@ -111,7 +111,7 @@ pruneAnswers(bank, context, answers): Record<string, Answer>;
 whyWeAsk(question: Question, locale: 'en' | 'fi' | 'sv' | 'et'): string;
 
 // eligibility.ts
-evaluate(rules: readonly EligibilityRule[], input: EligibilityInput): // input.recordMismatches?: question ids (D36)
+evaluate(rules: readonly EligibilityRule[], input: EligibilityInput): // input.recordMismatches?: question ids (D38)
   { decision: 'approved' | 'rejected' | 'manual_review' | 'awaiting_signatory'; reasons: { code; params }[] };
 birthdayAtAge(birthDate: string, years: number): string;
 maxAffordableRentCents(monthlyNetIncomeCents: number): number;
@@ -138,8 +138,8 @@ sameEmail(a?: string, b?: string): boolean;
 mayDecideAsSignatory({ actor, applicantId, signatoryEmail, claimedBy }): boolean;
 
 // src/server/applications.ts
-createApplication(db, { quoteId, customerId, answers, today, actor }); // not_applicant unless actor = customerId (D38) // → { ok, application } | { ok: false, reason }
-decideApplication(db, { id, decision, reviewedBy, today, actor }); // not_signatory (D37)
+createApplication(db, { quoteId, customerId, answers, today, actor }); // not_applicant unless actor = customerId (D40) // → { ok, application } | { ok: false, reason }
+decideApplication(db, { id, decision, reviewedBy, today, actor }); // not_signatory (D39)
 getApplication(db, id): Promise<ApplicationView | null>;
 ```
 
@@ -172,7 +172,7 @@ getApplication(db, id): Promise<ApplicationView | null>;
 
 ## Open questions
 
-- The signatory signs by giving the named e-mail on the company's account (no login, D17, D37); the actor is audited. Anyone at the company's account who knows that address can still sign: a real flow would e-mail the signatory a one-time link.
+- The signatory signs by giving the named e-mail on the company's account (no login, D17, D39); the actor is audited. Anyone at the company's account who knows that address can still sign: a real flow would e-mail the signatory a one-time link.
 - Quantity is not limited by customer type: a consumer can lease 20 e-bikes "for commuting" (with D8, issue #13).
 - Should a PEP below 10 000 EUR (not asked by the bank, known from the record) go to manual review? We say yes; the bank's targeting suggests the question only matters from 10 000 EUR.
 - Affordability uses the chosen term's gross rent; the page could suggest the shortest term that passes (Mikko's 36 months).

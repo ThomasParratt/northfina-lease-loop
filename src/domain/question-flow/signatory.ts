@@ -1,4 +1,4 @@
-// Who may sign for a company that the applicant cannot sign for (D10, D37). There is no login
+// Who may sign for a company that the applicant cannot sign for (D10, D39). There is no login
 // (D17): the actor is the "continue as" picker's customer, and the signatory is named by e-mail
 // in the application. A real check would send the signatory a one-time link; until then the
 // rule keeps the obvious wrongs out: another name, another account, the admin.

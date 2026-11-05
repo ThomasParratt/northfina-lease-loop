@@ -10,7 +10,7 @@ beforeAll(async () => {
 });
 const customer = (id: string) => customers.find((c) => c.id === id)!;
 
-describe('recordMismatches (D36)', () => {
+describe('recordMismatches (D38)', () => {
   it('every persona answering from their own record matches it', () => {
     for (const c of customers) {
       expect(recordMismatches(c, answersFromCustomer(c)), c.id).toEqual([]);

@@ -1,4 +1,4 @@
-// The applicant's answers against the customer record we already hold (D36). An answer that
+// The applicant's answers against the customer record we already hold (D38). An answer that
 // differs is not refused (the record may be out of date, a sole trader may have incorporated),
 // but the case is never approved by a rule: a person checks it. Without this, a 17-year-old
 // consumer could answer "company" and the age question would never be asked.

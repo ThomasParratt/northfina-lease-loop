@@ -49,7 +49,7 @@ type QuestionFlowProps = {
   locale: Locale;
   quoteId: string;
   customerId: string;
-  /** The request's day (demo clock), for the birth-date range (D35). */
+  /** The request's day (demo clock), for the birth-date range (D37). */
   today: string;
   bank: Question[];
   context: FlowContext;
@@ -255,7 +255,7 @@ type StepProps = {
   text: { text: string; why: string } | undefined;
   options: Record<string, string>;
   initial: Answer | undefined;
-  /** The other answers so far, for the checks across answers (D37). */
+  /** The other answers so far, for the checks across answers (D39). */
   answers: Record<string, Answer>;
   today: string;
   locale: Locale;

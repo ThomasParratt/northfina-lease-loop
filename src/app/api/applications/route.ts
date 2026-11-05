@@ -1,5 +1,5 @@
 // POST /api/applications   body: { quoteId, customerId, answers }
-// The customer must be the actor (the "continue as" cookie, D17, D38): nobody applies in
+// The customer must be the actor (the "continue as" cookie, D17, D40): nobody applies in
 // another's name.
 // Prunes the answers to the questions that apply, checks them, evaluates the eligibility rules
 // (D9) and stores the application with its decision. The day is the request's (demo clock).

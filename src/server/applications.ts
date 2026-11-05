@@ -132,9 +132,9 @@ export type CreateApplicationResult =
     };
 
 /**
- * Only the customer who is acting applies, in their own name (D38): not another customer, not
+ * Only the customer who is acting applies, in their own name (D40): not another customer, not
  * the admin, not anonymous. Then it prunes the answers to the questions that apply, checks that every one is answered and
- * valid on the day (D35, D37), compares them with the customer record (D36), evaluates the
+ * valid on the day (D37, D39), compares them with the customer record (D38), evaluates the
  * eligibility rules and writes the application with its audit row.
  */
 export async function createApplication(
@@ -238,7 +238,7 @@ export type DecideApplicationResult =
 /**
  * D10. A manual review is decided by an admin; a manual review that also needs a signatory
  * becomes `awaiting_signatory` when approved. An `awaiting_signatory` case is signed (approved)
- * or declined (rejected) by the named signatory only, on the company's own account (D37).
+ * or declined (rejected) by the named signatory only, on the company's own account (D39).
  * Any other state is final. Two decisions at
  * the same instant: the first wins, the second answers `not_pending` and writes nothing.
  */
