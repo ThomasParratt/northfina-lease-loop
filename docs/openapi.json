@@ -1700,17 +1700,12 @@
                               "minimum": 0,
                               "maximum": 9007199254740991
                             },
-                            "legacyRows": {
-                              "type": "integer",
-                              "minimum": 0,
-                              "maximum": 9007199254740991
-                            },
                             "headHash": {
                               "type": "string",
                               "pattern": "^[0-9a-f]{64}$"
                             }
                           },
-                          "required": ["ok", "length", "legacyRows", "headHash"],
+                          "required": ["ok", "length", "headHash"],
                           "additionalProperties": false
                         },
                         {
@@ -1727,7 +1722,7 @@
                             },
                             "reason": {
                               "type": "string",
-                              "enum": ["prev_hash_mismatch", "hash_mismatch", "gap_before_chain"]
+                              "enum": ["prev_hash_mismatch", "hash_mismatch", "unhashed_in_chain"]
                             }
                           },
                           "required": ["ok", "brokenAt", "reason"],
