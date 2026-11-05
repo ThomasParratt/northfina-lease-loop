@@ -27,6 +27,7 @@
     "db:reset": "node scripts/ensure-env.mjs && prisma migrate reset --force && prisma db seed",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
+    "openapi": "tsx scripts/openapi.mjs && prettier --write docs/openapi.json",
     "postinstall": "prisma generate",
     "prepare": "node .husky/install.mjs"
   },
