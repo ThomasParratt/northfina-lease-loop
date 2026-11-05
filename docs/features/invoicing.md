@@ -76,7 +76,7 @@ Choices made in this wave, beyond the brief:
 ```ts
 // src/domain/invoicing (index.ts)
 addMonthsClamped(isoDate: string, months: number): string
-addDays(isoDate: string, days: number): string
+addDays(isoDate: string, days: number): string   // re-exported from src/domain/civil-days.ts, shared with pricing
 daysInMonth(year: number, month: number): number
 compareIso(a: string, b: string): -1 | 0 | 1
 termEndDate(startDate: string, termMonths: number): string   // the CONTRACT_SIGNED endDate
