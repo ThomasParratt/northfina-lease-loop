@@ -77,7 +77,7 @@ describe('card 1: the happy path (ebike-003, 36 months, 5 Nov 2026)', () => {
     expect(q.vatIsEstimate).toBe(true);
     expect(q.totalIfReturnCents).toBe(484_776);
     expect(scheduleTotals(schedule()).grossCents - q.totalIfReturnCents).toBe(34 * 54);
-    expect(q.totalIfBuyCents).toBe(484_776 + 58_350);
+    expect(q.totalIfBuyCents).toBe(543_126);
   });
 
   it('Aino is approved', () => {

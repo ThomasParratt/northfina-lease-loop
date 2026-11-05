@@ -37,13 +37,13 @@ describe('card 5: too young (Mikko, laptop-008)', () => {
   });
 
   it.each([
-    [12, 19_875, 'rejected'],
-    [24, 12_888, 'rejected'],
-    [36, 10_005, 'approved'],
-    [48, 8_322, 'approved'],
+    [12, 15_837, 19_875, 'rejected'],
+    [24, 10_269, 12_888, 'rejected'],
+    [36, 7_972, 10_005, 'approved'],
+    [48, 6_631, 8_322, 'approved'],
   ])(
-    'without the age rule, %i months (gross %i against 12 000 = 30 % of 400 €) is %s',
-    (term, gross, decision) => {
+    'without the age rule, %i months (net %i, gross %i against 12 000 = 30 % of 400 €) is %s',
+    (term, net, gross, decision) => {
       const app = applyFor(mikko, deal(term));
       const q = quoteFor(deal(term));
       if (!app.ok || !q.ok) throw new Error('the flow did not complete');
@@ -51,6 +51,7 @@ describe('card 5: too young (Mikko, laptop-008)', () => {
         q.quote.monthlyNetCents,
         q.quote.vatRateBasisPoints
       );
+      expect(q.quote.monthlyNetCents).toBe(net);
       expect(grossMonthlyRentCents).toBe(gross);
       const withoutAge = pack.questions.eligibility_rules.filter((rule) => rule.id !== 'min_age');
       const result = evaluate(

@@ -43,6 +43,8 @@ describe('card 8: early exit (card 1 at month 7)', () => {
 
   it('the buyout at the end of the term is 58 350', () => {
     expect(contract().quote.buyoutCents).toBe(58_350);
+    // The remaining rents plus the buyout, 369 520, are more than the balance: interest not earned.
+    expect(311_170 + 58_350).toBe(369_520);
   });
 
   it('the balance by D14 after 7 rents is 330 675, line by line', () => {
