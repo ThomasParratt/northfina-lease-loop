@@ -5,7 +5,7 @@ Scope: the three squash commits `db358de` (0a), `d096a3a` (0c), `4142a22` (0b) a
 
 ## What was checked, for every slice
 
-- `npm run check:all` on the base plus the actor picker: green (26 test files, 280 tests, the build, lint, types, file sizes, no-AI). Run again before the push.
+- `npm run check:all` on the base plus the actor picker: green (26 test files and 280 tests with the new badge test, the build, lint, types, file sizes, no-AI). Run again before the push.
 - `tests/meta-rules.test.ts` passes: no file over 600 lines, no AI, every domain module has a test, the domain is pure, every route uses `handleRoute`, every write goes through `withAudit`.
 - Message files: 82 keys in each of `en`, `fi`, `sv`, `et`, same keys.
 - Read against `RULES.md` and the team rules in `AGENTS.md`: pure domain, cents, codes with params, `withAudit`, `handleRoute`, one owner per table.
