@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadCoefficientTable, loadPriceLists, loadVatRates } from '@/data/load';
-import type { PriceList } from '@/data/schemas';
 import { financeOffer } from './financeable';
 import type { PricingData } from './quote';
 
@@ -23,10 +22,12 @@ describe('financeOffer', () => {
     expect(offer.kind === 'standard' && offer.quote.monthlyGrossCents).toBe(13_466);
   });
 
-  it('suggests two units of the kids bike, 289 € on price list 1, under the 300 € minimum', () => {
+  it('refuses the kids bike at 289 € on price list 1, under the 300 € minimum (the "too cheap" trap)', () => {
     const offer = financeOffer(data, { assetId: 'ebike-010', termMonths: 36, isoDate: THURSDAY });
-    expect(offer).toMatchObject({ kind: 'needs_quantity', quantity: 2 });
-    expect(offer.kind === 'needs_quantity' && offer.quote.financedCents).toBe(57_800);
+    expect(offer).toEqual({
+      kind: 'none',
+      reason: { code: 'below_minimum', params: { financedCents: 28_900, minimumCents: 30_000 } },
+    });
   });
 
   it('gives the kids bike the plain offer on Friday, when price list 2 puts it at 303 €', () => {
@@ -42,27 +43,12 @@ describe('financeOffer', () => {
     expect(offer.kind === 'needs_down_payment' && offer.quote.band).toBe('D');
   });
 
-  it('rounds the quantity up when the minimum is not a whole number of units', () => {
-    // 110 € a unit: two make 220 €, three make 330 €, the first over 300 €.
-    const cheap: PriceList[] = [
-      { ...data.priceLists[0]!, valid_to: null, prices: { 'test-cheap': 11_000 } },
-    ];
-    const offer = financeOffer(
-      { ...data, priceLists: cheap },
-      { assetId: 'test-cheap', termMonths: 12, isoDate: '2026-06-01' }
-    );
-    expect(offer).toMatchObject({ kind: 'needs_quantity', quantity: 3 });
-  });
-
-  it('gives up when even the most units the catalogue suggests stay under the minimum', () => {
-    const tiny: PriceList[] = [
-      { ...data.priceLists[0]!, valid_to: null, prices: { 'test-tiny': 100 } },
-    ];
-    const offer = financeOffer(
-      { ...data, priceLists: tiny },
-      { assetId: 'test-tiny', termMonths: 12, isoDate: '2026-06-01' }
-    );
-    expect(offer).toMatchObject({ kind: 'none', reason: { code: 'below_minimum' } });
+  it('passes the refusal on when even the down-payment offer cannot be priced', () => {
+    // No VAT rate on the day: the plain price is refused for the band first, and the offer
+    // with the down payment is then refused for the missing rate.
+    const noVat: PricingData = { ...data, vatRates: { ...data.vatRates, rates: [] } };
+    const offer = financeOffer(noVat, { assetId: 'farm-006', termMonths: 48, isoDate: THURSDAY });
+    expect(offer).toMatchObject({ kind: 'none', reason: { code: 'no_vat_rate_on_date' } });
   });
 
   it('passes other refusals through, such as an unknown asset or term', () => {
