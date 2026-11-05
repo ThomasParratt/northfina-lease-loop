@@ -7,18 +7,23 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ComponentProps, MouseEvent } from 'react';
+import { sectionOnPage } from './section-hash';
+
+/** Focuses an element that is not focusable by itself, without scrolling to it. */
+function focusSection(target: HTMLElement) {
+  if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+  target.focus({ preventScroll: true });
+}
 
 /** Scrolls to `href`'s section when it is on the current page; true when it did. */
 export function scrollToSection(href: string, pathname: string): boolean {
-  const [path, hash] = href.split('#');
-  if (!hash || (path !== '' && path !== pathname)) return false;
-  const target = document.getElementById(hash);
+  const id = sectionOnPage(href, pathname);
+  const target = id === null ? null : document.getElementById(id);
   if (!target) return false;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-  if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
-  target.focus({ preventScroll: true });
-  window.history.replaceState(window.history.state, '', `#${hash}`);
+  focusSection(target);
+  window.history.replaceState(window.history.state, '', `#${encodeURIComponent(target.id)}`);
   return true;
 }
 
