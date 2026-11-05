@@ -208,7 +208,6 @@ describe('the audit chain', () => {
     expect(await verifyAuditChain(db)).toEqual({
       ok: true,
       length: 10,
-      legacyRows: 0,
       headHash: head,
     });
     expect(head).toBe((await rowsInOrder())[9]?.hash);
@@ -236,15 +235,35 @@ describe('the audit chain', () => {
     expect(await verifyAuditChain(db)).toMatchObject({ ok: false, brokenAt: row.id });
   });
 
-  it('treats rows from before the chain as a legacy prefix', async () => {
-    await db.auditLog.create({
-      data: { actor: 'old', action: 'asset.created', entity_type: 'asset', entity_id: 'x' },
-    });
+  it('reports a log whose hashes were all nulled as broken at its first row', async () => {
     await withAudit(db, entry, reserve, at(0));
+    await withAudit(db, entry, reserve, at(1));
+    await db.$executeRaw`UPDATE "AuditLog" SET hash = NULL, prev_hash = NULL`;
+    const [first] = await rowsInOrder();
+    expect(await verifyAuditChain(db)).toEqual({
+      ok: false,
+      brokenAt: first?.id,
+      reason: 'unhashed_in_chain',
+    });
+  });
 
-    const rows = await rowsInOrder();
-    expect(rows[1]?.prev_hash).toBe(GENESIS_HASH);
-    expect(await verifyAuditChain(db)).toMatchObject({ ok: true, length: 2, legacyRows: 1 });
+  it('refuses a second row chained to the same previous row (a fork)', async () => {
+    await withAudit(db, entry, reserve, at(0));
+    const [first] = await rowsInOrder();
+    // A row written behind withAudit, pointing at the genesis like row 1: the unique prev_hash
+    // index refuses it.
+    await expect(
+      db.auditLog.create({
+        data: {
+          actor: 'mallory',
+          action: 'asset.forked',
+          entity_type: 'asset',
+          entity_id: 'ebike-001',
+          prev_hash: first?.prev_hash,
+          hash: 'f'.repeat(64),
+        },
+      })
+    ).rejects.toThrow();
   });
 
   it('gives the genesis head for an empty log', async () => {
@@ -252,7 +271,6 @@ describe('the audit chain', () => {
     expect(await verifyAuditChain(db)).toEqual({
       ok: true,
       length: 0,
-      legacyRows: 0,
       headHash: GENESIS_HASH,
     });
   });

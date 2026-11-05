@@ -25,17 +25,17 @@ export type AuditChainEntry = {
   createdAt: string;
 };
 
-/** A stored row. `hash` and `prevHash` are null on a legacy row written before the chain. */
+/** A stored row. The columns are nullable in the database; a null hash is a break. */
 export type AuditChainRow = AuditChainEntry & {
   id: number;
   prevHash: string | null;
   hash: string | null;
 };
 
-export type AuditChainBreak = 'prev_hash_mismatch' | 'hash_mismatch' | 'gap_before_chain';
+export type AuditChainBreak = 'prev_hash_mismatch' | 'hash_mismatch' | 'unhashed_in_chain';
 
 export type AuditChainVerdict =
-  | { ok: true; length: number; legacyRows: number; headHash: string }
+  | { ok: true; length: number; headHash: string }
   | { ok: false; brokenAt: number; reason: AuditChainBreak };
 
 /** The hash of `entry` chained to `prevHash`. */
@@ -52,21 +52,14 @@ export function hashAuditEntry(prevHash: string, entry: AuditChainEntry): string
 }
 
 /**
- * Walks `rows` in id order and names the first broken row. Unhashed rows are allowed only as a
- * prefix (the rows from before the migration); `length` counts every row, `legacyRows` that
- * prefix, and `headHash` is the last row's hash (GENESIS_HASH when nothing is hashed yet).
+ * Walks `rows` in id order and names the first broken row. Every row must be hashed: a null
+ * hash is `unhashed_in_chain`, so nulling the hash columns cannot pass as an intact log.
+ * `headHash` is the last row's hash (GENESIS_HASH for an empty log).
  */
 export function verifyAuditChain(rows: readonly AuditChainRow[]): AuditChainVerdict {
   let headHash = GENESIS_HASH;
-  let legacyRows = 0;
-  let chained = false;
   for (const row of rows) {
-    if (row.hash === null) {
-      if (chained) return { ok: false, brokenAt: row.id, reason: 'gap_before_chain' };
-      legacyRows += 1;
-      continue;
-    }
-    chained = true;
+    if (row.hash === null) return { ok: false, brokenAt: row.id, reason: 'unhashed_in_chain' };
     if (row.prevHash !== headHash) {
       return { ok: false, brokenAt: row.id, reason: 'prev_hash_mismatch' };
     }
@@ -75,5 +68,5 @@ export function verifyAuditChain(rows: readonly AuditChainRow[]): AuditChainVerd
     }
     headHash = row.hash;
   }
-  return { ok: true, length: rows.length, legacyRows, headHash };
+  return { ok: true, length: rows.length, headHash };
 }

@@ -35,9 +35,6 @@ export function AuditChainBadge({ verdict, t }: AuditChainBadgeProps) {
           </Badge>
         )}
         <p className="text-ink-muted">{t('audit.chain.explain')}</p>
-        {verdict.ok && verdict.legacyRows > 0 ? (
-          <p className="text-ink-muted">{t('audit.chain.legacy', { count: verdict.legacyRows })}</p>
-        ) : null}
         {verdict.ok ? (
           <div>
             <p className="font-medium">{t('audit.chain.headLabel')}</p>

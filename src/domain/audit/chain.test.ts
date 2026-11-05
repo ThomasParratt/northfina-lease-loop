@@ -87,7 +87,6 @@ describe('verifyAuditChain', () => {
     expect(verifyAuditChain([])).toEqual({
       ok: true,
       length: 0,
-      legacyRows: 0,
       headHash: GENESIS_HASH,
     });
   });
@@ -97,7 +96,6 @@ describe('verifyAuditChain', () => {
     expect(verifyAuditChain(rows)).toEqual({
       ok: true,
       length: 3,
-      legacyRows: 0,
       headHash: rows[2]!.hash,
     });
   });
@@ -140,35 +138,24 @@ describe('verifyAuditChain', () => {
     });
   });
 
-  it('allows a legacy prefix of unhashed rows written before the migration', () => {
-    const legacy: AuditChainRow[] = [1, 2].map((id) => ({
-      id,
-      prevHash: null,
-      hash: null,
-      ...entries[0]!,
-    }));
-    const rows = [...legacy, ...chainOf(entries, 3)];
-    expect(verifyAuditChain(rows)).toEqual({
-      ok: true,
-      length: 5,
-      legacyRows: 2,
-      headHash: rows[4]!.hash,
-    });
+  it('calls an unhashed row anywhere unhashed_in_chain: nulling every hash does not pass', () => {
+    const rows = chainOf(entries).map((row) => ({ ...row, prevHash: null, hash: null }));
+    expect(verifyAuditChain(rows)).toEqual({ ok: false, brokenAt: 1, reason: 'unhashed_in_chain' });
   });
 
-  it('reports a log of only legacy rows as ok with the genesis head', () => {
-    const legacy = [{ id: 1, prevHash: null, hash: null, ...entries[0]! }];
-    expect(verifyAuditChain(legacy)).toEqual({
-      ok: true,
-      length: 1,
-      legacyRows: 1,
-      headHash: GENESIS_HASH,
-    });
-  });
-
-  it('calls an unhashed row after a hashed one gap_before_chain', () => {
+  it('calls an unhashed row after a hashed one unhashed_in_chain', () => {
     const rows = chainOf(entries);
     rows[2] = { ...rows[2]!, prevHash: null, hash: null };
-    expect(verifyAuditChain(rows)).toEqual({ ok: false, brokenAt: 3, reason: 'gap_before_chain' });
+    expect(verifyAuditChain(rows)).toEqual({ ok: false, brokenAt: 3, reason: 'unhashed_in_chain' });
+  });
+
+  it('calls a row with a hash but no prev hash prev_hash_mismatch', () => {
+    const rows = chainOf(entries);
+    rows[0] = { ...rows[0]!, prevHash: null };
+    expect(verifyAuditChain(rows)).toEqual({
+      ok: false,
+      brokenAt: 1,
+      reason: 'prev_hash_mismatch',
+    });
   });
 });

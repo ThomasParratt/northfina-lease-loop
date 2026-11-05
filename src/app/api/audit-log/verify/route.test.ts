@@ -49,7 +49,7 @@ describe('GET /api/audit-log/verify', () => {
     const { status, body } = await verify();
     expect(status).toBe(200);
     expect(body.success).toBe(true);
-    expect(body.data).toEqual({ ok: true, length: 0, legacyRows: 0, headHash: GENESIS_HASH });
+    expect(body.data).toEqual({ ok: true, length: 0, headHash: GENESIS_HASH });
   });
 
   it('answers an intact chain with its length and head, matching the contract', async () => {
@@ -57,7 +57,7 @@ describe('GET /api/audit-log/verify', () => {
     await write(2);
     const { body } = await verify();
     const newest = await holder.db.auditLog.findFirstOrThrow({ orderBy: { id: 'desc' } });
-    expect(body.data).toEqual({ ok: true, length: 2, legacyRows: 0, headHash: newest.hash });
+    expect(body.data).toEqual({ ok: true, length: 2, headHash: newest.hash });
     expect(auditChainVerdictSchema.parse(body.data)).toEqual(body.data);
   });
 
