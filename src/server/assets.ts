@@ -49,7 +49,7 @@ export function toAssetRowData(asset: Asset) {
 }
 
 export async function listAssets(
-  db: PrismaClient,
+  db: PrismaClient | TransactionClient,
   filter: { category?: AssetCategory } = {}
 ): Promise<Asset[]> {
   const rows = await db.asset.findMany({
