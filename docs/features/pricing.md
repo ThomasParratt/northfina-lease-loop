@@ -4,13 +4,17 @@ Spine steps 1 and 2 of `CHALLENGE.md`, smart problem 6 ("Explain my price") and 
 
 ## What it does
 
+The price page shows what an item costs a month for any term, down payment and quantity, line by line from the list price to the total cost, and compares the four terms side by side. "Get a quote" freezes that price for 14 days at its date and price-list version, so a later price list never changes it.
+
+In detail:
+
 - **The price page** `/[locale]/assets/[id]`: the asset, a term slider (12/24/36/48 months), a down-payment slider (0 to the price, in steps of 1 % of the price rounded to whole euros) and a quantity field (1–20). The monthly price updates live from `GET /api/quotes/preview`; the browser never computes a price.
 - **The breakdown**, as a definition list in plain words: price of the item (and of N items), what you pay at the start, the amount we finance, the band and factor, the monthly rent without VAT, the VAT and what you pay each month, the per-item share for a fleet, the buyout at the end, and the total cost two ways (if you give it back, if you keep it).
 - **The term comparison**: the same choices priced at every term, side by side, with the terms that cannot be priced and why.
 - **The stored quote** (D7): "Get a quote" stores a `Quote` row priced on the request's day, valid 14 days, with an audit row. `?quote=<id>` on the price page shows it locked at its date and price-list version, with its validity, a notice when a cheaper list is live today (card 2) and the link to the application (`/[locale]/apply/[quoteId]`, the question-flow slice's page).
 - **Refusals are codes with params** (rule 6): `invalid_quantity`, `invalid_down_payment`, `unknown_term`, `unknown_asset`, `no_price_list_on_date`, `down_payment_too_high`, `below_minimum`, `above_maximum`, `no_vat_rate_on_date`, and from the stored quote `asset_not_available`. The page writes them from `pricing.refusal.*` in the visitor's language, with amounts formatted as euros.
 
-## The formula
+## The rule
 
 ```text
 list price       = net list price of one unit on the day × quantity          (price list in force that day)
@@ -60,7 +64,7 @@ On 5 Nov 2026 list v1 is 349 000 → 9 627 a month. On 6 Nov list v2 is 321 100 
 - **D8** quantity: financed = list × quantity − down, band on the total, one quote, per-unit split. Implemented; the mentor question stays open.
 - Not in the decisions file yet, chosen here: the per-unit split puts the leftover cents on the first units (`splitEvenly`) instead of rounding each share; an asset that is not `available` (the reserved `ebike-009`) shows its price but cannot be quoted (`asset_not_available`).
 
-## The pure functions (`src/domain/pricing/`)
+## Pure functions (`src/domain/pricing/`)
 
 ```ts
 priceQuote(data: PricingData, input: QuoteInput): QuoteResult
@@ -78,7 +82,7 @@ QUOTE_VALID_DAYS = 14
 
 Server (`src/server/quotes.ts`): `loadPricingData()`, `createQuote(db, { assetId, quantity, termMonths, downPaymentCents, today, actor }, data?)`, `getQuote(db, id)`, `storedQuoteStatusOn(stored, today, priceLists)`, `previewQuote(data, { …, today })`.
 
-## The files
+## Files
 
 | File                                    | What                                                        |
 | --------------------------------------- | ----------------------------------------------------------- |
@@ -96,7 +100,7 @@ Server (`src/server/quotes.ts`): `loadPricingData()`, `createQuote(db, { assetId
 | `src/components/quote-calculator.tsx`   | the sliders and the term table (client)                     |
 | `src/components/quote-breakdown.tsx`    | the breakdown list and the refusal text (server and client) |
 
-## The tests that pin each number
+## Tests that pin the numbers
 
 | Number                                                              | Test                                                                                  |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
