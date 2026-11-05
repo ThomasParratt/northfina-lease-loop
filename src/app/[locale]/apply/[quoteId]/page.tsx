@@ -4,17 +4,19 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { QuestionFlow } from '@/components/question-flow';
-import { Notice, PageHeader } from '@/components/ui';
+import { Money, Notice, PageHeader, PriceTag } from '@/components/ui';
 import { loadQuestions } from '@/data/load';
 import { formatEuro } from '@/domain/money';
 import { answersFromCustomer } from '@/domain/question-flow/answers';
 import { whyWeAsk } from '@/domain/question-flow/engine';
 import { getT, messages, type MessageKey } from '@/i18n/get-t';
+import { formatIsoDate } from '@/i18n/format';
 import { intlLocale, isLocale } from '@/i18n/locales';
 import { readActor } from '@/server/actor';
 import { flowSetupFor } from '@/server/applications';
 import { getCustomer } from '@/server/customers';
 import { db } from '@/server/db';
+import { getQuote } from '@/server/quotes';
 
 export async function generateMetadata({
   params,
@@ -45,6 +47,8 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
   const found = await flowSetupFor(db, quoteId, customer.id);
   if (!found.ok) return page(<Notice tone="warning">{t('apply.quoteNotFound')}</Notice>);
   const { context } = found.setup;
+  // The quote the price page stored when the customer pressed "Apply at this price" (D7).
+  const quote = await getQuote(db, quoteId);
 
   const bank = (await loadQuestions()).questions;
   const dictionary: Record<string, string> = messages[locale];
@@ -61,6 +65,19 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
 
   return page(
     <>
+      {quote ? (
+        <PriceTag
+          size="sm"
+          className="mb-8 max-w-md"
+          label={t('apply.locked', { date: formatIsoDate(quote.validUntil, locale) })}
+          amount={<Money cents={quote.breakdown.monthlyGrossCents} locale={locale} />}
+          sub={t('apply.lockedSub', {
+            months: quote.breakdown.termMonths,
+            version: quote.breakdown.priceListVersion,
+            quoteDate: formatIsoDate(quote.quoteDate, locale),
+          })}
+        />
+      ) : null}
       <p className="mb-6 text-ink-muted">
         {t('apply.deal', {
           months: context.termMonths,
