@@ -8,5 +8,6 @@ One page per feature slice, shipped in the same pull request as its code (AGENTS
 - [pricing.md](pricing.md): the price breakdown, the term comparison, the fleet quantity and the stored quote (wave 1).
 - [question-flow.md](question-flow.md): the question flow, eligibility and the application decision (wave 1).
 - [invoicing.md](invoicing.md): the monthly schedule billed in advance, VAT by invoice date, paying an invoice and the outstanding balance (wave 1).
+- [audit-chain.md](audit-chain.md): the tamper-evident audit chain, its verifier, the badge with the head hash and the tamper demo (wave 2).
 
 The team's per-feature state (missing, in progress, done, verified) is [STATUS.md](STATUS.md); the README's "Status" table is the per-card view for the judges.
