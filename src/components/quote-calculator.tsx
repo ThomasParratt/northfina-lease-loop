@@ -271,8 +271,7 @@ function TermTable({
   return (
     <Card as="section" title={t('pricing.compare.title')} titleId={titleId} padded={false}>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <caption className="sr-only">{t('pricing.compare.title')}</caption>
+        <table className="w-full text-sm" aria-labelledby={titleId}>
           <thead className="text-left text-ink-muted">
             <tr className="border-b border-line">
               <th scope="col" className="px-4 py-2 font-medium">
