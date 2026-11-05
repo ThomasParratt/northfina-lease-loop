@@ -4,7 +4,14 @@
 // The numbers are computed once here, then frozen in a stored quote (D7). Everything that can
 // be derived from the frozen numbers is derived by `breakdownFromFrozen`, so a stored quote and
 // a fresh one always show the same lines and a stored quote is never re-priced.
-import type { Asset, AssetCategory, CoefficientTable, PriceList, TermLimits, VatRates } from '@/data/schemas';
+import type {
+  Asset,
+  AssetCategory,
+  CoefficientTable,
+  PriceList,
+  TermLimits,
+  VatRates,
+} from '@/data/schemas';
 import { monthlyFactorFor } from '../coefficient';
 import {
   applyMillionths,
@@ -26,11 +33,11 @@ export type PricingData = {
   vatRates: VatRates;
   /**
    * The team's longest term per category (D43). Optional: data built without it (the scenario
-   * harness, older tests) prices every term of the table;  always passes it,
-   * with  for the categories, so the app always applies the cap.
+   * harness, older tests) prices every term of the table; `loadPricingData()` always passes it,
+   * with `assets` for the categories, so the app always applies the cap.
    */
   termLimits?: TermLimits;
-  /** The assets' categories, for the cap; only read when  is given. */
+  /** The assets' categories, for the cap; only read when `termLimits` is given. */
   assets?: readonly Pick<Asset, 'id' | 'category'>[];
 };
 
@@ -158,7 +165,10 @@ export function priceQuote(data: PricingData, input: QuoteInput): QuoteResult {
     if (!category) return refuse({ code: 'unknown_asset', params: { assetId } });
     if (!termAllowed(category, termMonths, data.table, data.termLimits)) {
       const maxTermMonths = data.termLimits.max_term_months[category];
-      return refuse({ code: 'term_over_category_max', params: { category, termMonths, maxTermMonths } });
+      return refuse({
+        code: 'term_over_category_max',
+        params: { category, termMonths, maxTermMonths },
+      });
     }
   }
 

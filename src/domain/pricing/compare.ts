@@ -23,7 +23,7 @@ export type TermComparison = {
   unavailable: { termMonths: number; reason: QuoteRefusal }[];
 };
 
-/** Runs `priceQuote` once per term of the table with everything else held the same. */
+/** Runs `priceQuote` once per allowed term with everything else held the same. */
 export function compareTerms(
   data: PricingData,
   input: Omit<QuoteInput, 'termMonths'>
