@@ -56,6 +56,38 @@ Everything in the skeleton is replaceable. Keep the rules, not necessarily the c
 
 ---
 
+## Status
+
+Kept by each wave's hardening agent (AGENTS.md rule 9); the draft of the submission PR's "Scenario cards that work" and "Smart Problems" sections.
+
+| Card               | What the judges compare                                                                             | Works   | Proved by |
+| ------------------ | --------------------------------------------------------------------------------------------------- | ------- | --------- |
+| 1 Happy path       | Aino, `ebike-003`, 36 months, no down payment: net and gross rent, first 3 invoices, total cost     | not yet | —         |
+| 2 The price lock   | `laptop-004` quoted on v1 (5 Nov), signed on v2 (6 Nov, 8 % cheaper): which price is locked and why | not yet | —         |
+| 3 Tax is not price | `ebike-001`, 24 months from 15 Sep 2026: the December 2026 and January 2027 invoices                | not yet | —         |
+| 4 Calendar traps   | `laptop-001`, 36 months from 31 Jan 2026: due dates of the February 2026 and February 2028 invoices | not yet | —         |
+| 5 Too young        | Mikko (17) applies for `laptop-008`: a kind, clear no                                               | not yet | —         |
+| 6 Who can sign?    | Norvi Logistics, 4 × `ebike-004`: the applicant may not sign for the company                        | not yet | —         |
+| 7 Big ticket       | Haapalan Tila, `farm-002`, 48 months, €20,000 down: which questions appear, why manual review       | not yet | —         |
+| 8 Early exit       | Card 1 ended in month 7: what it costs and why                                                      | not yet | —         |
+| 9 Second life      | `ebike-007` back in fair condition at 18,400 km: refurbish, `wait-02` or `wait-13`, at what rent    | not yet | —         |
+| 10 Third life      | `ebike-008` after 2 lives: lease again, show the passport and the CO₂ saved                         | not yet | —         |
+
+**Smart problems** (order from `docs/kickoff-brief.md` section 4):
+
+- 7 Circular impact: not yet.
+- 1 Lock the price, not the tax: not yet.
+- 5 Money that adds up: not yet (integer cents and `formatEuro` exist in `src/domain/money.ts`).
+- 6 Explain my price: not yet.
+- 2 Fair early exit and 3 Second-life matchmaking: not yet, if the spine stands by Friday morning.
+
+## Features
+
+One page per feature slice under `docs/features/` (template: [docs/features/README.md](docs/features/README.md)):
+
+- [Catalogue, demo clock, actor and audit trail](docs/features/catalogue.md) (wave 0)
+- [Circular impact and the passport](docs/features/circular-impact.md) (wave 1)
+
 ## Team notes
 
 - `AGENTS.md`: the organiser's rules plus our working rules; every agent and person reads it first.
@@ -63,6 +95,8 @@ Everything in the skeleton is replaceable. Keep the rules, not necessarily the c
 - `docs/decisions.md`: every decision with its reason; `docs/stack-notes.md`: the traps of this stack; `docs/log/`: one time log per task; `docs/reviews/`: the wave reviews.
 - `tests/meta-rules.test.ts`: the engineering rules checked against the repository itself, in `npm test`.
 - The practice repo (`ThomasParratt/leasing-platform`) is a read-only parts bin cloned beside this one; port functions with their tests, never structure.
+- A branch is named after the feature it builds, `<type>/<slice>` with the conventional-commit type as prefix: `feat/pricing`, `feat/invoices`, `chore/wave0-upkeep`, `test/wave1-hardening`; a session that starts on a generated name renames it with `git branch -m` before its first push.
+- Nobody pushes to `main` directly, not even docs or tooling: every change is a branch and a pull request on the fork, CI runs on the PR, and it is squash-merged with a conventional subject.
 
 ### Database
 
@@ -70,7 +104,7 @@ SQLite through Prisma 7, schema in `prisma/schema.prisma`, `snake_case` columns.
 
 ### Who is acting
 
-There is no login (D17). The "continue as" picker (`src/components/actor-picker.tsx`) posts `{ actor }` (a customer id or `admin`) to `POST /api/actor`, which sets the `lease-loop-actor` cookie; `DELETE /api/actor` clears it. Pages and routes call `readActor(db)` from `src/server/actor.ts` once per request and pass the actor to `withAudit`; an unknown or missing cookie reads as `anonymous`.
+There is no login (D17). The "continue as" picker (`src/components/actor-picker.tsx`, in the header) posts `{ actor }` (a customer id or `admin`) to `POST /api/actor`, which sets the `lease-loop-actor` cookie; `DELETE /api/actor` clears it. Pages and routes call `readActor(db)` from `src/server/actor.ts` once per request and pass the actor to `withAudit`; an unknown or missing cookie reads as `anonymous`.
 
 ### API
 
@@ -82,7 +116,17 @@ When one change touches several slices' rows at one instant, the owner emits one
 
 ### Pages
 
-`/[locale]` is the catalogue, `/[locale]/demo` the demo page (the clock and, from wave 1, one button per scenario card), `/[locale]/audit` the newest 50 audit rows. The header nav links all three, beside the language switcher and a slot for the "continue as" actor picker; it wraps on a phone. Pages are built from the kit in `src/components/ui` (`PageHeader`, `Card`, `Button`, `LinkButton`, `Badge`, `DefinitionList`, `Field`, `Notice`, `Money`, `DateText`, `NavLinks`, one `index.ts`) and the team's design tokens in `src/app/globals.css` (D21): pages use the roles `brand`, `focus`, `success`, `warning`, `danger`, `info`, `neutral`, `surface`, `raised`, `muted`, `line`, `line-strong`, `ink`, `ink-muted` (e.g. `bg-brand`, `text-ink-muted`, `bg-success-soft`), never raw colour classes or the scales under them. Each token switches with the colour scheme, so no page needs a `dark:` class.
+`/[locale]` is the catalogue, `/[locale]/demo` the demo page (the clock and, from wave 1, one button per scenario card), `/[locale]/audit` the newest 50 audit rows. The header nav links all three, beside the "continue as" actor picker and the language switcher; it wraps on a phone. The layout reads the customers and the current actor once per request for the picker. Pages are built from the kit in `src/components/ui` (`PageHeader`, `Card`, `Button`, `LinkButton`, `Badge`, `DefinitionList`, `Field`, `Notice`, `Money`, `DateText`, `NavLinks`, one `index.ts`) and the team's design tokens in `src/app/globals.css` (D21): pages use the roles `brand`, `focus`, `success`, `warning`, `danger`, `info`, `neutral`, `surface`, `raised`, `muted`, `line`, `line-strong`, `ink`, `ink-muted` (e.g. `bg-brand`, `text-ink-muted`, `bg-success-soft`), never raw colour classes or the scales under them. Each token switches with the colour scheme, so no page needs a `dark:` class.
+
+### Application
+
+The question flow (CHALLENGE.md smart problem 4) is pure code in `src/domain/question-flow/`:
+
+- `engine.ts`: `visibleQuestions(bank, context, answers)` applies `ask_when` as `data/DATA.md` says (all conditions; empty = always; `in`, `gte`, `lte`; `answers.<id>`), in the bank's order. `customer_type` is the applicant's own `q_customer_type` answer once given, the context's before. `nextQuestion` is the first visible question without an answer; `pruneAnswers` drops answers to questions that are no longer visible, repeating until stable (can-sign no → signatory named → yes: the signatory goes). `whyWeAsk(question, locale)` falls back to English. The context is `{ customerType, category, financedCents, termMonths }`, built by the caller from the quote.
+- `eligibility.ts`: `evaluate(rules, input)` → `{ decision, reasons: { code, params }[] }` (D9). Any failed rule rejects and every failure is listed (`too_young` with `eighteenOn`, `residency_not_allowed`, `unaffordable` at 30 % of net income against the gross rent, `invalid_business_id`, `financed_out_of_range`, `missing_answer`); else a PEP goes to `manual_review`; else a company applicant who cannot sign is `awaiting_signatory`; else `approved` with `all_checks_passed`. Affordability applies only when the bank asked for income (consumers from 200 000 financed). A 29 February birthday turns 18 on 1 March.
+- `business-id.ts`: the Y-tunnus check digit (weights 7 9 10 5 8 4 2, mod 11; remainder 1 is never valid). `answers.ts`: the answers → eligibility input, answer validation by type, euros typed by a person → cents without floats, gross = net + VAT rounded half up once (a local copy until pricing's VAT helper lands), and `answersFromCustomer` for the demo prefill.
+
+`src/server/applications.ts` has `createApplication` (reads the quote and customer, prunes, refuses incomplete or malformed answers and an expired quote, evaluates, writes the row through `withAudit`), `decideApplication` (D10: an admin decides a manual review, and one that also needs a signatory then waits for them; the named signatory signs or declines; anything else is final) and `getApplication`. Routes: `POST /api/applications`, `GET /api/applications/[id]`, `POST /api/applications/[id]/decision`. Pages: `/[locale]/apply/[quoteId]` asks one question at a time for the acting customer, with "why we ask", back, progress, a review with "change" per answer and a notice when a change removes answers; `/[locale]/applications/[id]` writes the decision and each reason from `decision.reason.<code>` in the visitor's language, with the admin's review buttons or the signatory's sign form.
 
 ### Passport and impact
 
