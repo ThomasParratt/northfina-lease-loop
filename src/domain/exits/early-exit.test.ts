@@ -25,13 +25,14 @@ function card8(overrides: Partial<EarlyExitInput> = {}): EarlyExitInput {
       termMonths: 36,
       buyoutCents: 58_350,
       endDate: '2029-11-04',
+      startDate: '2026-11-05',
       unitListPriceCents: 389_000,
       quantity: 1,
     },
     annualInterestPercent: 7.9,
     invoices: rents(7),
-    today: '2027-06-04', // the last day of month 7
-    asset: { category: 'e_bike', modelYear: 2026 },
+    today: '2027-06-05', // month 7 complete: the 8th period starts, unpaid
+    asset: { category: 'e_bike', modelYear: 2026, previousLives: 0 },
     reported: { condition: 'good', usage: { unit: 'km', value: 1_800 } },
     curves,
     costs,
@@ -61,33 +62,35 @@ describe('earlyExitCost, card 8 (card 1 ended in month 7)', () => {
     expect(cost.remainingRentsNetCents).toBe(311_170);
   });
 
-  it('return = 330 675 − market value 202 523 + safety inspection 4 500 = 132 652', () => {
-    // Market value: 389 000 × 62.5 % (17 months, D11) × 0.85 (good) × 0.98 (1 800 km) = 202 523.
-    expect(cost.marketValue.valueCents).toBe(202_523);
-    expect(cost.return.totalCents).toBe(132_652);
+  it('return = 330 675 − market value 259 230 + safety inspection 4 500 = 75 945', () => {
+    // D31 (provisional): a first-life item is aged from its lease start, 7 months, 80 % on the
+    // curve. 389 000 × 80 % × 0.85 (good) × 0.98 (1 800 km) = 259 229.6 → 259 230.
+    // By D11 for every item (17 months, 62.5 %) it would be 202 523, the return 132 652.
+    expect(cost.marketValue.valueCents).toBe(259_230);
+    expect(cost.return.totalCents).toBe(75_945);
     expect(cost.return.lines.map((l) => [l.code, l.params.amountCents])).toEqual([
       ['months_paid', undefined],
       ['balance', 330_675],
-      ['market_value', 202_523],
-      ['balance_after_value', 128_152],
+      ['market_value', 259_230],
+      ['balance_after_value', 71_445],
       ['refurb_fixed', 4_500],
-      ['total', 132_652],
+      ['total', 75_945],
     ]);
     expect(cost.return.lines[2]!.params).toMatchObject({
-      ageMonths: 17,
-      curvePercent: 62.5,
+      ageMonths: 7,
+      curvePercent: 80,
       condition: 'good',
       conditionMultiplier: 0.85,
       usageAdjustmentPercent: -2,
     });
   });
 
-  it('as new with no km the market value would be 243 125 and the return 92 050', () => {
+  it("as new with no km the market value is the brief's 311 200 and the return 23 975", () => {
     const asNew = earlyExitCost(
       card8({ reported: { condition: 'new', usage: { unit: 'km', value: 0 } } })
     );
-    expect(asNew.marketValue.valueCents).toBe(243_125);
-    expect(asNew.return.totalCents).toBe(330_675 - 243_125 + 4_500);
+    expect(asNew.marketValue.valueCents).toBe(311_200);
+    expect(asNew.return.totalCents).toBe(330_675 - 311_200 + 4_500);
   });
 });
 

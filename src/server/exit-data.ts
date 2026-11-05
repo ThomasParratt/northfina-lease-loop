@@ -43,16 +43,11 @@ export async function loadExitData(): Promise<ExitData> {
 export type ExitContext = { contract: ContractView; asset: Asset; invoices: InvoiceView[] };
 
 /**
- * The owners' read functions take a `PrismaClient`; inside a transaction they get the `tx`,
- * which has every model delegate they use (`findUnique`, `findMany`). Reads only.
+ * The contract, its asset and its invoices, or null for an unknown contract. On the client or,
+ * inside the exit's transaction, on its `tx`: the owners' read functions accept both.
  */
-export function readerOf(tx: TransactionClient): PrismaClient {
-  return tx as unknown as PrismaClient;
-}
-
-/** The contract, its asset and its invoices, or null for an unknown contract. */
 export async function readExitContext(
-  db: PrismaClient,
+  db: PrismaClient | TransactionClient,
   contractId: string
 ): Promise<ExitContext | null> {
   const contract = await getContract(db, contractId);
@@ -96,7 +91,11 @@ export function planInputOf(
       quantity: contract.quantity,
     },
     invoices: invoices.map((i) => ({ id: i.id, kind: i.kind, status: i.status })),
-    asset: { category: asset.category, modelYear: asset.model_year },
+    asset: {
+      category: asset.category,
+      modelYear: asset.model_year,
+      previousLives: asset.previous_lives,
+    },
     annualInterestPercent: band.annual_interest_percent,
     curves: data.curves,
     costs: data.costs,

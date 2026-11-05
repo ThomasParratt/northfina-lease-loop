@@ -37,10 +37,10 @@ function input(overrides: Partial<PlanExitInput> = {}): PlanExitInput {
       quantity: 1,
     },
     mode: 'buy',
-    today: '2027-06-04',
+    today: '2027-06-05',
     reported: { condition: 'good', usage: { unit: 'km', value: 1_800 } },
     invoices: rents(7),
-    asset: { category: 'e_bike', modelYear: 2026 },
+    asset: { category: 'e_bike', modelYear: 2026, previousLives: 0 },
     annualInterestPercent: 7.9,
     curves,
     costs,
@@ -59,13 +59,13 @@ describe('planExit, card 8: Aino leaves in month 7', () => {
   it('a buy before the end is still a buy: ended_early, CONTRACT_BOUGHT_OUT 330 675 net', () => {
     const p = plan();
     expect(p.status).toBe('ended_early');
-    expect(p.endedOn).toBe('2027-06-04');
+    expect(p.endedOn).toBe('2027-06-05');
     expect(p.reason).toBe('early_exit');
     expect(p.event).toEqual({
       type: 'CONTRACT_BOUGHT_OUT',
       contractId: 'c-1',
       assetId: 'ebike-003',
-      date: '2027-06-04',
+      date: '2027-06-05',
       amountCents: 330_675,
     });
   });
@@ -73,8 +73,8 @@ describe('planExit, card 8: Aino leaves in month 7', () => {
   it('bills an early_exit invoice at the 26 % of its own day: 330 675 + 85 976 = 416 651', () => {
     expect(plan().invoice).toEqual({
       kind: 'early_exit',
-      issueDate: '2027-06-04',
-      dueDate: '2027-06-04',
+      issueDate: '2027-06-05',
+      dueDate: '2027-06-05',
       netCents: 330_675,
       vatRateBasisPoints: 2600,
       vatCents: 85_976,
@@ -89,25 +89,25 @@ describe('planExit, card 8: Aino leaves in month 7', () => {
     expect(p.cancelInvoiceIds).not.toContain('inv-7');
   });
 
-  it('a return emits UNIT_RETURNED with the reported condition and bills 132 652 net', () => {
+  it('a return emits UNIT_RETURNED with the reported condition and bills 75 945 net', () => {
     const p = plan({ mode: 'return' });
     expect(p.status).toBe('ended_early');
     expect(p.event).toEqual({
       type: 'UNIT_RETURNED',
       contractId: 'c-1',
       assetId: 'ebike-003',
-      date: '2027-06-04',
+      date: '2027-06-05',
       reason: 'early_exit',
       condition: 'good',
       usage: { unit: 'km', value: 1_800 },
     });
-    expect(p.invoice).toMatchObject({ kind: 'early_exit', netCents: 132_652, vatCents: 34_490 });
+    expect(p.invoice).toMatchObject({ kind: 'early_exit', netCents: 75_945, vatCents: 19_746 });
   });
 
   it('a pass-on names the next customer and costs what a return costs (D16)', () => {
     const p = plan({ mode: 'pass_on', nextCustomerId: 'cust-matti' });
     expect(p.event).toMatchObject({ type: 'UNIT_PASSED_ON', nextCustomerId: 'cust-matti' });
-    expect(p.invoice?.netCents).toBe(132_652);
+    expect(p.invoice?.netCents).toBe(75_945);
   });
 
   it('an overdue unpaid rent is cancelled too: the balance already contains it', () => {
@@ -201,7 +201,7 @@ describe('planExit refusals and guards', () => {
   it('a day with no VAT rate is a refusal', () => {
     expect(planExit(input({ vatRates: { ...vatRates, rates: [] } }))).toMatchObject({
       ok: false,
-      reason: { code: 'no_vat_rate_on_date', params: { isoDate: '2027-06-04' } },
+      reason: { code: 'no_vat_rate_on_date', params: { isoDate: '2027-06-05' } },
     });
   });
 
@@ -226,7 +226,7 @@ describe('exitBilling', () => {
     const billing = exitBilling({
       mode: 'return',
       cost: p.cost,
-      today: '2027-06-04',
+      today: '2027-06-05',
       invoices: rents(7),
       vatRates,
     });

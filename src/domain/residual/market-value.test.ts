@@ -83,7 +83,7 @@ describe('marketValueCents', () => {
     );
   });
 
-  it('card 8: ebike-003 (2026 model) in month 7 of card 1, on 2027-06-04, D11 age 17', () => {
+  it('card 8 by D11 (chosen against by D31): ebike-003 by its model year, age 17', () => {
     // What Aino reports is an assumption of this test: "good" after 7 months, 1 800 km.
     const ageMonths = ageInMonths(2026, '2027-06-04');
     expect(ageMonths).toBe(17);
@@ -96,9 +96,9 @@ describe('marketValueCents', () => {
     expect(marketValueCents({ ...base, ageMonths }, curves).valueCents).toBe(243_125);
   });
 
-  it("the brief's 311 200 is the curve at 7 months from the first lease, not the D11 age", () => {
-    // 389 000 × 80 % (82 at 6 months, 70 at 12: 82 − 2) × new × no usage = 311 200. D11 counts
-    // from the model year instead, so the pinned card 8 value is 243 125 as new (see above).
+  it("card 8 by D31 (provisional): 7 months from the lease start, the brief's 311 200", () => {
+    // 389 000 × 80 % (82 at 6 months, 70 at 12: 82 − 2) × new × no usage = 311 200. D31 ages a
+    // first-life item from its lease start (curveAgeInMonths); D11 would give 243 125 (above).
     const ageMonths = monthsBetween('2026-11-05', '2027-06-05');
     expect(ageMonths).toBe(7);
     expect(marketValueCents({ ...base, ageMonths }, curves).valueCents).toBe(311_200);

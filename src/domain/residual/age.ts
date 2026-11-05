@@ -1,5 +1,6 @@
-// The age of an item for the residual curve (decision D11): whole months from 1 January of its
-// model year to the valuation day, because the data pack has no first-lease date. A month
+// The age of an item for the residual curve. `curveAgeInMonths` picks the rule (D31, at the end
+// of this file); `ageInMonths` is D11: whole months from 1 January of the model year to the
+// valuation day, because the data pack has no first-lease date. A month
 // counts from its first day, so a 2026 model is 0 months old all of January 2026 and 17 on
 // any day of June 2027. A model year after the valuation day (a 2027 model sold in 2026) is
 // age 0, never negative. ISO day strings in, no clock.
@@ -42,4 +43,29 @@ export function monthsBetween(fromIso: string, toIso: string): number {
   const anniversary = Math.min(fd, daysInMonth(ty, tm));
   if (td < anniversary) months -= 1;
   return Math.max(0, months);
+}
+
+export type CurveAgeInput = {
+  modelYear: number;
+  /** The asset's `previous_lives` during this lease: 0 for an item on its first lease. */
+  previousLives: number;
+  /** The start day of the current lease. */
+  leaseStart: string;
+};
+
+/**
+ * The age the residual curve is read at (D31, provisional, refines D11):
+ * - a first-life item (no previous lives) is aged from the start of its lease, in whole
+ *   months (`monthsBetween`). Every item in the pack is new on the shelf, so its life starts
+ *   at its first lease. Card 8: card 1's bike on 2027-06-05 is 7 months old (80 %).
+ * - an item with previous lives keeps D11 (`ageInMonths` from its model year): it has a real
+ *   history before this lease, and the pack has no first-lease date for it.
+ */
+export function curveAgeInMonths(input: CurveAgeInput, isoDay: string): number {
+  if (!Number.isSafeInteger(input.previousLives) || input.previousLives < 0) {
+    throw new RangeError(`previousLives must be a whole number ≥ 0, got ${input.previousLives}`);
+  }
+  return input.previousLives === 0
+    ? monthsBetween(input.leaseStart, isoDay)
+    : ageInMonths(input.modelYear, isoDay);
 }

@@ -21,7 +21,7 @@ import type {
 } from '@/data/schemas';
 import { outstandingBalanceAfter, type AmortisationRow } from '../invoicing/balance';
 import { refurbishmentPlan, type RefurbishmentPlan } from '../refurbishment/plan';
-import { ageInMonths } from '../residual/age';
+import { curveAgeInMonths } from '../residual/age';
 import { marketValueCents, type MarketValue, type Usage } from '../residual/market-value';
 import type { InvoiceKind, InvoiceStatus } from '../statuses';
 
@@ -54,6 +54,8 @@ export type ExitContractTerms = {
   monthlyNetCents: number;
   termMonths: number;
   buyoutCents: number;
+  /** The first day of the lease: the curve age of a first-life item counts from it (D31). */
+  startDate: string;
   /** Inclusive: the last day of the term. */
   endDate: string;
   /** Net list price of one unit at signing: the first-lease price for the curve. */
@@ -67,7 +69,8 @@ export type EarlyExitInput = {
   annualInterestPercent: number;
   invoices: readonly { kind: InvoiceKind; status: InvoiceStatus }[];
   today: string;
-  asset: { category: AssetCategory; modelYear: number };
+  /** `previousLives` during this lease picks the curve age (D31). */
+  asset: { category: AssetCategory; modelYear: number; previousLives: number };
   /** What the customer reports; the assessment (wave 3) checks it. */
   reported: { condition: AssetCondition; usage: Usage };
   curves: ResidualCurves;
@@ -124,7 +127,14 @@ export function earlyExitCost(input: EarlyExitInput): EarlyExitCost {
     {
       listPriceCents: contract.unitListPriceCents,
       category: asset.category,
-      ageMonths: ageInMonths(asset.modelYear, today),
+      ageMonths: curveAgeInMonths(
+        {
+          modelYear: asset.modelYear,
+          previousLives: asset.previousLives,
+          leaseStart: contract.startDate,
+        },
+        today
+      ),
       condition: reported.condition,
       usage: reported.usage,
     },

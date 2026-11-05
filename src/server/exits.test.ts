@@ -40,7 +40,7 @@ beforeEach(async () => {
   });
 });
 
-const MONTH_7 = '2027-06-04';
+const MONTH_7 = '2027-06-05';
 const AINO_REPORTS = { condition: 'good' as const, usage: { unit: 'km' as const, value: 1_800 } };
 
 /** Card 1 signed through signContract, then the first `paid` rents paid on their due days. */
@@ -135,7 +135,7 @@ describe('exitContract, card 8: Aino leaves card 1 in month 7', () => {
     expect(audit[0]!.actor).toBe('cust-aino');
   });
 
-  it('a return: the asset returned with the reported condition and usage, 132 652 billed', async () => {
+  it('a return: the asset returned with the reported condition and usage, 75 945 billed', async () => {
     const contractId = await card1(7);
     const result = await exitContract(
       db,
@@ -150,7 +150,7 @@ describe('exitContract, card 8: Aino leaves card 1 in month 7', () => {
       usage: AINO_REPORTS.usage,
     });
     const exit = (await listInvoices(db, contractId)).find((i) => i.kind === 'early_exit')!;
-    expect(exit).toMatchObject({ netCents: 132_652, vatCents: 34_490, grossCents: 167_142 });
+    expect(exit).toMatchObject({ netCents: 75_945, vatCents: 19_746, grossCents: 95_691 });
     expect((await listAssetEvents(db, 'ebike-003')).at(-1)?.kind).toBe('returned');
   });
 
@@ -183,7 +183,7 @@ describe('exitContract, card 8: Aino leaves card 1 in month 7', () => {
       MONTH_7
     );
     if (!preview.ok) throw new Error(preview.reason.code);
-    expect(preview.preview.return.totalCents).toBe(132_652);
+    expect(preview.preview.return.totalCents).toBe(75_945);
     expect(preview.preview.buy.totalCents).toBe(330_675);
     expect(await writesSoFar(contractId)).toEqual(before);
 

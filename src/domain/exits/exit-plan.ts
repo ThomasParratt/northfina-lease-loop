@@ -72,8 +72,6 @@ export type PlanExitInput = Omit<EarlyExitInput, 'invoices' | 'reported'> & {
     customerId: string;
     assetId: string;
     status: string;
-    /** The first day of the lease; an exit before it is refused, so `ended_on` ≥ `start_date`. */
-    startDate: string;
   };
   mode: string;
   reason?: string;
