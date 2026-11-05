@@ -2,12 +2,14 @@
 
 Real clock, Helsinki. Agent: Opus, worktree `nostalgic-sutherland-1bb709`, base `2908278`.
 
-| When             | What                                                                                                                                                                                               |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-11-05 17:38 | Read the brief (sections 2 and 7), `audit.ts`, `api-response.ts`, the three routes, the meta rules, the practice repo's `packages/contracts` OpenAPI generator, script and test. Started `npm ci`. |
-| 17:40            | Tests first: `src/domain/events.test.ts`, then the payload schemas; `src/server/events.test.ts`, then the bus; `routes.test.ts`, `openapi.test.ts`, then the table, the generator and the script.  |
-| 17:52            | `npm ci` finished (14 minutes on this disk). `npm run db:setup`, `npm install --save-dev fast-check` (4.10.2; the lockfile diff is fast-check and pure-rand only), the `openapi` script.           |
-| 17:55            | The four new test files and the property test pass (50 tests). `docs/openapi.json` generated: 3 paths. README "API" and "Events" paragraphs. `npm run check:all` started.                          |
+| When             | What                                                                                                                                                                                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-05 17:38 | Read the brief (sections 2 and 7), `audit.ts`, `api-response.ts`, the three routes, the meta rules, the practice repo's `packages/contracts` OpenAPI generator, script and test. Started `npm ci`.                                                                |
+| 17:40            | Tests first: `src/domain/events.test.ts`, then the payload schemas; `src/server/events.test.ts`, then the bus; `routes.test.ts`, `openapi.test.ts`, then the table, the generator and the script.                                                                 |
+| 17:52            | `npm ci` finished (14 minutes on this disk). `npm run db:setup`, `npm install --save-dev fast-check` (4.10.2; the lockfile diff is fast-check and pure-rand only), the `openapi` script.                                                                          |
+| 17:55            | The four new test files and the property test pass (50 tests). `docs/openapi.json` generated: 3 paths. README "API" and "Events" paragraphs. `npm run check:all` started.                                                                                         |
+| 18:20            | `npm run check:all` green except `format:check`, which flags every file the CRLF checkout touched (`core.autocrlf=true`, no `.gitattributes`); `prettier --check . --end-of-line auto` passes. 179 tests, coverage 97.6 %, build OK.                              |
+| 18:25            | Commits blocked: the worktree's `config.worktree` set `core.hooksPath` to the main checkout's raw `.husky`, so git exec'd the hook scripts directly ("Exec format error"). Set it to `.husky/_` for this worktree; the hooks then ran and passed on every commit. |
 
 ## Choices made here (not in the brief)
 
@@ -21,6 +23,9 @@ Real clock, Helsinki. Agent: Opus, worktree `nostalgic-sutherland-1bb709`, base 
 - **OpenAPI 3.1** with the default JSON Schema dialect (the practice repo used 3.0); `$schema` is dropped from each embedded schema. The `openapi` script runs Prettier on the file, because `format:check` covers JSON.
 
 ## Left undone
+
+- **Line endings.** Add a `.gitattributes` with `* text=auto eol=lf` (outside this task's files) so a Windows checkout passes `format:check`; until then `format:check` fails locally on Windows (every CRLF file), not in CI.
+- **Hooks in other worktrees.** A worktree whose `config.worktree` points `core.hooksPath` at the main checkout's `.husky` needs `git config --worktree core.hooksPath .husky/_`.
 
 - **Handler registration is import-time.** A slice's handlers register when its module is imported; wave 1 must import every handler module from one place (e.g. `src/server/event-handlers.ts`) that the emitting service imports, or a handler silently does not run. Not built here because no handler exists yet.
 - `routes.ts` will pass 600 lines when every slice adds its schemas: split it then into `src/server/routes/<slice>.ts` files concatenated by `routes.ts`.
