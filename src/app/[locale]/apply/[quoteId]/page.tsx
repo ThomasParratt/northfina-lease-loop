@@ -103,6 +103,7 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
         texts={texts}
         options={options}
         prefill={answersFromCustomer(customer)}
+        recordEmail={customer.email}
         labels={{
           progress: raw('apply.progress'),
           why: t('apply.why'),
@@ -117,6 +118,9 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
           invalid: t('apply.invalid'),
           birthDateRange: raw('apply.birthDateRange'),
           signatoryIsApplicant: t('apply.signatoryIsApplicant'),
+          notApplicant: t('apply.notApplicant'),
+          notSignatory: t('apply.notSignatory'),
+          answerRefused: raw('apply.answerRefused'),
           pruned: raw('apply.pruned'),
           moneyHint: t('apply.moneyHint'),
           listHint: t('apply.listHint'),

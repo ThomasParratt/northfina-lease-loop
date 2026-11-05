@@ -1,10 +1,11 @@
 // The decision on an application: a clear yes, no or "a person will check", and every reason
 // written from its code in the visitor's language (team rule 6). An admin decides a manual
-// review here, and the named signatory signs an awaiting_signatory case (D10).
+// review here (D10). An awaiting_signatory case shows the demo outbox: the signing link that
+// was sent to the signatory, who signs there, never here (D44).
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
-import { Badge, Card, Notice, PageHeader } from '@/components/ui';
+import { Badge, Card, LinkButton, Notice, PageHeader } from '@/components/ui';
 import { loadQuestions } from '@/data/load';
 import { formatEuro } from '@/domain/money';
 import { formatIsoDate } from '@/i18n/format';
@@ -13,6 +14,8 @@ import { intlLocale, isLocale, type Locale } from '@/i18n/locales';
 import { ADMIN_ACTOR, readActor } from '@/server/actor';
 import { getApplication, type StoredReason } from '@/server/applications';
 import { db } from '@/server/db';
+import { todayForRequest } from '@/server/demo-clock';
+import { latestSigningLink } from '@/server/signatories';
 import { DecisionForm } from './decision-form';
 
 export async function generateMetadata({
@@ -99,6 +102,10 @@ export default async function ApplicationPage({
       : t('decision.reason.unknown', { code: reason.code });
   };
   const { decision } = application;
+  const link =
+    decision === 'awaiting_signatory'
+      ? await latestSigningLink(db, application.id, await todayForRequest())
+      : null;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
@@ -160,24 +167,30 @@ export default async function ApplicationPage({
       {decision === 'awaiting_signatory' ? (
         <Card
           as="section"
-          title={t('decision.sign.title')}
-          titleId="decision-sign"
+          title={t('decision.outbox.title')}
+          titleId="decision-outbox"
           className="mt-6"
         >
-          {actor === application.customerId ? (
-            <DecisionForm
-              applicationId={application.id}
-              reviewer={String(application.answers.q_signatory_email ?? '')}
-              askWho={t('decision.sign.who')}
-              labels={{
-                approve: t('decision.sign'),
-                reject: t('decision.decline'),
-                error: t('decision.error'),
-                forbidden: t('decision.sign.notSignatory'),
-              }}
-            />
+          <Notice tone="info">{t('decision.outbox.notHere')}</Notice>
+          {link ? (
+            <div className="mt-4 space-y-3">
+              <p>
+                {t('decision.outbox.sent', {
+                  email: link.signatoryEmail,
+                  date: formatIsoDate(link.sentOn, locale),
+                  expires: formatIsoDate(link.expiresOn, locale),
+                })}
+              </p>
+              <p className="text-sm text-ink-muted">{t('decision.outbox.demo')}</p>
+              <LinkButton href={`/${locale}/sign/${link.token}`}>
+                {t('decision.outbox.open')}
+              </LinkButton>
+              <p className="text-sm text-ink-muted break-all">
+                /{locale}/sign/{link.token}
+              </p>
+            </div>
           ) : (
-            <Notice tone="info">{t('decision.sign.companyOnly')}</Notice>
+            <p className="mt-4">{t('decision.outbox.none')}</p>
           )}
         </Card>
       ) : null}
