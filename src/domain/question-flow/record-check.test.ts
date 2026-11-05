@@ -57,8 +57,8 @@ describe('recordMismatches (D38)', () => {
     expect(recordMismatches(customer('cust-aino'), { q_business_id: '0737546-2' })).toEqual([]);
   });
   it('review finding 2, card 6: Norvi answering "yes, I can sign" differs from the record', () => {
-    const answers = { ...answersFromCustomer(customer('cust-norvi')), q_can_sign: 'yes' };
-    delete answers.q_signatory_email;
+    const { q_signatory_email: _named, ...norvi } = answersFromCustomer(customer('cust-norvi'));
+    const answers = { ...norvi, q_can_sign: 'yes' };
     expect(recordMismatches(customer('cust-norvi'), answers)).toEqual(['q_can_sign']);
     // and a company that can sign, answering "no", is named too
     const kettu = { ...answersFromCustomer(customer('cust-kettukoodi')), q_can_sign: 'no' };
