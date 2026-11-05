@@ -22,7 +22,7 @@ describe('financeOffer', () => {
     expect(offer.kind === 'standard' && offer.quote.monthlyGrossCents).toBe(13_466);
   });
 
-  it('offers the kids bike at 289 € on price list 1 as two together, over the 300 € minimum (D37)', () => {
+  it('offers the kids bike at 289 € on price list 1 as two together, over the 300 € minimum (D41)', () => {
     const offer = financeOffer(data, { assetId: 'ebike-010', termMonths: 36, isoDate: THURSDAY });
     expect(offer).toMatchObject({
       kind: 'needs_quantity',

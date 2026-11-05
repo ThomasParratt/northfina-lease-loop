@@ -6,7 +6,7 @@ The landing page (`/[locale]`) says what Lease Loop is and leads into the catalo
 
 ## The rule
 
-- **What is listed (D38).** Only `available` units; leased, reserved, sold and returned ones are left out. Units of one model (category, make, model) stack into one card; units that differ in nothing a customer sees (life, condition, wear, year, price) fold into one version. A card shows one price, or "From" and the lowest when its versions differ, or "See details" when no version has a plain price (D37). With today's data: 21 cards; the two new `Pohja Compute Pro 14` units are one card, "2 available".
+- **What is listed (D42).** Only `available` units; leased, reserved, sold and returned ones are left out. Units of one model (category, make, model) stack into one card; units that differ in nothing a customer sees (life, condition, wear, year, price) fold into one version. A card shows one price, or "From" and the lowest when its versions differ, or "See details" when no version has a plain price (D41). With today's data: 21 cards; the two new `Pohja Compute Pro 14` units are one card, "2 available".
 - **Filters (secondary to the category).** `?category=` first; under it `?condition=new|used` (used = a later life, whatever the condition), `?brand=` (only inside a category, so it is dropped without one) and `?sort=price_asc|price_desc` (by the card's lowest price, cards without one last). A new category starts the secondary filters afresh. Links, no JavaScript.
 - **Choosing a version.** The price page lists the model's versions ("New", "Used · life 2" with condition, wear, year and monthly price) as links when there is more than one; the current one is marked.
 - **Today's price.** The price list that applies on day `d` is the one with `valid_from ≤ d ≤ valid_to` (both days included, `valid_to: null` means open-ended); the price is that list's entry for the asset, in integer cents, VAT excluded. ISO day strings compare like the days they name, so the check is a string comparison.
@@ -17,7 +17,7 @@ The landing page (`/[locale]`) says what Lease Loop is and leads into the catalo
 
 ## Decisions
 
-D17 (the actor, no login), D21 (the palette and type), D37 (an item below the smallest lease), D38 (what the catalogue lists). The demo clock follows the brief's wildcard (time travel); D1 rounding is not exercised yet, since list prices are shown as stored.
+D17 (the actor, no login), D21 (the palette and type), D41 (an item below the smallest lease), D42 (what the catalogue lists). The demo clock follows the brief's wildcard (time travel); D1 rounding is not exercised yet, since list prices are shown as stored.
 
 ## Pure functions
 

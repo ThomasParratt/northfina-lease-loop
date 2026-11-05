@@ -73,7 +73,7 @@ export default async function PricePage({
   const terms = termsOf(data.table);
   const termMonths = terms.includes(DEFAULT_TERM) ? DEFAULT_TERM : terms[0]!;
   // How the item can be financed at the default term: an item leased only several together
-  // or with a down payment opens set up that way, with a notice saying why (D37).
+  // or with a down payment opens set up that way, with a notice saying why (D41).
   const offer = financeOffer(data, { assetId: asset.id, termMonths, isoDate: today });
   // ?quantity= and ?down= override the preset; out-of-range values are clamped, a missing or
   // broken one falls back to the offer's.
@@ -224,7 +224,7 @@ export default async function PricePage({
   );
 }
 
-/** Why the price below is set up for several units or a down payment (D37). */
+/** Why the price below is set up for several units or a down payment (D41). */
 function OfferNotice({ offer, locale, t }: { offer: FinanceOffer; locale: Locale; t: Translate }) {
   const euro = (cents: number) => formatEuro(cents, intlLocale[locale]);
   if (offer.kind === 'needs_quantity') {

@@ -3,7 +3,7 @@
 // band is not unleasable: a down payment brings the financed amount down to the maximum
 // (farm-006 at 260 000 € needs 10 000 € down). An item below the lowest band is offered as the
 // smallest number of units that reaches the minimum, as the price page already finances
-// several together (D8, D37): ebike-010 at 289 € is leased two together (578 €). Only past
+// several together (D8, D41): ebike-010 at 289 € is leased two together (578 €). Only past
 // MAX_QUANTITY does it stay refused. Pure; the caller passes the day.
 import { priceQuote, type PricingData, type QuoteBreakdown, type QuoteRefusal } from './quote';
 
