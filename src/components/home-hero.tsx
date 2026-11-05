@@ -25,17 +25,17 @@ export function HomeHero({ locale, t }: { locale: Locale; t: Translate }) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="mx-auto max-w-6xl px-4 pt-16 pb-16 sm:px-6 lg:pt-24 lg:pb-20"
+      className="mx-auto max-w-6xl px-4 pt-16 pb-24 text-center sm:px-6 lg:pt-24 lg:pb-32"
     >
       <h1
         id="hero-title"
-        className="max-w-5xl text-6xl leading-[1.02] text-balance sm:text-7xl lg:text-8xl"
+        className="mx-auto max-w-5xl text-6xl leading-[1.02] text-balance sm:text-7xl lg:text-8xl"
       >
         {before}
         <span className="text-brand-text">{t('home.titleAccent')}</span>
         {after}
       </h1>
-      <p className="mt-8 max-w-3xl text-xl text-ink-muted sm:text-2xl">
+      <p className="mx-auto mt-8 max-w-3xl text-xl text-balance text-ink-muted sm:text-2xl">
         {intro.map((piece, index) => {
           const category = CATEGORIES.find((c) => c === piece);
           return index % 2 === 1 && category ? (
@@ -51,7 +51,7 @@ export function HomeHero({ locale, t }: { locale: Locale; t: Translate }) {
           );
         })}
       </p>
-      <div className="mt-10 flex flex-wrap gap-3">
+      <div className="mt-10 flex flex-wrap justify-center gap-3">
         <LinkButton href={`/${locale}/catalogue`} size="lg">
           {t('home.cta.catalogue')} <span aria-hidden="true">→</span>
         </LinkButton>

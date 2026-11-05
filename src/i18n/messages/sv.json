@@ -324,6 +324,8 @@
   "impact.byCategory.e_bike": "{kg} kg CO₂e sparat genom leasing av elcyklar",
   "impact.byCategory.laptop": "{kg} kg CO₂e sparat genom leasing av bärbara datorer",
   "impact.byCategory.farm_machine": "{kg} kg CO₂e sparat genom leasing av lantbruksmaskiner",
+  "impact.how.label": "Hur räknas detta?",
+  "impact.how.body": "När ett föremål hyrs ut igen behöver ett nytt inte tillverkas. Varje senare liv tillgodoräknas koldioxiden för att tillverka ett nytt, minus de {share} % som renoveringen kostar, fördelat över föremålets livslängd och räknat för de månader livet varade. Det första livet sparar inget, och ett föremål som har förbrukat sin livslängd sparar inget mer. Varje föremåls pass visar dess egna siffror.",
   "passport.dates": "Period",
   "passport.duration": "Längd",
   "contract.title": "Ditt avtal",

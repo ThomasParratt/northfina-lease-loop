@@ -62,7 +62,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
           {children}
         </main>
 
-        <footer className="mt-16 bg-brand text-brand-contrast">
+        <footer className="bg-brand text-brand-contrast">
           <div className="mx-auto flex max-w-6xl flex-wrap items-start justify-between gap-6 px-4 py-10 sm:px-6">
             <div>
               <p className="flex items-center gap-2.5 font-heading text-xl font-semibold">
