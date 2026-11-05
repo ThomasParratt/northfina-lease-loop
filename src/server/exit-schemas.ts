@@ -4,12 +4,9 @@
 import { z } from 'zod';
 import { assetConditionSchema, centsSchema, isoDateSchema, usageUnitSchema } from '@/data/schemas';
 import { returnReasonSchema } from '@/domain/events';
+import { exitModeSchema } from '@/domain/exits/mode';
 import { contractStatusSchema, invoiceKindSchema } from '@/domain/statuses';
 import { contractViewSchema } from './contract-schemas';
-
-/** How the customer leaves: keep the item, give it back, or name who takes it next (D16). */
-export const exitModeSchema = z.enum(['buy', 'return', 'pass_on']);
-export type ExitMode = z.infer<typeof exitModeSchema>;
 
 export const exitParamsSchema = z.object({ id: z.string().min(1) });
 
