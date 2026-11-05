@@ -6,10 +6,12 @@
 // The signing calls it on its own `tx` before it emits, instead of registering it on the bus:
 // the invoices and passport tests emit CONTRACT_SIGNED for the same asset several times, and
 // a lost race should stop before the other handlers write (docs/features/contracts.md).
-import { assetConditionSchema, assetStatusSchema, usageUnitSchema } from '@/data/schemas';
+import { assetConditionSchema, assetStatusSchema } from '@/data/schemas';
 import type { EventOf } from '@/domain/events';
+import { assetUsageSchema } from '@/domain/rows/asset-usage';
 import type { TransactionClient } from './audit';
 import { onEvent } from './events';
+import { parseRow } from './row-rules';
 
 /** Thrown inside the signing transaction when the asset was taken first. */
 export class AssetNotAvailableError extends Error {
@@ -63,13 +65,21 @@ export async function returnLeasedAsset(
 ): Promise<void> {
   const from = assetStatusSchema.parse('leased');
   const to = assetStatusSchema.parse('returned');
+  const asset = await tx.asset.findUnique({ where: { id: event.assetId } });
+  if (!asset) throw new AssetNotLeasedError(event.assetId);
+  // D27: the usage must be in the unit the category counts.
+  const usage = parseRow('asset usage', assetUsageSchema, {
+    category: asset.category,
+    usage_unit: event.usage.unit,
+    usage_value: event.usage.value,
+  });
   const { count } = await tx.asset.updateMany({
     where: { id: event.assetId, status: from },
     data: {
       status: to,
       condition: assetConditionSchema.parse(event.condition),
-      usage_unit: usageUnitSchema.parse(event.usage.unit),
-      usage_value: event.usage.value,
+      usage_unit: usage.usage_unit,
+      usage_value: usage.usage_value,
     },
   });
   if (count !== 1) throw new AssetNotLeasedError(event.assetId);

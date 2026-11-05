@@ -7,9 +7,11 @@ import type { VatRates } from '@/data/schemas';
 import type { EventOf } from '@/domain/events';
 import { earlyExitCost, exitBilling, type ExitMode } from '@/domain/exits';
 import { buildSchedule } from '@/domain/invoicing';
+import { invoiceRowSchema } from '@/domain/rows/invoice';
 import { invoiceKindSchema, invoiceStatusSchema } from '@/domain/statuses';
 import type { TransactionClient } from './audit';
 import { onEvent } from './events';
+import { parseRow } from './row-rules';
 import { loadExitData, planInputOf, readerOf, readExitContext, type ExitData } from './exit-data';
 import { writeSchedule } from './invoices';
 
@@ -102,7 +104,8 @@ export async function handleExit(
     _max: { sequence: true },
   });
   const created = await tx.invoice.create({
-    data: {
+    // D27: the row parsed first (no period, VAT from the net, gross = net + VAT).
+    data: parseRow('invoice', invoiceRowSchema, {
       contract_id: event.contractId,
       sequence: (last._max.sequence ?? 0) + 1,
       period_start: null,
@@ -115,7 +118,7 @@ export async function handleExit(
       gross_cents: invoice.grossCents,
       kind: invoiceKindSchema.parse(invoice.kind),
       status: invoiceStatusSchema.parse('issued'),
-    },
+    }),
   });
   return created.id;
 }

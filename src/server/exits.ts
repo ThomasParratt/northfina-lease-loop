@@ -7,12 +7,14 @@
 // its entry. A handler that throws rolls the whole exit back.
 import type { AssetCondition, UsageUnit } from '@/data/schemas';
 import { planExit, type ExitMode, type ExitRefusal, type PlannedExit } from '@/domain/exits';
+import { contractRowSchema } from '@/domain/rows/contract';
 import { contractStatusSchema } from '@/domain/statuses';
 import { ADMIN_ACTOR } from './actor';
 import { withAudit } from './audit';
 import { toContractView, type ContractView } from './contracts';
 import { getCustomer } from './customers';
 import { emit } from './events';
+import { parseRow } from './row-rules';
 import './event-handlers';
 import {
   loadExitData,
@@ -160,10 +162,18 @@ export async function exitContract(
         },
       },
       async (tx) => {
-        // D23: the status is parsed before the write; the where makes a second exit a no-op.
+        // D23 and D27: the whole row as it will be is parsed before the write (an end day
+        // for every ended status, never before the start); the where makes a second exit a no-op.
+        const current = await tx.contract.findUniqueOrThrow({ where: { id: contractId } });
+        const { created_at: _created, updated_at: _updated, ...stored } = current;
+        const next = parseRow('contract', contractRowSchema, {
+          ...stored,
+          status: exit.status,
+          ended_on: exit.endedOn,
+        });
         const { count } = await tx.contract.updateMany({
           where: { id: contractId, status: contractStatusSchema.parse('active') },
-          data: { status: contractStatusSchema.parse(exit.status), ended_on: exit.endedOn },
+          data: { status: next.status, ended_on: next.ended_on },
         });
         if (count !== 1) throw new LostExitRace();
         await emit(tx, exit.event);
