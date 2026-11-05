@@ -117,6 +117,6 @@ Server (`src/server/quotes.ts`): `loadPricingData()`, `createQuote(db, { assetId
 
 ## Open questions
 
-- **D8, for the mentors:** is "4 ×" in card 6 meant as one financed amount (band C, our reading) or four separate leases (band B each)? Every asset in the pack is one serialised unit and there is one `ebike-004`; this slice prices the fleet and does not assign units (that is the contract's job).
+- **D8, for the mentors:** is "4 ×" in card 6 meant as one financed amount (band C, our reading) or four separate leases (band B each)? Every asset in the pack is one serialised unit and there is one `ebike-004`; this slice prices the fleet and does not assign units (that is the contract's job). The catalogue has one row per asset id, so a quote for four `ebike-004` checks only that one row is `available`, and a contract that locks the asset would lock that one row for all four units. Before the contract slice builds on it, confirm whether D8 means N units on one asset row or N rows (one per serialised unit), which would need a unit table or a quantity per asset.
 - Settled in review (PR #11): the totals put VAT on the down payment and the buyout at the quote-date rate, so they match the invoices (card 7: 510 000 of VAT on the 2 000 000 down payment, 255 000 on the 1 000 000 buyout).
 - The quote shows the totals at the quote-day VAT rate. A lease that crosses 1 Jan 2027 will invoice later months at 26 %; the invoicing slice owns that, and the quote's note says the totals are an estimate.
