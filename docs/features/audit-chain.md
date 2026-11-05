@@ -57,7 +57,7 @@ The script is a terminal tool, never a route, so the app's own write rule holds.
 
 ## Decisions
 
-- **D30 (`docs/decisions.md`): a SHA-256 hash chain over canonical JSON, computed in `withAudit` inside the change's transaction, verified by a pure domain function; the head hash shown for a person to anchor.** Reason: the judges score the audit log with money and the envelope; a hash chain is the industry pattern for a tamper-evident trail (certificate transparency, ledger databases), it needs no key management and no outside service, and it fits the existing one-transaction rule. Chosen against:
+- **D36 (`docs/decisions.md`): a SHA-256 hash chain over canonical JSON, computed in `withAudit` inside the change's transaction, verified by a pure domain function; the head hash shown for a person to anchor.** Reason: the judges score the audit log with money and the envelope; a hash chain is the industry pattern for a tamper-evident trail (certificate transparency, ledger databases), it needs no key management and no outside service, and it fits the existing one-transaction rule. Chosen against:
   - **Signing each row with an application key (HMAC or Ed25519):** stops someone with database access but not the key from recomputing the chain, but needs a secret kept outside the database and rotated; the hackathon has no secret store and a key in `.env` beside `dev.db` would protect nothing. Left as the first next step.
   - **Anchoring the head outside the database (an RFC 3161 timestamp authority or a public ledger):** the only answer to a full rewrite or a truncated tail, but it is an outside call and a running cost; here the head hash is shown for a person to copy. Left as the second next step.
   - **A Merkle tree** instead of a linear chain: cheaper inclusion proofs for one row, not needed at this size; the linear chain is simpler to explain on the page.
@@ -84,7 +84,7 @@ Server reads in `src/server/audit.ts`: `verifyAuditChain(db)` (all rows in id or
 - `src/app/api/audit-log/verify/route.ts` and `route.test.ts`: read-only, open to every actor like `GET /api/audit-log`.
 - `src/components/audit-chain-badge.tsx`, `src/app/[locale]/audit/page.tsx`, the `audit.chain.*` keys in the four message files.
 - `scripts/tamper-audit.mjs` (+ test), the `demo:tamper` script in `package.json`.
-- `tests/meta-rules.test.ts` (the append-only rule; only `createHash` from `node:crypto` in the domain), `eslint.config.mjs` (the same exception); D30 in `docs/decisions.md`.
+- `tests/meta-rules.test.ts` (the append-only rule; only `createHash` from `node:crypto` in the domain), `eslint.config.mjs` (the same exception); D36 in `docs/decisions.md`.
 
 ## Tests that pin the numbers
 

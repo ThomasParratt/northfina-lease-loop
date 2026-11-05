@@ -1,4 +1,4 @@
-// The tamper-evident audit chain (docs/features/audit-chain.md, D30).
+// The tamper-evident audit chain (docs/features/audit-chain.md, D36).
 //
 //   hash = SHA-256 hex of  prevHash + '\n' + canonicalJson(entry)
 //

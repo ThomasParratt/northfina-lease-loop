@@ -1,4 +1,4 @@
-// The tamper-evident audit chain (docs/features/audit-chain.md, D30): each row's hash covers the
+// The tamper-evident audit chain (docs/features/audit-chain.md, D36): each row's hash covers the
 // previous row's hash, so editing, deleting or reordering a row breaks every hash after it.
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';

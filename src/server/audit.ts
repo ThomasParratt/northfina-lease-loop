@@ -2,7 +2,7 @@
 // transaction as the change. If either write fails, both are rolled back, so the database
 // can never hold a change that nobody can explain.
 //
-// The rows form a hash chain (docs/features/audit-chain.md, D30): each row stores the hash of
+// The rows form a hash chain (docs/features/audit-chain.md, D36): each row stores the hash of
 // the row before it and its own hash over that plus its canonical content, so an edit, a
 // deletion or a reordering made outside the app shows up in verifyAuditChain. Tamper-evident,
 // not tamper-proof: the head hash is the anchor a person copies out of the database.
