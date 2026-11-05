@@ -1,0 +1,36 @@
+# Wave 2 review and upkeep (`chore/wave2-upkeep`)
+
+Session: Opus, from the coordinating session's brief. Base `origin/main` at `c7a2dfa` plus Panu's `origin/feat/catalogue-page` (with #19). Time limit 120 minutes. Times are the machine clock (it read Thursday 2026-11-05 throughout; the coordinator's notes date some of the same events 2026-11-06).
+
+## Steps
+
+| Time  | Step                                                                                                                                                                                                                    |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 22:33 | Fetched, renamed the branch to `chore/wave2-upkeep`, merged `origin/feat/catalogue-page`: conflicts in the four message files and the audit page only, kept both sides. `npm run setup`, `db:setup`, `check:all` green. |
+| 22:38 | `8d610b8` merge committed. Fix 1: invoices read the contract's customer through `contracts.ts` (`b3327d3`).                                                                                                             |
+| 22:41 | Fix 2: the status route, admin only, D22's moves as a domain table (`4d1d36c`).                                                                                                                                         |
+| 22:42 | Fix 3: the start cap, 12 months with `addMonthsClamped` (`a5c8f4f`); `CHALLENGE.md` and `data/DATA.md` state no bound.                                                                                                  |
+| 22:44 | Fix 4: `contractBalanceOn` skips `cancelled` (`632a7ca`). Fix 5: the apply page's expired notice, checked on a dev server on two demo days (`38068a8`).                                                                 |
+| 22:48 | Fix 6: six owner reads take a transaction client (`3256762`). Fix 7 needed nothing: Thomas fixed every #18 finding before merging.                                                                                      |
+| 22:51 | Review finding: a second half-up in `market-value.ts` (`5013487`).                                                                                                                                                      |
+| 22:53 | Decisions: statuses, D36 found truncated on `main` and rewritten, the test-isolation pointer and the start-date row (`ef54f1b`); the mentor questions (`326320f`).                                                      |
+| 22:56 | README: team notes to `docs/team-notes.md`, Features one link per page, `tests/readme-original.test.ts` (checked to fail on a reworded heading) (`d543c45`).                                                            |
+| 22:58 | STATUS and the feature pages (`e611dcc`); every log closed (`85cda8b`).                                                                                                                                                 |
+| 23:04 | #19 and #23 had been squash-merged meanwhile. Merging `main` showed that the earlier merge of the branch heads left keys the squash dropped; rebuilt the merge as main's tree plus this branch's own diff (`f2d6e69`).  |
+| 23:20 | The review (`967ae67`).                                                                                                                                                                                                 |
+| 23:22 | `main` moved again (#25, D37 to D40): merged, renumbered this branch's rows to D41 (test isolation) and D42 (start date) (`0db07af`). `check:all` green on the second run (99 files, 1009 tests).                       |
+
+## Blocked
+
+- Nothing blocked the work. Two `check:all` runs failed on timeouts only (5 s per test, 10 s per hook) while other sessions ran their suites on the same machine; every failing file passed alone and the full run passed on the retry. The hardening session owns `vitest.config.ts` and the test timeouts (note left in the shared notes folder).
+
+## Left undone
+
+- `docs/features/test-isolation.md` was not on `origin` yet, so D41 is a pointer row; the hardening PR fills the text.
+- The "Tests that pin the numbers" lines in `contracts.md` (still "the 90-day boundary"), `catalogue.md` and `invoicing.md` (the new transition and D35 tests): the hardening session's sections.
+- #25's validation was merged, not reviewed.
+- The 375 px check of every page after #19 (Johannes's TODO) is in the hardening brief.
+- Housekeeping: merged branches with generated names are still on the fork; deleting them needs an admin.
+- The commit `a5c8f4f` names the start-date decision D38 in its subject; it is D42 after #25 took D37 to D40 (the squash commit will say D42).
+
+Closed 2026-11-05 23:36: pushed to `origin/chore/wave2-upkeep`, the PR waits for Thomas's review.
