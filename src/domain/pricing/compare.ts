@@ -1,6 +1,8 @@
 // The term comparison: the same asset, quantity and down payment priced at every term the
-// table offers, side by side, so the customer sees what a longer term costs in total.
-import { priceQuote, termsOf, type PricingData, type QuoteInput, type QuoteRefusal } from './quote';
+// item may be offered (the table's terms under the category's cap, D43), side by side, so the
+// customer sees what a longer term costs in total.
+import { priceQuote, type PricingData, type QuoteInput, type QuoteRefusal } from './quote';
+import { allowedTermsOf } from './terms';
 
 export type TermRow = {
   termMonths: number;
@@ -27,7 +29,7 @@ export function compareTerms(
   input: Omit<QuoteInput, 'termMonths'>
 ): TermComparison {
   const comparison: TermComparison = { rows: [], unavailable: [] };
-  for (const termMonths of termsOf(data.table)) {
+  for (const termMonths of allowedTermsOf(data, input.assetId)) {
     const result = priceQuote(data, { ...input, termMonths });
     if (!result.ok) {
       comparison.unavailable.push({ termMonths, reason: result.reason });
