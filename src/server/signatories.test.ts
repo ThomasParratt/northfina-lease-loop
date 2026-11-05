@@ -2,6 +2,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { loadCustomers } from '@/data/load';
 import type { Customer } from '@/data/schemas';
+import { resetDb } from '../../tests/helpers/reset-db';
 import { createTestDb } from '../../tests/helpers/test-db';
 import { seedCustomers } from './customers';
 import type { PrismaClient } from './prisma-client';
@@ -14,15 +15,13 @@ let customers: Customer[];
 beforeAll(async () => {
   ({ db, cleanup } = await createTestDb());
   customers = await loadCustomers();
-  await seedCustomers(db, customers);
 });
 afterAll(async () => {
   await cleanup();
 });
 beforeEach(async () => {
-  await db.auditLog.deleteMany();
-  await db.signatureRequest.deleteMany();
-  await db.companySignatory.deleteMany();
+  await resetDb(db);
+  await seedCustomers(db, customers);
   await seedSignatories(db, customers, TODAY);
 });
 

@@ -405,8 +405,6 @@ describe('getApplication', () => {
 
 describe('the signing link (D39, D44), card 6', () => {
   beforeEach(async () => {
-    await db.signatureRequest.deleteMany();
-    await db.companySignatory.deleteMany();
     await seedSignatories(db, customers, TODAY);
   });
 
