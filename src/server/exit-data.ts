@@ -91,6 +91,7 @@ export function planInputOf(
       termMonths: contract.termMonths,
       buyoutCents: contract.buyoutCents,
       endDate: contract.endDate,
+      startDate: contract.startDate,
       unitListPriceCents: contract.unitListPriceCents,
       quantity: contract.quantity,
     },

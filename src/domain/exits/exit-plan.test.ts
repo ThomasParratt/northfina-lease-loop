@@ -32,6 +32,7 @@ function input(overrides: Partial<PlanExitInput> = {}): PlanExitInput {
       termMonths: 36,
       buyoutCents: 58_350,
       endDate: '2029-11-04',
+      startDate: '2026-11-05',
       unitListPriceCents: 389_000,
       quantity: 1,
     },
@@ -148,6 +149,13 @@ describe('planExit refusals and guards', () => {
     expect(planExit(input({ contract: { ...input().contract, status: 'bought' } }))).toEqual({
       ok: false,
       reason: { code: 'contract_not_active', params: { status: 'bought' } },
+    });
+  });
+
+  it('refuses an exit before the lease starts, so ended_on is never before start_date', () => {
+    expect(planExit(input({ today: '2026-11-04' }))).toEqual({
+      ok: false,
+      reason: { code: 'not_started', params: { startDate: '2026-11-05' } },
     });
   });
 

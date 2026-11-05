@@ -396,5 +396,6 @@
   "exit.refusal.usage_unit_mismatch": "Användningen anges i fel enhet för den här varan.",
   "exit.refusal.no_vat_rate_on_date": "Det finns ingen momssats för i dag, så ingen faktura kan skapas.",
   "exit.ended.title": "Det här avtalet har avslutats",
-  "exit.ended.body": "Status: {status}. Avslutat {date}. Slutfakturan finns i listan nedan."
+  "exit.ended.body": "Status: {status}. Avslutat {date}. Slutfakturan finns i listan nedan.",
+  "exit.refusal.not_started": "Avtalet har inte börjat än, så det kan inte avslutas."
 }

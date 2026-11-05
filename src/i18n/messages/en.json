@@ -396,5 +396,6 @@
   "exit.refusal.usage_unit_mismatch": "The usage is in the wrong unit for this item.",
   "exit.refusal.no_vat_rate_on_date": "There is no VAT rate for today, so no invoice can be made.",
   "exit.ended.title": "This lease has ended",
-  "exit.ended.body": "Status: {status}. Ended on {date}. The final invoice is in the list below."
+  "exit.ended.body": "Status: {status}. Ended on {date}. The final invoice is in the list below.",
+  "exit.refusal.not_started": "The lease has not started yet, so it cannot be ended."
 }

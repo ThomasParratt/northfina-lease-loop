@@ -4,8 +4,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
+import { ContractExit } from '@/components/contract-exit';
 import { ContractSummary } from '@/components/contract-summary';
-import { ExitForm } from '@/components/exit-form';
 import { InvoiceTable } from '@/components/invoice-table';
 import { Card, Notice, PageHeader } from '@/components/ui';
 import { getT } from '@/i18n/get-t';
@@ -13,12 +13,8 @@ import { isLocale } from '@/i18n/locales';
 import { ADMIN_ACTOR, readActor } from '@/server/actor';
 import { getAsset } from '@/server/assets';
 import { getContractDetails } from '@/server/contracts';
-import { listCustomers } from '@/server/customers';
 import { db } from '@/server/db';
 import { todayForRequest } from '@/server/demo-clock';
-import { previewExit } from '@/server/exits';
-import { assetConditionSchema } from '@/data/schemas';
-import { formatIsoDate } from '@/i18n/format';
 
 export async function generateMetadata({
   params,
@@ -48,19 +44,6 @@ export default async function ContractPage({ params }: PageProps<'/[locale]/cont
   }
   const asset = await getAsset(db, details.contract.assetId);
 
-  // The exit section (docs/features/exits.md): the plan for an active contract, previewed on
-  // today with the catalogue's last known condition and usage; the end day once it has ended.
-  const { contract } = details;
-  const exitPreview =
-    contract.status === 'active' && asset
-      ? await previewExit(db, { contractId: contract.id, mode: 'return', reported: asset }, today)
-      : null;
-  const nextCustomers = exitPreview?.ok
-    ? (await listCustomers(db))
-        .filter((customer) => customer.id !== contract.customerId)
-        .map((customer) => ({ id: customer.id, name: customer.name }))
-    : [];
-
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6 sm:py-14">
       <PageHeader
@@ -68,28 +51,7 @@ export default async function ContractPage({ params }: PageProps<'/[locale]/cont
         intro={t('contract.number', { number: details.contract.number })}
       />
       <ContractSummary details={details} asset={asset} locale={locale} t={t} />
-      {asset && exitPreview?.ok ? (
-        <Card title={t('exit.title')}>
-          <ExitForm
-            contractId={contract.id}
-            locale={locale}
-            endDate={contract.endDate}
-            conditions={assetConditionSchema.options}
-            usageUnit={asset.usage.unit}
-            initial={{ condition: asset.condition, usageValue: asset.usage.value }}
-            initialPreview={exitPreview.preview}
-            customers={nextCustomers}
-          />
-        </Card>
-      ) : null}
-      {contract.endedOn ? (
-        <Notice tone="info" title={t('exit.ended.title')}>
-          {t('exit.ended.body', {
-            status: t(`contract.status.${contract.status}`),
-            date: formatIsoDate(contract.endedOn, locale),
-          })}
-        </Notice>
-      ) : null}
+      <ContractExit contract={details.contract} asset={asset} today={today} locale={locale} t={t} />
       <Card title={t('invoice.title')}>
         <InvoiceTable contractId={details.contract.id} today={today} locale={locale} t={t} />
       </Card>

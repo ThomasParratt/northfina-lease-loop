@@ -396,5 +396,6 @@
   "exit.refusal.usage_unit_mismatch": "Käyttö on väärässä yksikössä tälle tuotteelle.",
   "exit.refusal.no_vat_rate_on_date": "Tälle päivälle ei ole ALV-kantaa, joten laskua ei voi tehdä.",
   "exit.ended.title": "Tämä sopimus on päättynyt",
-  "exit.ended.body": "Tila: {status}. Päättyi {date}. Loppulasku on alla olevassa luettelossa."
+  "exit.ended.body": "Tila: {status}. Päättyi {date}. Loppulasku on alla olevassa luettelossa.",
+  "exit.refusal.not_started": "Sopimus ei ole vielä alkanut, joten sitä ei voi päättää."
 }

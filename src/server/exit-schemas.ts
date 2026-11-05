@@ -78,6 +78,7 @@ export const exitRefusalSchema = z.object({
     'contract_not_found',
     'not_allowed',
     'contract_not_active',
+    'not_started',
     'pass_on_needs_next_customer',
     'next_customer_is_self',
     'next_customer_not_found',

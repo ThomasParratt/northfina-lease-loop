@@ -59,6 +59,7 @@ export type ExitInvoiceRow = { id: string; kind: string; status: string };
 
 export type ExitRefusal =
   | { code: 'contract_not_active'; params: { status: ContractStatus } }
+  | { code: 'not_started'; params: { startDate: string } }
   | { code: 'pass_on_needs_next_customer'; params: Record<string, never> }
   | { code: 'next_customer_is_self'; params: { customerId: string } }
   | { code: 'reason_mismatch'; params: { reason: ExitReason; endDate: string } }
@@ -71,6 +72,8 @@ export type PlanExitInput = Omit<EarlyExitInput, 'invoices' | 'reported'> & {
     customerId: string;
     assetId: string;
     status: string;
+    /** The first day of the lease; an exit before it is refused, so `ended_on` ≥ `start_date`. */
+    startDate: string;
   };
   mode: string;
   reason?: string;
@@ -161,6 +164,12 @@ export function planExit(input: PlanExitInput): PlanExitResult {
 
   if (status !== 'active') {
     return { ok: false, reason: { code: 'contract_not_active', params: { status } } };
+  }
+  if (today < contract.startDate) {
+    return {
+      ok: false,
+      reason: { code: 'not_started', params: { startDate: contract.startDate } },
+    };
   }
   if (mode === 'pass_on' && !input.nextCustomerId) {
     return { ok: false, reason: { code: 'pass_on_needs_next_customer', params: {} } };

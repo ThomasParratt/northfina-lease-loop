@@ -396,5 +396,6 @@
   "exit.refusal.usage_unit_mismatch": "Kasutus on selle eseme jaoks vales ühikus.",
   "exit.refusal.no_vat_rate_on_date": "Tänaseks päevaks pole käibemaksumäära, seega arvet ei saa koostada.",
   "exit.ended.title": "See leping on lõppenud",
-  "exit.ended.body": "Olek: {status}. Lõppes {date}. Lõpparve on allolevas loendis."
+  "exit.ended.body": "Olek: {status}. Lõppes {date}. Lõpparve on allolevas loendis.",
+  "exit.refusal.not_started": "Leping pole veel alanud, seega ei saa seda lõpetada."
 }
