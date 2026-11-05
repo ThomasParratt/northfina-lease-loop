@@ -13,6 +13,7 @@ Real clock, Helsinki. Agent: Opus, worktree `friendly-blackwell-6149aa`, base `1
 | 19:20            | `invoices.ts`, `invoice-handlers.ts` and `event-handlers.ts`, with tests on `createTestDb()` and a card 1 fixture. 11 tests green. Commit.                                                                                                                                                                        |
 | 19:27            | Route rows, the two routes (customer or admin only, the day from `todayForRequest()`), `npm run openapi`, `invoice.*` keys in four languages, `firstVatChange`, `invoice-table.tsx`. Typecheck and lint clean. Commit.                                                                                            |
 | 19:32            | Docs: `docs/features/invoicing.md`, README "Features" and "Invoices", the D2–D5 and D14 statuses. `npm run check:all`.                                                                                                                                                                                            |
+| 19:40            | `npm run check:all` green: 356 tests, coverage 97.7 %, build OK. Pushed and opened the PR. Closed in about 45 minutes of the 90.                                                                                                                                                                                  |
 
 ## Choices made here (not in the brief)
 
