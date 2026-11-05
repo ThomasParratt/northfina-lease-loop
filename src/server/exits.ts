@@ -19,6 +19,7 @@ import {
   planInputOf,
   readExitContext,
   type ExitChoice,
+  type ExitContext,
   type ExitData,
 } from './exit-data';
 import type { PrismaClient } from './prisma-client';
@@ -70,18 +71,19 @@ type Reported = { condition: AssetCondition; usage: { unit: UsageUnit; value: nu
 async function plan(
   db: PrismaClient,
   contractId: string,
-  choice: Omit<ExitChoice, 'reported'> & { reported?: Reported },
+  choice: Omit<ExitChoice, 'reported'> & { reported?: Reported; context?: ExitContext },
   data?: ExitData
 ) {
-  const context = await readExitContext(db, contractId);
+  const { context: known, ...rest } = choice;
+  const context = known ?? (await readExitContext(db, contractId));
   if (!context) {
     return { ok: false, reason: { code: 'contract_not_found', params: { contractId } } } as const;
   }
-  const reported = choice.reported ?? {
+  const reported = rest.reported ?? {
     condition: context.asset.condition,
     usage: context.asset.usage,
   };
-  const input = planInputOf(context, data ?? (await loadExitData()), { ...choice, reported });
+  const input = planInputOf(context, data ?? (await loadExitData()), { ...rest, reported });
   return { ...planExit(input), context } as const;
 }
 
@@ -91,7 +93,8 @@ async function plan(
  */
 export async function previewExit(
   db: PrismaClient,
-  input: { contractId: string; mode: ExitMode; reported?: Reported },
+  /** `context`: the rows the caller has already read, so they are not read twice. */
+  input: { contractId: string; mode: ExitMode; reported?: Reported; context?: ExitContext },
   today: string,
   data?: ExitData
 ): Promise<PreviewExitResult> {
@@ -133,7 +136,7 @@ export async function exitContract(
     };
   }
 
-  const planned = await plan(db, contractId, { ...input, today }, data);
+  const planned = await plan(db, contractId, { ...input, today, context }, data);
   if (!planned.ok) return { ok: false, reason: planned.reason };
   const exit = planned.plan;
   const notActive = {

@@ -12,7 +12,7 @@ import { invoiceKindSchema, invoiceStatusSchema } from '@/domain/statuses';
 import type { TransactionClient } from './audit';
 import { onEvent } from './events';
 import { parseRow } from './row-rules';
-import { loadExitData, planInputOf, readerOf, readExitContext, type ExitData } from './exit-data';
+import { loadExitData, planInputOf, readExitContext, type ExitData } from './exit-data';
 import { writeSchedule } from './invoices';
 
 /** Writes the schedule of a just-signed contract, invoice 0 on the signing day (D5). */
@@ -59,7 +59,7 @@ export async function handleExit(
   event: ExitEvent,
   data?: ExitData
 ): Promise<string | null> {
-  const context = await readExitContext(readerOf(tx), event.contractId);
+  const context = await readExitContext(tx, event.contractId);
   if (!context) throw new Error(`Exit of unknown contract ${event.contractId}`);
   const mode = MODE_OF[event.type];
   const reported =

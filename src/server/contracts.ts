@@ -240,7 +240,10 @@ function toContractRowData(contract: PlannedContract) {
 }
 
 /** One contract by id, or null. The owner's read other slices use (team rule 3). */
-export async function getContract(db: PrismaClient, id: string): Promise<ContractView | null> {
+export async function getContract(
+  db: PrismaClient | TransactionClient,
+  id: string
+): Promise<ContractView | null> {
   const row = await db.contract.findUnique({ where: { id } });
   return row ? toContractView(row) : null;
 }
