@@ -51,7 +51,8 @@ export async function withAudit<T>(
   return db.$transaction(async (tx) => {
     const result = await work(tx);
     // SQLite serialises writers, so no other transaction can chain to the same previous row
-    // between this read and the insert; the unique hash column is the second guard. On
+    // between this read and the insert; the unique prev_hash column is the second guard (two
+    // rows can never chain to the same row). On
     // Postgres this read needs SELECT … FOR UPDATE or an advisory lock.
     const previous = await tx.auditLog.findFirst({
       orderBy: { id: 'desc' },
@@ -129,7 +130,7 @@ export async function verifyAuditChain(db: PrismaClient): Promise<AuditChainVerd
   );
 }
 
-/** The newest row's hash, or the genesis hash for an empty or all-legacy log. */
+/** The newest row's hash, or the genesis hash for an empty log. */
 export async function auditChainHead(db: PrismaClient): Promise<string> {
   const newest = await db.auditLog.findFirst({ orderBy: { id: 'desc' }, select: { hash: true } });
   return newest?.hash ?? GENESIS_HASH;
