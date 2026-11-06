@@ -120,12 +120,13 @@ export function refurbishmentPlan(
 
   for (const fixed of data.fixed) {
     const resetsUsage = fixed.resets_usage === true;
-    // D83: a resetting step (the battery) is due on the usage since it was last done.
+    // D83: a resetting step (the battery) is due on the usage since it was last done. That
+    // figure already counts from its own reset, so no last-service reading is taken off it.
     const counted = resetsUsage ? sinceReset : usage;
     const quantity = timesApplied(
       parseWhenRule(fixed.when),
       counted,
-      input.usageAtLastService ?? 0
+      resetsUsage ? 0 : (input.usageAtLastService ?? 0)
     );
     if (quantity === 0) continue;
     resets ||= resetsUsage;
