@@ -138,7 +138,7 @@ Typo Trading Oy (`cust-broken-id`) has **1234567-8**: 1·7 + 2·9 + 3·10 + 4·5
 - **D55, D56** quotes are anonymous; one pending or approved application per quote (`QUOTE_IN_USE`).
 - **D57** only the applicant and the admin read an application through the API; others get 404.
 - **D58** a PEP on record answering "no" is a record difference too.
-- **D82** only what the customer answered decides: the PEP question is hidden below 10 000 € financed, so no PEP check runs there, even for a PEP on record (Haapala's e-bike and laptop are approved; card 7's farm machine is asked and goes to review). Prefill fills only visible questions the customer can change; a company's residency uses its registered country, which the organisers allow.
+- **D82** only what the customer answered decides: the PEP question is hidden below 10 000 € financed, so no PEP check runs there, even for a PEP on record (Haapala's e-bike and laptop are approved; card 7's farm machine is asked and goes to review). Prefill (`answersFromCustomer`) may fill any answer, `q_pep` included, but the server's `pruneAnswers` drops every answer to a hidden question before the decision, so only visible ones, which the customer sees and can change, reach it; a company's residency uses its registered country, which the organisers allow.
 - **D59** the age is checked again on the contract's start day at signing.
 - Inside the slice (see `docs/log/wave1-questions.md`): `customer_type` follows the applicant's answer; a PEP known from the record no longer counts below 10 000 EUR (D82, the organisers' rule: a hidden question's rule does not run); affordability only where the bank asks for income; a failed rule always rejects.
 
@@ -244,7 +244,6 @@ mayReadApplication(actor, application): boolean; // the applicant or admin (D57)
 ## Open questions
 
 - The signatory signs through the signing link (D46); no e-mail is sent in the demo, the decision page shows the link in a demo outbox. See [signatories.md](signatories.md) for what production replaces.
-- Should a PEP below 10 000 EUR (not asked by the bank, known from the record) go to manual review? We say yes; the bank's targeting suggests the question only matters from 10 000 EUR.
 - Affordability uses the chosen term's gross rent; the page could suggest the shortest term that passes (Mikko's 36 months).
 - The form should still disable its button while sending: a double submit now gets 409 `QUOTE_IN_USE` for the second request (D56).
 - `grossFromNetCents` is a local copy until the money/VAT helper on main replaces it.
