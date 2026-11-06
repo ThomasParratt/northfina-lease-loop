@@ -32,7 +32,8 @@ export function Card({
       {...rest}
     >
       {title ? (
-        <h2 id={titleId} className="mb-4 text-xl">
+        // An unpadded card still pads its title, or the rounded edge clips the first letter.
+        <h2 id={titleId} className={cx('mb-4 text-xl', !padded && 'px-4 pt-4 sm:px-6 sm:pt-6')}>
           {title}
         </h2>
       ) : null}

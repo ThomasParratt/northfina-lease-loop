@@ -1,6 +1,8 @@
 // The second life of a returned item (smart problem 3, cards 9 and 10): the condition and
 // usage it came back with, every way to relist it with its refurbishment plan, market value
 // and D12 price, the rent per term, the waiting list with every D13 step, and the decision.
+// The page itself names no decision numbers or raw ids: a waiting-list entry reads as who it
+// is and "Request 2", not `wait-02`.
 // Before the assessment it is a preview computed on today's date; after it, the stored
 // assessment. The admin's "Assess and relist" writes it. Back office (D85): the waiting list is
 // other customers' data, so the page is the admin's alone; anyone else gets a refusal notice.
@@ -42,6 +44,18 @@ type Ctx = {
 };
 
 const conditionText = (t: Translate, c: AssetCondition) => t(`condition.${c}` as MessageKey);
+
+/** A waiting-list id for people: `wait-02` reads "Request 2"; any other id is shown as it is. */
+function requestLabel(t: Translate, demandId: string): string {
+  const number = /^wait-0*(\d+)$/.exec(demandId)?.[1];
+  return number ? t('secondLife.match.request', { number }) : demandId;
+}
+
+/** Who is waiting, in the data's own words, with any id in them read the same way. */
+function whoText({ t, demand }: Ctx, demandId: string): string | null {
+  const who = demand.find((d) => d.id === demandId)?.who;
+  return who ? who.replace(/\bwait-\d+\b/g, (id) => requestLabel(t, id)) : null;
+}
 
 function stepLabel(step: RefurbishmentStep, { t }: Ctx): string {
   if (step.kind === 'upgrade') {
@@ -260,8 +274,8 @@ function WaitingList({ match, ctx }: { match: MatchResult; ctx: Ctx }) {
       padded={false}
       className="relative overflow-x-auto"
     >
-      <p className="px-4 pt-4 text-sm text-ink-muted sm:px-6">{t('secondLife.match.rules')}</p>
-      <table className="mt-3 w-full min-w-[44rem] text-left text-sm">
+      <p className="px-4 text-sm text-ink-muted sm:px-6">{t('secondLife.match.rules')}</p>
+      <table className="mt-3 w-full min-w-[48rem] text-left text-sm">
         <thead className="border-b border-line text-ink-muted">
           <tr>
             <th scope="col" className="px-4 py-3">
@@ -308,8 +322,13 @@ function WaitingList({ match, ctx }: { match: MatchResult; ctx: Ctx }) {
                       '–'
                     )}
                   </td>
-                  <th scope="row" className="px-4 py-3 align-top font-bold">
-                    {v.demandId}
+                  <th scope="row" className="px-4 py-3 align-top">
+                    <span className="block font-bold">
+                      {whoText(ctx, v.demandId) ?? requestLabel(t, v.demandId)}
+                    </span>
+                    <span className="block font-normal text-ink-muted">
+                      {requestLabel(t, v.demandId)}
+                    </span>
                   </th>
                   <td className="px-4 py-3 align-top">
                     {entry
@@ -354,7 +373,9 @@ function Decision({ match, ctx }: { match: MatchResult; ctx: Ctx }) {
         {decision.code === 'relist_for_winner'
           ? t('secondLife.decision.relist_for_winner', {
               condition,
-              demandId: decision.params.demandId,
+              who:
+                whoText(ctx, decision.params.demandId) ?? requestLabel(t, decision.params.demandId),
+              request: requestLabel(t, decision.params.demandId),
               refurbish,
             })
           : t(`secondLife.decision.${decision.code}`, { condition, refurbish })}
