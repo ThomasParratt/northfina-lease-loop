@@ -141,6 +141,7 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
           pruned: raw('apply.pruned'),
           moneyHint: t('apply.moneyHint'),
           listHint: t('apply.listHint'),
+          formatHints: { finnish_business_id: t('apply.hint.finnish_business_id') },
           prefill: t('apply.prefill', { name: customer.name }),
         }}
       />
