@@ -1,7 +1,7 @@
 // An item returned through the app's own exit, assessed and relisted (bug report 2026-11-06:
 // "the second-life page is broken and Assess and relist errors"). The cards' second-life tests
 // start from the data pack's `returned` items (ebike-007, ebike-008); here the item is leased
-// through the real services (quote â†’ application â†’ sign), ended through the exit service, then
+// through the real services (quote → application → sign), ended through the exit service, then
 // read the way the second-life page reads it and assessed through the route as the admin, as
 // the "Assess and relist" button does. Every exit mode, each category, and a second return that
 // leads to a third life. The report did not reproduce on a migrated database: these pin the path.

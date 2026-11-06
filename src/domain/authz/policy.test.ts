@@ -1,4 +1,4 @@
-// D73: the actor Ã— action table. Card 6 (Norvi's four e-bikes, awaiting the signatory) is the
+// D73: the actor × action table. Card 6 (Norvi's four e-bikes, awaiting the signatory) is the
 // case the signatory rows pin: the coordinator and the admin never sign for the company.
 import { describe, expect, it } from 'vitest';
 import type { Mandate } from '@/domain/signatories/mandates';
@@ -16,7 +16,7 @@ const codeOf = (actor: string, action: AuthzAction) => {
   return decision.ok ? 'ok' : decision.reason.code;
 };
 
-// Every (actor kind Ã— action) with the expected answer.
+// Every (actor kind × action) with the expected answer.
 const TABLE: Record<
   AuthzAction,
   { anonymous: string; owner: string; other: string; admin: string }
@@ -63,7 +63,7 @@ const TABLE: Record<
   run_demo_card: { anonymous: 'ok', owner: 'ok', other: 'ok', admin: 'ok' },
 };
 
-describe('can: every actor kind Ã— every action', () => {
+describe('can: every actor kind × every action', () => {
   it('the table covers every action', () => {
     expect(Object.keys(TABLE).sort()).toEqual([...AUTHZ_ACTIONS].sort());
   });
