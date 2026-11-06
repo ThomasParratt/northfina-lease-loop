@@ -53,6 +53,8 @@ export type StoredQuote = {
   quoteDate: string;
   validUntil: string;
   createdAt: string;
+  /** D90: the named next customer of a pass-on, the only one who may apply; null for anyone. */
+  customerId: string | null;
   breakdown: QuoteBreakdown;
 };
 
@@ -80,6 +82,7 @@ export function toStoredQuote(row: QuoteRow): StoredQuote {
     quoteDate: row.quote_date,
     validUntil: row.valid_until,
     createdAt: row.created_at.toISOString(),
+    customerId: row.customer_id ?? null,
     breakdown: breakdownFromFrozen({
       assetId: row.asset_id,
       quantity: row.quantity,
@@ -158,6 +161,8 @@ function quoteRowData(id: string, q: QuoteBreakdown, today: string, validUntil: 
 export type QuoteInTxInput = {
   /** The caller's id for the row, so its audit entry can name it before the write. */
   id: string;
+  /** D90: the named next customer; only they may apply for it. */
+  customerId: string;
   assetId: string;
   /** D90: the unit price the quote is priced from (the market value on the exit day). */
   unitPriceCents: number;
@@ -195,7 +200,10 @@ export async function createQuoteInTx(
   }
   const validUntil = addDays(input.today, QUOTE_VALID_DAYS);
   const row = await tx.quote.create({
-    data: quoteRowData(input.id, priced.quote, input.today, validUntil),
+    data: {
+      ...quoteRowData(input.id, priced.quote, input.today, validUntil),
+      customer_id: input.customerId,
+    },
   });
   return { ok: true, quote: toStoredQuote(row) };
 }
@@ -279,4 +287,20 @@ export function previewQuote(
       isoDate: today,
     }),
   };
+}
+
+/**
+ * D90: the quotes held for one customer (a pass-on named them) that are still valid on `today`,
+ * newest first, for their My leases page.
+ */
+export async function listReservedQuotesFor(
+  db: PrismaClient,
+  customerId: string,
+  today: string
+): Promise<StoredQuote[]> {
+  const rows = await db.quote.findMany({
+    where: { customer_id: customerId, valid_until: { gte: today }, quote_date: { lte: today } },
+    orderBy: { created_at: 'desc' },
+  });
+  return rows.map(toStoredQuote);
 }

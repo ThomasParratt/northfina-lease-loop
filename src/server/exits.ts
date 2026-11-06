@@ -18,7 +18,8 @@ import {
 import { allowedTermsOf, type PricingData, type QuoteRefusal } from '@/domain/pricing';
 import type { AuthzRefusal } from '@/domain/authz/policy';
 import { latestAuditDetails, withAudit } from './audit';
-import { relistReturnedAsset } from './assets';
+import { appendAssetEvent } from './asset-events';
+import { relistReturnedAsset, reserveAvailableAsset } from './assets';
 import { AssetNotLeasedError } from './catalogue-handlers';
 import { authorize } from './authorize';
 import { endContract, type ContractView } from './contracts';
@@ -207,9 +208,11 @@ export async function exitContract(
         });
         if (!ended) throw new LostExitRace();
         await emit(tx, exit.event);
-        if (nextQuoteId && nextPricing) {
+        if (nextQuoteId && nextPricing && input.nextCustomerId) {
           await startNextDeal(tx, {
             quoteId: nextQuoteId,
+            customerId: input.nextCustomerId,
+            contractId,
             assetId: context.asset.id,
             reported: input.reported,
             marketValueCents: exit.cost.marketValue.valueCents,
@@ -265,14 +268,18 @@ export async function nextQuoteIdOf(db: PrismaClient, contractId: string): Promi
 
 /**
  * D90: the item goes straight from hand to hand. On the exit's `tx`, after the catalogue set it
- * `returned`, the assets slice relists it as reported (no refurbishment: none was charged), and
- * the quote slice stores the next customer's quote priced from the market value on the exit day.
- * A refused quote throws, so the whole exit rolls back.
+ * `returned`, the assets slice relists it as reported (no refurbishment: none was charged, and
+ * planExit refused anything below `good`), the quote slice stores the next customer's quote
+ * priced from the market value on the exit day and named for them, the passport writes
+ * `repriced` with that value (as the second-life path does), and the item is `reserved` for them
+ * so it is not in the public catalogue. A refused quote throws, so the whole exit rolls back.
  */
 async function startNextDeal(
   tx: Parameters<typeof relistReturnedAsset>[0],
   input: {
     quoteId: string;
+    customerId: string;
+    contractId: string;
     assetId: string;
     reported: Reported;
     marketValueCents: number;
@@ -291,6 +298,22 @@ async function startNextDeal(
     allowedTerms: allowedTermsOf(input.pricing, input.assetId),
     today: input.today,
   });
-  const quote = await createQuoteInTx(tx, { id: input.quoteId, ...deal }, input.pricing);
+  const quote = await createQuoteInTx(
+    tx,
+    { id: input.quoteId, customerId: input.customerId, ...deal },
+    input.pricing
+  );
   if (!quote.ok) throw new NextQuoteRefused((quote.reason as Refused).code);
+  await appendAssetEvent(tx, {
+    assetId: input.assetId,
+    contractId: input.contractId,
+    onDate: input.today,
+    kind: 'repriced',
+    details: {
+      marketValueCents: input.marketValueCents,
+      secondLifeFinancedCents: quote.quote.breakdown.financedCents,
+      nextQuoteId: input.quoteId,
+    },
+  });
+  await reserveAvailableAsset(tx, input.assetId);
 }

@@ -17,7 +17,7 @@ import { getAsset } from '../assets';
 import { exitContract, previewExit } from '../exits';
 import { listInvoices } from '../invoices';
 import type { PrismaClient } from '../prisma-client';
-import { getQuote } from '../quotes';
+import { createQuote, getQuote, listReservedQuotesFor } from '../quotes';
 
 let db: PrismaClient;
 let cleanup: () => Promise<void>;
@@ -98,5 +98,76 @@ describe('card 8 passed on early (D90)', () => {
     if (!signed.ok) throw new Error(signed.reason.code);
     expect(signed.details.contract).toMatchObject({ customerId: NEXT, assetId: 'ebike-003' });
     expect((await getAsset(db, 'ebike-003'))?.status).toBe('leased');
+  });
+
+  it('review 1: the quote is held for Lena; Aino and a third customer cannot quote, apply or sign it', async () => {
+    const contract = await card1Month7();
+    const result = await exitContract(
+      db,
+      {
+        contractId: contract.id,
+        mode: 'pass_on',
+        reported: AINO_REPORTS,
+        nextCustomerId: NEXT,
+        actor: 'cust-aino',
+      },
+      MONTH_7
+    );
+    if (!result.ok) throw new Error(result.reason.code);
+    const quoteId = result.nextQuoteId!;
+    // Out of the public catalogue: reserved, so nobody can make a quote of their own on it.
+    expect((await getAsset(db, 'ebike-003'))?.status).toBe('reserved');
+    const other = await createQuote(db, {
+      assetId: 'ebike-003',
+      termMonths: 36,
+      downPaymentCents: 0,
+      today: MONTH_7,
+      actor: 'cust-mikko',
+    });
+    expect(other).toMatchObject({ ok: false, reason: { code: 'asset_not_available' } });
+    // Lena finds it on her My leases page; nobody else does.
+    expect((await listReservedQuotesFor(db, NEXT, MONTH_7)).map((q) => q.id)).toEqual([quoteId]);
+    expect(await listReservedQuotesFor(db, 'cust-aino', MONTH_7)).toEqual([]);
+
+    const customers = await loadCustomers();
+    const answersOf = (id: string) => answersFromCustomer(customers.find((c) => c.id === id)!);
+    for (const intruder of ['cust-aino', 'cust-mikko']) {
+      const applied = await createApplication(db, {
+        quoteId,
+        customerId: intruder,
+        answers: answersOf(intruder),
+        today: MONTH_7,
+        actor: intruder,
+      });
+      expect(applied).toEqual({ ok: false, reason: 'quote_reserved_for_another_customer' });
+    }
+    // The admin applies on Lena's behalf (D47); only for her.
+    const applied = await createApplication(db, {
+      quoteId,
+      customerId: NEXT,
+      answers: answersOf(NEXT),
+      today: MONTH_7,
+      actor: 'admin',
+      onBehalfOf: NEXT,
+    });
+    if (!applied.ok) throw new Error(String(applied.reason));
+    // An application row for another customer on Lena's quote (written past the apply check)
+    // still cannot sign: the signing checks the quote's customer too.
+    const forged = await db.application.create({
+      data: {
+        customer_id: 'cust-mikko',
+        quote_id: quoteId,
+        answers_json: '{}',
+        decision: 'approved',
+        reasons_json: '[]',
+        decided_on: MONTH_7,
+      },
+    });
+    const stolen = await sign(db, forged.id, 'cust-mikko', MONTH_7);
+    expect(stolen).toMatchObject({
+      ok: false,
+      reason: { code: 'quote_reserved_for_another_customer' },
+    });
+    expect((await getAsset(db, 'ebike-003'))?.status).toBe('reserved');
   });
 });
