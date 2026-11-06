@@ -2,6 +2,7 @@
 // module is pointed at the test database and `next/headers` cookies at a map, nothing else
 // is replaced. Every refusal is a `fail()` envelope with a code; never a 500, never a stack.
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetDb } from '../../../../tests/helpers/reset-db';
 import { createTestDb } from '../../../../tests/helpers/test-db';
 import { loadAssets, loadCustomers } from '@/data/load';
 import type { Customer } from '@/data/schemas';
@@ -43,16 +44,14 @@ const TODAY = '2026-11-05';
 beforeAll(async () => {
   ({ db: holder.db, cleanup } = await createTestDb());
   customers = await loadCustomers();
-  await seedAssets(holder.db, await loadAssets());
-  await seedCustomers(holder.db, customers);
 });
 afterAll(async () => {
   await cleanup();
 });
 beforeEach(async () => {
-  await holder.db.auditLog.deleteMany();
-  await holder.db.application.deleteMany();
-  await holder.db.quote.deleteMany();
+  await resetDb(holder.db);
+  await seedAssets(holder.db, await loadAssets());
+  await seedCustomers(holder.db, customers);
   holder.cookies = new Map([[DEMO_CLOCK_COOKIE, TODAY]]);
 });
 
@@ -338,7 +337,7 @@ describe('POST /api/applications/[id]/decision', () => {
     );
   });
 
-  it('awaiting the signatory: nobody signs on the decision page, 403 NOT_SIGNATORY; the link signs (D44)', async () => {
+  it('awaiting the signatory: nobody signs on the decision page, 403 NOT_SIGNATORY; the link signs (D43)', async () => {
     const id = await pending('cust-norvi', {
       ...answersOf('cust-norvi'),
       q_customer_type: 'company',

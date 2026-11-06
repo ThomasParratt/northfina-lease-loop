@@ -1,9 +1,9 @@
 // The write schemas of the `CompanySignatory` and `SignatureRequest` rows (prisma/schema.prisma,
-// D44), parsed on the server before every write (D23).
+// D43), parsed on the server before every write (D23).
 import { z } from 'zod';
 import { idSchema, isoDateSchema, ON_VALID_FIELDS } from './fields';
 
-/** The `granted_by` of an entry no signatory granted: the register check, simulated (D44). */
+/** The `granted_by` of an entry no signatory granted: the register check, simulated (D43). */
 export const REGISTER_CHECK_SIMULATED = 'register_check_simulated';
 
 /** An e-mail as stored: trimmed, lower case, something@something.tld. */

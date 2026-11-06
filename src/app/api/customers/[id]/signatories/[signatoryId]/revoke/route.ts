@@ -1,5 +1,5 @@
 // POST /api/customers/:id/signatories/:signatoryId/revoke
-// D44: ends the signatory's right on the request's day; the last active one cannot be revoked.
+// D43: ends the signatory's right on the request's day; the last active one cannot be revoked.
 import { readActor } from '@/server/actor';
 import { handleRoute, ok } from '@/server/api-response';
 import { db } from '@/server/db';

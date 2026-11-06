@@ -6,6 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { loadAssets, loadCustomers } from '@/data/load';
 import type { Customer } from '@/data/schemas';
 import { answersFromCustomer } from '@/domain/question-flow/answers';
+import { resetDb } from '../../tests/helpers/reset-db';
 import { createTestDb } from '../../tests/helpers/test-db';
 import { createApplication, decideApplication, getApplication } from './applications';
 import { seedAssets } from './assets';
@@ -20,16 +21,14 @@ let customers: Customer[];
 beforeAll(async () => {
   ({ db, cleanup } = await createTestDb());
   customers = await loadCustomers();
-  await seedAssets(db, await loadAssets());
-  await seedCustomers(db, customers);
 });
 afterAll(async () => {
   await cleanup();
 });
 beforeEach(async () => {
-  await db.auditLog.deleteMany();
-  await db.application.deleteMany();
-  await db.quote.deleteMany();
+  await resetDb(db);
+  await seedAssets(db, await loadAssets());
+  await seedCustomers(db, customers);
 });
 
 const TODAY = '2026-11-05';
@@ -94,7 +93,7 @@ const sign = (
   decision: 'approved' | 'rejected' = 'approved'
 ) => decideApplication(db, { id, decision, reviewedBy, today: TODAY, actor });
 
-/** The signatory answers through the link sent for the case (D44): the only way to sign. */
+/** The signatory answers through the link sent for the case (D43): the only way to sign. */
 async function byLink(applicationId: string, action: 'sign' | 'decline' = 'sign') {
   const request = await db.signatureRequest.findFirstOrThrow({
     where: { application_id: applicationId },
@@ -109,7 +108,7 @@ const nothingWritten = async () => {
 };
 
 describe('who applies (D40)', () => {
-  it('the admin applying as "admin" without onBehalfOf is not the applicant, and writes nothing (D45)', async () => {
+  it('the admin applying as "admin" without onBehalfOf is not the applicant, and writes nothing (D44)', async () => {
     expect(await apply(await card1(), 'admin', answersOf('cust-aino'), { actor: 'admin' })).toEqual(
       {
         ok: false,
@@ -159,7 +158,7 @@ describe('who applies (D40)', () => {
   );
 });
 
-describe('the signatory (D39, D44)', () => {
+describe('the signatory (D39, D43)', () => {
   const SIGNATORY = 'signatory@norvi.example.com';
 
   it('declining is final: the signatory cannot sign afterwards, nor decline again', async () => {

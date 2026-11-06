@@ -1,6 +1,6 @@
 'use client';
 
-// Sign or decline through the link: POST /api/sign/:token, then re-render (D44).
+// Sign or decline through the link: POST /api/sign/:token, then re-render (D43).
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Notice } from '@/components/ui';

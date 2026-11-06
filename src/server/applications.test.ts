@@ -266,7 +266,7 @@ describe('createApplication', () => {
     });
   });
 
-  it('D45: the admin applies for Aino with onBehalfOf, and the audit says so', async () => {
+  it('D44: the admin applies for Aino with onBehalfOf, and the audit says so', async () => {
     const result = await createApplication(db, {
       quoteId: await card1(),
       customerId: 'cust-aino',
@@ -284,7 +284,7 @@ describe('createApplication', () => {
     expect(JSON.parse(audit?.details_json ?? '{}')).toMatchObject({ onBehalfOf: 'cust-aino' });
   });
 
-  it('D45: onBehalfOf must name the customer, and a customer cannot use it', async () => {
+  it('D44: onBehalfOf must name the customer, and a customer cannot use it', async () => {
     const quoteId = await card1();
     const base = {
       quoteId,
@@ -403,7 +403,7 @@ describe('getApplication', () => {
   });
 });
 
-describe('the signing link (D39, D44), card 6', () => {
+describe('the signing link (D39, D43), card 6', () => {
   beforeEach(async () => {
     await seedSignatories(db, customers, TODAY);
   });

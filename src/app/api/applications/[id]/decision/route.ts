@@ -1,6 +1,6 @@
 // POST /api/applications/:id/decision   body: { decision: "approved" | "rejected", reviewedBy }
 // D10: an admin decides a manual review. An awaiting_signatory case is signed or declined only
-// through the signing link (POST /api/sign/:token, D39, D44): here it is 403 NOT_SIGNATORY for
+// through the signing link (POST /api/sign/:token, D39, D43): here it is 403 NOT_SIGNATORY for
 // everyone. The actor comes from the actor cookie (D17).
 import { readActor } from '@/server/actor';
 import { fail, handleRoute, ok, readJsonBody } from '@/server/api-response';

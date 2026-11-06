@@ -1,4 +1,4 @@
-// The company's signatory list (D44): who may sign for it, from when and until when, who
+// The company's signatory list (D43): who may sign for it, from when and until when, who
 // granted the right. Seen by the company's own account and the admin; changed by the
 // company's own signatory or the admin (the server decides, the page only writes the answer).
 import type { Metadata } from 'next';
