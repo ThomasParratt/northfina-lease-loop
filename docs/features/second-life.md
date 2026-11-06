@@ -7,7 +7,7 @@ A returned item is assessed: every way to relist it (as returned, or refurbished
 ## The rule
 
 1. **Options.** For each target condition from the returned one up to like new: `refurbishmentPlan` (the data's fixed steps whose `when` holds, then the condition upgrades), the market value after it (`marketValueCents`: net list price at the first lease × curve at the age × condition multiplier after × usage adjustment after; a new battery resets the usage), and **D12: second-life price = market value + refurbishment cost**, then the normal band and factor through `priceQuote` for every allowed term (D43), no down payment.
-2. **Verdicts (D62).** Each entry of the waiting list, the first failing step named as a code: `other_category`, `term_not_offered`, `condition_unreachable`, `rent_not_priced`, `over_budget { shortCents }`, else `candidate`. An entry is offered the lowest condition that satisfies it: max(as returned, its minimum, fair).
+2. **Verdicts (D62).** Each entry of the waiting list, the first failing step named as a code: `other_category`, `already_matched` (an earlier assessment won it), `expired` (`needed_by` before the assessment day), `term_not_offered`, `condition_unreachable`, `rent_not_priced`, `over_budget { shortCents }`, else `candidate`. An entry is offered the lowest condition that satisfies it: max(as returned, its minimum, fair).
 3. **Ranking (D13).** No refurbishment beyond the mandatory steps first, then the earliest `needed_by`, then the highest total rent over the term (rent × term), then the lower id. Each row names the step that put it below the row above.
 4. **Decision (D61).** Relist in the winner's condition; with no winner, at good (or as returned when better). The mandatory steps are always done.
 
@@ -34,12 +34,13 @@ A returned item is assessed: every way to relist it (as returned, or refurbished
 ### Card 10: `ebike-008`, two past lives, good, 9 800 km
 
 - 179 900 (v1) × 26 % (58 months, between 48 = 31 % and 60 = 25 %) × 0.85 × 82 % (9 steps of 1 000 km, −18 %) = 32 601.48 → **32 601**; the plan is the inspection only (9 800 < 15 000 km): **4 500**; D12 price **37 101** (band A). Good is acceptable for the catalogue, so it stays good; the waiting list ranks `wait-05` first (needed by 2026-11-08).
+- **A waiting-list entry is not a customer** (the pack gives it no customer id or answers), so the card's "lease it again" is any customer's lease of the relisted bike (D67); the test leases it to `cust-olavi`, whose story is the bike, for 24 months, the term whose CO₂ the card names. The match says `wait-05` would be offered it first, at 12 months.
 - Leased again for 24 months (quote and sign on 2026-11-06): 37 101 × 0.036637 = 1 359.27 → **1 359** net a month.
 - **The passport** at the end of the term: three lives, two estimated at 24 months each and the third dated at 24 months; the assessed, refurbished and repriced events sit between the second and third life. **CO2 (D15):** 0 + 29 + 29 = **58 kg** (each later 24-month life saves the e-bike footprint × (1 − refurbishment share) × 24 / 120).
 
 ## Decisions
 
-D12 (re-pricing), D13 (matchmaking), D15 (CO2), D16 and D66 (the contract chain), D22 and D23 (`returned` → `available`, statuses parsed before the write), D31 and D60 (the price and age the value starts from), D61 (refurbish or not, the floor), D62 (the budget test), D63 (where the price lives), D64 (the admin button, not an event handler), D65 (an assessment without a contract).
+D12 (re-pricing), D13 (matchmaking), D15 (CO2), D16 and D66 (the contract chain), D22 and D23 (`returned` → `available`, statuses parsed before the write), D31 and D60 (the price and age the value starts from), D61 (refurbish or not, the floor), D62 (the budget test), D63 (where the price lives), D64 (the admin button, not an event handler), D65 (an assessment without a contract), D67 (a relisted fair item is open to anyone), D68 (the new battery in the value and in the price).
 
 ## Pure functions
 
@@ -58,9 +59,9 @@ D12 (re-pricing), D13 (matchmaking), D15 (CO2), D16 and D66 (the contract chain)
 ## Tests that pin the numbers
 
 - `src/domain/second-life/assess.test.ts`: 46 months, 32.5 %, 39 500 / 51 500, 115 976 / 151 661, 155 476 / 203 161, the rents per term; a cheaper cost table, a first-life item (D31), an unfinanceable item, a laptop's terms.
-- `src/domain/second-life/match.test.ts`: wait-02 wins, wait-13 second by `no_refurbishment`; without wait-02, wait-13 by `needed_by` and refurbished to good; no demand in the category; one cent short; equal but id; total rent; another demand list; a poor item never relisted poor.
+- `src/domain/second-life/match.test.ts`: wait-02 wins, wait-13 second by `no_refurbishment`; without wait-02, wait-13 by `needed_by` and refurbished to good; no demand in the category; one cent short; equal but id; total rent; another demand list; a poor item never relisted poor; an expired entry (card 9 on 11-11, card 10 on 11-09: `wait-13` wins ebike-008); an entry already matched.
 - `src/domain/scenarios/card-09-second-life.test.ts`: the five card 9 steps, no todos left.
-- `src/server/scenarios/card-09.test.ts`: on a migrated database, the preview writes nothing; the assessment row, the events, the asset available fair at 0 km; a quote at 12 months is 8 710 on 155 476 with the live list's version; admin only, returned only.
+- `src/server/scenarios/card-09.test.ts`: on a migrated database, the preview writes nothing; the assessment row, the events, the asset available fair at 0 km; a quote at 12 months is 8 710 on 155 476 with the live list's version; admin only, returned only; an entry matched to another item is passed over; an unreadable stored row reads as none.
 - `src/server/scenarios/card-10.test.ts`: ebike-008 assessed (37 101, wait-05), leased for 24 months at 1 359, three lives and 58 kg; card 1's bike returned, assessed and leased again with `previous_contract_id`.
 
 ## Open questions
