@@ -87,6 +87,10 @@ Seven digits, a hyphen, a check digit. Multiply the digits by **7 9 10 5 8 4 2**
 
 Typo Trading Oy (`cust-broken-id`) has **1234567-8**: 1·7 + 2·9 + 3·10 + 4·5 + 5·8 + 6·4 + 7·2 = 153; 153 mod 11 = 10; check digit 11 − 10 = **1**, not 8. Rejected with `invalid_business_id { businessId: 1234567-8 }`. Every other business id in `customers.json` is valid. A wrong check digit is a valid _answer_ (the form takes it) and a _reason_ (the rules reject it), so the applicant sees why.
 
+### On the page
+
+"Why we ask" is a teal note (the `info` role, D21) with an info glyph and a chevron under each question, a native `<details>` so it opens from the keyboard; it spans the column on a phone and fits its text from `sm` up, so it does not read as one more option. The decision page leads with the outcome as an `h2` under the page's `h1`; a yes shows no reasons ("every check passed" adds nothing), while a no, a manual review and a wait for the signatory list theirs under "Why". A no is worded politely ("Sorry, your lease application was not approved"; card 5 adds "You can apply from 10 March 2027."), and every outcome ends with a way back to the home page and the catalogue.
+
 ## Decisions
 
 - **D9** eligibility: the rules above, every check a code with params.
