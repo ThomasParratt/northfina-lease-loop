@@ -1,4 +1,4 @@
-// D73: the actor × action table. Card 6 (Norvi's four e-bikes, awaiting the signatory) is the
+// D73: the actor Ã— action table. Card 6 (Norvi's four e-bikes, awaiting the signatory) is the
 // case the signatory rows pin: the coordinator and the admin never sign for the company.
 import { describe, expect, it } from 'vitest';
 import type { Mandate } from '@/domain/signatories/mandates';
@@ -7,7 +7,7 @@ import { ADMIN, ANONYMOUS, AUTHZ_ACTIONS, can, isAuthzRefusal, type AuthzAction 
 const OWN = 'cust-norvi';
 const OTHER = 'cust-aino';
 const subjectFor = (action: AuthzAction) =>
-  ['assess_asset', 'set_asset_status', 'run_demo_card'].includes(action)
+  ['assess_asset', 'read_second_life', 'set_asset_status', 'run_demo_card'].includes(action)
     ? { customerId: null }
     : { customerId: OWN };
 
@@ -16,7 +16,7 @@ const codeOf = (actor: string, action: AuthzAction) => {
   return decision.ok ? 'ok' : decision.reason.code;
 };
 
-// Every (actor kind × action) with the expected answer.
+// Every (actor kind Ã— action) with the expected answer.
 const TABLE: Record<
   AuthzAction,
   { anonymous: string; owner: string; other: string; admin: string }
@@ -47,6 +47,13 @@ const TABLE: Record<
     other: 'admin_only',
     admin: 'ok',
   },
+  // D84: the second-life page shows the whole waiting list (other customers' budgets and needs).
+  read_second_life: {
+    anonymous: 'not_signed_in',
+    owner: 'admin_only',
+    other: 'admin_only',
+    admin: 'ok',
+  },
   set_asset_status: {
     anonymous: 'not_signed_in',
     owner: 'admin_only',
@@ -56,7 +63,7 @@ const TABLE: Record<
   run_demo_card: { anonymous: 'ok', owner: 'ok', other: 'ok', admin: 'ok' },
 };
 
-describe('can: every actor kind × every action', () => {
+describe('can: every actor kind Ã— every action', () => {
   it('the table covers every action', () => {
     expect(Object.keys(TABLE).sort()).toEqual([...AUTHZ_ACTIONS].sort());
   });
@@ -72,6 +79,19 @@ describe('can: every actor kind × every action', () => {
       }).toEqual(row);
     });
   }
+
+  it('D84: only the admin reads the second life; an unknown or empty actor is refused', () => {
+    const asset = { customerId: null };
+    expect(can(ADMIN, 'read_second_life', asset)).toEqual({ ok: true });
+    expect(can('cust-nobody', 'read_second_life', asset)).toMatchObject({
+      ok: false,
+      reason: { code: 'admin_only', params: { action: 'read_second_life' } },
+    });
+    expect(can('', 'read_second_life', asset)).toMatchObject({
+      ok: false,
+      reason: { code: 'not_signed_in' },
+    });
+  });
 
   it('names the action in the refusal params', () => {
     expect(can(OTHER, 'pay_invoice', { customerId: OWN })).toEqual({
