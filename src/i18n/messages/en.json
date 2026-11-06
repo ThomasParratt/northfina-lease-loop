@@ -544,7 +544,6 @@
   "exit.ended.body": "Status: {status}. Ended on {date}. The final invoice is in the list below.",
   "exit.refusal.not_started": "The lease has not started yet, so it cannot be ended.",
   "exit.refusal.usage_below_signing": "The usage reported ({value} {unit}) is below the {atSigning} {unit} the item had when it was leased.",
-  "exit.refusal.asset_not_leased": "The item is no longer marked as leased, so this lease cannot be ended now. Ask Northfina to check it.",
   "signatories.notFound": "That signatory is no longer on the list. Reload the page.",
   "decision.refusal.notPending": "This application has already been decided. Reload the page to see the decision.",
   "decision.refusal.notFound": "That application was not found.",

@@ -10,7 +10,6 @@ import type { AssetCondition, UsageUnit } from '@/data/schemas';
 import { planExit, type ExitMode, type ExitRefusal, type PlannedExit } from '@/domain/exits';
 import type { AuthzRefusal } from '@/domain/authz/policy';
 import { withAudit } from './audit';
-import { AssetNotLeasedError } from './catalogue-handlers';
 import { authorize } from './authorize';
 import { endContract, type ContractView } from './contracts';
 import { getCustomer } from './customers';
@@ -30,8 +29,7 @@ export type ExitServiceRefusal =
   | ExitRefusal
   | { code: 'contract_not_found'; params: { contractId: string } }
   | AuthzRefusal
-  | { code: 'next_customer_not_found'; params: { customerId: string } }
-  | { code: 'asset_not_leased'; params: { assetId: string } };
+  | { code: 'next_customer_not_found'; params: { customerId: string } };
 
 /** The plan as the API and the page see it (exit-schemas.ts `exitPreviewResponseSchema`). */
 export type ExitPreview = {
@@ -188,14 +186,6 @@ export async function exitContract(
       return {
         ...notActive,
         reason: { ...notActive.reason, params: { status: now?.contract.status ?? exit.status } },
-      };
-    }
-    // The catalogue handler found the asset not leased (changed behind the app): a refusal with
-    // its code, everything rolled back (review finding 4).
-    if (error instanceof AssetNotLeasedError) {
-      return {
-        ok: false,
-        reason: { code: 'asset_not_leased', params: { assetId: error.assetId } },
       };
     }
     throw error;

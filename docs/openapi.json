@@ -690,7 +690,7 @@
                     "maxLength": 200
                   }
                 },
-                "required": ["decision"],
+                "required": ["decision", "reviewedBy"],
                 "additionalProperties": false
               }
             }

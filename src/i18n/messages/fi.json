@@ -544,7 +544,6 @@
   "exit.ended.body": "Tila: {status}. Päättyi {date}. Loppulasku on alla olevassa luettelossa.",
   "exit.refusal.not_started": "Sopimus ei ole vielä alkanut, joten sitä ei voi päättää.",
   "exit.refusal.usage_below_signing": "Ilmoitettu käyttö ({value} {unit}) on pienempi kuin tuotteen {atSigning} {unit} vuokrauksen alkaessa.",
-  "exit.refusal.asset_not_leased": "Tuotetta ei ole enää merkitty vuokratuksi, joten sopimusta ei voi nyt päättää. Pyydä Northfinaa tarkistamaan se.",
   "signatories.notFound": "Allekirjoittaja ei ole enää listalla. Lataa sivu uudelleen.",
   "decision.refusal.notPending": "Hakemus on jo päätetty. Lataa sivu uudelleen nähdäksesi päätöksen.",
   "decision.refusal.notFound": "Hakemusta ei löytynyt.",

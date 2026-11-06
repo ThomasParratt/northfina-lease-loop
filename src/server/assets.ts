@@ -12,7 +12,6 @@ import {
 } from '@/data/schemas';
 import {
   checkAssetStatusChange,
-  checkManualAssetStatusChange,
   type AssetStatusChangeRefusal,
 } from '@/domain/catalogue/transitions';
 import type { AuthzRefusal } from '@/domain/authz/policy';
@@ -101,8 +100,7 @@ export async function changeAssetStatus(
   }
   const existing = await db.asset.findUnique({ where: { id: input.id } });
   if (!existing) return { ok: false, reason: 'not_found' };
-  // Only hold and release by hand; the rest only through their events (review finding 4).
-  const check = checkManualAssetStatusChange(existing.status, status);
+  const check = checkAssetStatusChange(existing.status, status);
   if (!check.ok) return { ok: false, reason: check.reason };
 
   try {

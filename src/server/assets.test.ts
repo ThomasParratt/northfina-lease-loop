@@ -86,18 +86,12 @@ describe('changeAssetStatus', () => {
     expect(JSON.parse(audit.details_json ?? '')).toEqual({ from: 'available', to: 'reserved' });
   });
 
-  it('refuses leased by hand: only a signing leases an item (review finding 4)', async () => {
+  it('accepts leased and sold (D22), the statuses the data pack does not use', async () => {
     await seedAssets(db, dataPack);
-    const result = await changeAssetStatus(db, {
-      id: 'ebike-001',
-      status: 'leased',
-      actor: 'admin',
-    });
-    expect(result).toEqual({
-      ok: false,
-      reason: { code: 'transition_by_event_only', params: { from: 'available', to: 'leased' } },
-    });
-    expect(await db.auditLog.count()).toBe(0);
+    for (const status of ['leased', 'sold'] as const) {
+      const result = await changeAssetStatus(db, { id: 'ebike-001', status, actor: 'admin' });
+      expect(result).toMatchObject({ ok: true, asset: { status } });
+    }
   });
 
   it('refuses anyone but admin and writes nothing (wave 1 finding 5)', async () => {

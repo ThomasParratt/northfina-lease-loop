@@ -255,24 +255,6 @@ describe('exitContract refusals write nothing', () => {
     expect(await writesSoFar(contractId)).toEqual(before);
   });
 
-  it('an asset no longer leased (changed behind the app) is a coded refusal, not a 500 (review finding 4)', async () => {
-    const contractId = await card1(7);
-    // The test may write this directly; the status route refuses it since finding 4.
-    await db.asset.update({ where: { id: 'ebike-003' }, data: { status: 'returned' } });
-    const before = await writesSoFar(contractId);
-    expect(
-      await exitContract(
-        db,
-        { contractId, mode: 'return', reported: AINO_REPORTS, actor: 'cust-aino' },
-        MONTH_7
-      )
-    ).toEqual({
-      ok: false,
-      reason: { code: 'asset_not_leased', params: { assetId: 'ebike-003' } },
-    });
-    expect(await writesSoFar(contractId)).toEqual(before);
-  });
-
   it('a handler that throws rolls everything back: still active, no invoice, nothing cancelled', async () => {
     const contractId = await card1(7);
     const before = await writesSoFar(contractId);
