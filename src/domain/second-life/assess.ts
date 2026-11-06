@@ -15,7 +15,6 @@
 import type {
   AssetCategory,
   AssetCondition,
-  PriceList,
   RefurbishmentCosts,
   ResidualCurves,
   UsageUnit,
@@ -88,19 +87,8 @@ export type ReturnAssessmentResult = {
   options: ReturnOption[];
 };
 
-/**
- * D60: the "net list price at its first lease" of the curve, for an item whose first lease is
- * not in our books: the price of the earliest price list (lowest version) that lists it.
- */
-export function firstLeaseListPriceCents(
-  priceLists: readonly PriceList[],
-  assetId: string
-): number | null {
-  const listed = [...priceLists]
-    .sort((a, b) => a.version - b.version)
-    .find((list) => list.prices[assetId] !== undefined);
-  return listed ? listed.prices[assetId]! : null;
-}
+/** D60's earliest-price-list read lives with the rest of the rule (first-lease.ts). */
+export { firstLeaseListPriceCents } from './first-lease';
 
 /**
  * The pricing data with `assetId` priced at `cents` in every price list: how a relisted item is

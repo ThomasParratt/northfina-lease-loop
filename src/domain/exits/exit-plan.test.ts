@@ -40,7 +40,11 @@ function input(overrides: Partial<PlanExitInput> = {}): PlanExitInput {
     today: '2027-06-05',
     reported: { condition: 'good', usage: { unit: 'km', value: 1_800 } },
     invoices: rents(7),
-    asset: { category: 'e_bike', modelYear: 2026, previousLives: 0 },
+    asset: { category: 'e_bike' },
+    curve: {
+      listPriceCents: 389_000,
+      age: { modelYear: 2026, previousLives: 0, leaseStart: '2026-11-05' },
+    },
     annualInterestPercent: 7.9,
     curves,
     costs,

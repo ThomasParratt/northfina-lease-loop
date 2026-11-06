@@ -16,11 +16,11 @@ import type { Asset, SecondLifeRequest } from '@/data/schemas';
 import { returnAssessmentRowSchema } from '@/domain/rows/return-assessment';
 import {
   assessReturn,
-  firstLeaseListPriceCents,
   type AssessData,
   type AssessInput,
   type ReturnAssessmentResult,
 } from '@/domain/second-life/assess';
+import { firstLeaseCurve } from '@/domain/second-life/first-lease';
 import { matchDemand, type MatchResult } from '@/domain/second-life/match';
 import { ADMIN_ACTOR } from './actor';
 import { appendAssetEvent } from './asset-events';
@@ -93,12 +93,16 @@ async function buildProposal(
     listAssetContracts(db, asset.id),
     matchedDemandIds(db),
   ]);
-  const first = contracts[0];
-  const ours = asset.previous_lives === 0 && first !== undefined;
-  const newPriceCents = ours
-    ? first.unitListPriceCents
-    : firstLeaseListPriceCents(data.pricing.priceLists, asset.id);
-  if (newPriceCents === null) {
+  // D60, the same read the exit uses (first-lease.ts).
+  const curve = firstLeaseCurve({
+    assetId: asset.id,
+    modelYear: asset.model_year,
+    previousLives: asset.previous_lives,
+    contracts,
+    priceLists: data.pricing.priceLists,
+    today,
+  });
+  if (curve === null) {
     return { ok: false, reason: { code: 'no_list_price', params: { assetId: asset.id } } };
   }
   const input: AssessInput = {
@@ -106,13 +110,8 @@ async function buildProposal(
     category: asset.category,
     condition: asset.condition,
     usage: asset.usage,
-    // D11 counts from the model year whenever the item is not ours from new.
-    age: {
-      modelYear: asset.model_year,
-      previousLives: ours ? 0 : Math.max(1, asset.previous_lives),
-      leaseStart: ours ? first.startDate : today,
-    },
-    newPriceCents,
+    age: curve.age,
+    newPriceCents: curve.listPriceCents,
     isoDate: today,
   };
   const assessment = assessReturn(input, data);
