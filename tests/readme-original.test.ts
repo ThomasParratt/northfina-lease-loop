@@ -17,10 +17,18 @@ const nonBlankLines = (text: string): Set<string> =>
 
 describe("the organiser's README", () => {
   it('has every line of its original version, unchanged', () => {
-    const original = execFileSync('git', ['show', `${ORIGINAL_COMMIT}:README.md`], {
-      encoding: 'utf8',
-      timeout: 10_000,
-    });
+    let original: string;
+    try {
+      original = execFileSync('git', ['show', `${ORIGINAL_COMMIT}:README.md`], {
+        encoding: 'utf8',
+        timeout: 10_000,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch {
+      throw new Error(
+        `Cannot read README.md at ${ORIGINAL_COMMIT}: this check needs the full git history; a shallow clone lacks it (git fetch --unshallow).`
+      );
+    }
     const ours = nonBlankLines(readFileSync('README.md', 'utf8'));
     const missing = [...nonBlankLines(original)].filter((line) => !ours.has(line));
     expect(missing).toEqual([]);

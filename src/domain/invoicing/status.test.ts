@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { contractBalanceOn, invoiceStatusOn, type InvoiceForBalance } from './status';
 
 const rent = (id: string, day: string, grossCents: number, paidOn: string | null = null) =>
-  ({ id, issueDate: day, dueDate: day, grossCents, paidOn }) satisfies InvoiceForBalance;
+  ({
+    id,
+    issueDate: day,
+    dueDate: day,
+    grossCents,
+    paidOn,
+    status: paidOn === null ? 'issued' : 'paid',
+  }) satisfies InvoiceForBalance;
 
 describe('invoiceStatusOn', () => {
   const invoice = { issueDate: '2026-12-05', dueDate: '2026-12-05', paidOn: null };

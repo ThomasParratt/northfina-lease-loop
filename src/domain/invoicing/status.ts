@@ -27,8 +27,11 @@ export function invoiceStatusOn(invoice: InvoiceForStatus, today: string): Displ
 export type InvoiceForBalance = InvoiceForStatus & {
   id: string;
   grossCents: number;
-  /** The stored status; a `cancelled` rent (replaced by an early exit's invoice) is skipped. */
-  status?: InvoiceStatus;
+  /**
+   * The stored status; a `cancelled` rent (replaced by an early exit's invoice) is skipped.
+   * Required, so no caller can leave it out and count a cancelled rent again.
+   */
+  status: InvoiceStatus;
 };
 
 export type ContractBalance = {
