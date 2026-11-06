@@ -14,6 +14,7 @@ const STATUS_OF: Partial<Record<SignContractRefusal['code'], number>> = {
   not_allowed_to_sign: 403,
   already_signed: 409,
   asset_not_available: 409,
+  not_enough_units: 409,
 };
 
 export const POST = handleRoute(async (request) => {
