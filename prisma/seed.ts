@@ -1,6 +1,6 @@
 // Fills the database from the data pack. Run by `npm run db:setup` (via `prisma db seed`).
 // Safe to run again: it only adds assets, customers and company signatories that are missing
-// and never overwrites your changes. The signatories are valid from the seed day (D44).
+// and never overwrites your changes. The signatories are valid from the seed day (D43).
 import { loadAssets, loadCustomers } from '@/data/load';
 import { seedAssets } from '@/server/assets';
 import { seedCustomers } from '@/server/customers';

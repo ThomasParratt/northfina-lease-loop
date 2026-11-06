@@ -104,6 +104,7 @@ One page per feature slice under `docs/features/` (template: [docs/features/READ
 - [Row schemas](docs/features/row-schemas.md): the Zod rules every stored row is parsed with before the write, held to `prisma/schema.prisma` by a test (D27)
 - [Exits: buy out, return, pass on and the early exit](docs/features/exits.md) (wave 2): the D14 early exit line by line, the market value by the residual curve, the refurbishment plan, the contract page section (card 8; the exits cards 9 and 10 start from)
 - [The look: tokens, the price tag, life stamps and drawings](docs/features/look.md): one warm look for every page through colour roles, the price tag, the life stamp and a drawing per kind of item; the demo tools in their own strip above the customer header (D21)
+- [Company signatories and the signing link](docs/features/signatories.md) (wave 2): who may sign for a company and until when, the signing link that alone signs card 6, the demo outbox, the admin applying on a customer's behalf
 - [The tamper-evident audit chain](docs/features/audit-chain.md) (wave 2): every audit row hash-chained to the one before it in the same transaction, the verifier, the chain badge with the head hash and the `demo:tamper` script
 
 ## Team notes

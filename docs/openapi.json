@@ -248,7 +248,7 @@
     },
     "/api/applications": {
       "post": {
-        "summary": "Submit the answers for a quote: prunes, validates, evaluates the eligibility rules (D9); the admin only with onBehalfOf (D45)",
+        "summary": "Submit the answers for a quote: prunes, validates, evaluates the eligibility rules (D9); the admin only with onBehalfOf (D44)",
         "tags": ["applications"],
         "parameters": [],
         "requestBody": {
@@ -656,7 +656,7 @@
     },
     "/api/applications/{id}/decision": {
       "post": {
-        "summary": "An admin decides a manual review (D10); an awaiting_signatory case answers 403 NOT_SIGNATORY: it is signed through the link (D44)",
+        "summary": "An admin decides a manual review (D10); an awaiting_signatory case answers 403 NOT_SIGNATORY: it is signed through the link (D43)",
         "tags": ["applications"],
         "parameters": [
           {
@@ -3101,7 +3101,7 @@
     },
     "/api/customers/{id}/signatories": {
       "get": {
-        "summary": "The company's signatory list with each entry's state today (the company or admin, D44)",
+        "summary": "The company's signatory list with each entry's state today (the company or admin, D43)",
         "tags": ["signatories"],
         "parameters": [
           {
@@ -3261,7 +3261,7 @@
         }
       },
       "post": {
-        "summary": "Add a signatory, valid from validFrom up to validTo (the company's own signatory or admin, D44)",
+        "summary": "Add a signatory, valid from validFrom up to validTo (the company's own signatory or admin, D43)",
         "tags": ["signatories"],
         "parameters": [
           {
@@ -3462,7 +3462,7 @@
     },
     "/api/customers/{id}/signatories/{signatoryId}/revoke": {
       "post": {
-        "summary": "End a signatory's right today; the last active one cannot be revoked (D44)",
+        "summary": "End a signatory's right today; the last active one cannot be revoked (D43)",
         "tags": ["signatories"],
         "parameters": [
           {
@@ -5478,7 +5478,7 @@
     },
     "/api/sign/{token}": {
       "get": {
-        "summary": "The signing link: who signs for which application, and whether it is pending (D44)",
+        "summary": "The signing link: who signs for which application, and whether it is pending (D43)",
         "tags": ["signatories"],
         "parameters": [
           {
@@ -5626,7 +5626,7 @@
         }
       },
       "post": {
-        "summary": "The signatory signs (approved) or declines (rejected) through the link; registers them (D44)",
+        "summary": "The signatory signs (approved) or declines (rejected) through the link; registers them (D43)",
         "tags": ["signatories"],
         "parameters": [
           {

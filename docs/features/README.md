@@ -11,6 +11,7 @@ One page per feature slice, shipped in the same pull request as its code (AGENTS
 - [row-schemas.md](row-schemas.md): the write schema of every stored row and the test that holds them to `schema.prisma`.
 - [invoicing.md](invoicing.md): the monthly schedule billed in advance, VAT by invoice date, paying an invoice and the outstanding balance (wave 1).
 - [look.md](look.md): the colour roles, the price tag, the life stamp, the drawings and the staff strip (D21).
+- [signatories.md](signatories.md): the company's signatory list, the signing link that alone signs card 6, and the admin applying on a customer's behalf (wave 2).
 - [audit-chain.md](audit-chain.md): the tamper-evident audit chain, its verifier, the badge with the head hash and the tamper demo (wave 2).
 
 The team's per-feature state (missing, in progress, done, verified) is [STATUS.md](STATUS.md); the README's "Status" table is the per-card view for the judges.
