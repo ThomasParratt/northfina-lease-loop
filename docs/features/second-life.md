@@ -2,7 +2,7 @@
 
 ## What it does
 
-A returned item is assessed: every way to relist it (as returned, or refurbished to each higher condition) with its refurbishment plan, market value, second-life price (D86: the market value, nothing added), whether the refurbishment pays for itself, and net rent per term, then the waiting list is ranked by D13 and the item is relisted in the winner's condition at its second-life price. The admin's "Assess and relist" on `/[locale]/assets/[id]/second-life` writes it; the quote, the price page and the signing then price the item on that amount, and the next contract names the one before it (D16), so the passport shows the chain of lives.
+A returned item is assessed: every way to relist it (as returned, or refurbished to each higher condition) with its refurbishment plan, market value, second-life price (D86: the market value, nothing added), whether the refurbishment pays for itself, and net rent per term, then the waiting list is ranked by D13 and the item is relisted in the winner's condition at its second-life price. The admin's "Assess and relist" on `/[locale]/assets/[id]/second-life` writes it; the page is back office (D85): only the admin sees it or any link to it, because it shows the whole waiting list; the quote, the price page and the signing then price the item on that amount, and the next contract names the one before it (D16), so the passport shows the chain of lives.
 
 ## The rule
 
@@ -44,7 +44,7 @@ A returned item is assessed: every way to relist it (as returned, or refurbished
 
 ## Decisions
 
-D86 (the price is the market value; refurbish or not by value gain against extra cost; the no-winner relist), D12 (re-pricing, its price replaced by D86), D77 (the inspection wins over the report), D13 (matchmaking), D15 (CO2), D16 and D66 (the contract chain), D22 and D23 (`returned` → `available`, statuses parsed before the write), D31 and D60 (the price and age the value starts from), D61 (refurbish or not, the floor), D62 (the budget test), D63 (where the price lives), D64 (the admin button, not an event handler), D65 (an assessment without a contract), D67 (a relisted fair item is open to anyone), D83 (two usage counters: the total never resets, the usage since the last battery takes the value's usage adjustment and the next battery; replaces D79, which had replaced D68).
+D86 (the price is the market value; refurbish or not by value gain against extra cost; the no-winner relist), D12 (re-pricing, its price replaced by D86), D77 (the inspection wins over the report), D13 (matchmaking), D15 (CO2), D16 and D66 (the contract chain), D22 and D23 (`returned` → `available`, statuses parsed before the write), D31 and D60 (the price and age the value starts from), D61 (refurbish or not, the floor), D62 (the budget test), D63 (where the price lives), D64 (the admin button, not an event handler), D65 (an assessment without a contract), D67 (a relisted fair item is open to anyone), D83 (two usage counters: the total never resets, the usage since the last battery takes the value's usage adjustment and the next battery; replaces D79, which had replaced D68), D85 (the page is back office: admin only).
 
 ## Pure functions
 
@@ -60,7 +60,7 @@ D86 (the price is the market value; refurbish or not by value gain against extra
 - `src/domain/second-life/assess.ts`, `match.ts` and their tests.
 - `src/server/second-life.ts` (`assessAsset`, `previewAssessment`, `latestAssessment`, `toAssessmentResponse`), `src/server/second-life-price.ts` (`pricingForAsset`, read by `quotes.ts`, `contracts.ts`, the preview route and the price page), `src/server/second-life-schemas.ts`.
 - `src/app/api/assets/[id]/assessments/route.ts` (`POST`, admin, 201) and its row in `src/server/routes.ts`; `docs/openapi.json`.
-- `src/app/[locale]/assets/[id]/second-life/page.tsx` and `assess-button.tsx`; the note and link on `src/app/[locale]/assets/[id]/page.tsx`. While an item waits as returned, the second-life page is also linked from its greyed card in the catalogue (`src/components/model-card.tsx`), its passport and the ended contract's exit notice (`src/components/contract-exit.tsx`), so the assessment is reached without the demo button.
+- `src/app/[locale]/assets/[id]/second-life/page.tsx` and `assess-button.tsx`; `src/server/second-life-page.ts` (`readSecondLifePage`: `read_second_life` authorized before anything is read, D85). The note and link on `src/app/[locale]/assets/[id]/page.tsx`. While an item waits as returned, the admin also finds the second-life page linked from its greyed card in the catalogue (`src/components/model-card.tsx`), its passport and the ended contract's exit notice (`src/components/contract-exit.tsx`), so the assessment is reached without the demo button; a customer sees none of these links (D85).
 - `prisma/schema.prisma` and the migration `second_life_assessment` (D65); `src/domain/rows/return-assessment.ts`.
 
 ## Tests that pin the numbers
@@ -75,6 +75,10 @@ D86 (the price is the market value; refurbish or not by value gain against extra
 - `src/domain/scenarios/traps.test.ts`: the twin pairs through `matchDemand`: `wait-02` over `wait-13` (`no_refurbishment`), `wait-06` over `wait-14` (`id`) on `laptop-007` refurbished to good (D86 put `laptop-006` good at 27 577, under band A's minimum).
 - `src/domain/scenarios/drills.test.ts`: a returned laptop (data wipe, battery at 500 cycles, `wait-08`, the twins now in budget below it), a waiting list nobody fits (each verdict's failing step, relisted like new by D86), an entry already matched.
 - `src/server/demo-cards.test.ts`: cards 9 and 10 from the demo button: 115 976 and `wait-02` at 6 497; 32 601 leased at 1 194, three lives, 58 kg; a second click refused.
+
+## The bug report of 2026-11-06 (not reproduced)
+
+A tester reported the second-life page broken and "Assess and relist" failing for an item returned through the app's own exit (leased, then "Give it back"). On a migrated database neither reproduces: every e-bike and laptop in the pack, leased and returned on the day it was signed, seven months in and at the end of term, as reported or worn, previews and assesses through the route as the admin (201); the regression tests above pin that path. The tester's dev server logged `The column main.AuditLog.prev_hash does not exist in the current database` (P2022): the audit signing (D81, #69) added columns, and a database not migrated after the pull fails every audited write, the assessment included. **If a page errors on a missing column after pulling, run `npx prisma migrate deploy` and restart the dev server.**
 
 ## Open questions
 
