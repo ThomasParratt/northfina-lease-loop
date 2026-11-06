@@ -23,3 +23,21 @@ require `available`, so none of them changed.
 no customer; the name is in the exit's audit entry), so another customer could apply for it in
 its 14 days. The signing's price lock reads the item's assessment for a second-life price; a
 passed-on item has none, so a quote that expires would be re-priced at the list price.
+
+## Review of PR #89 (Thomas), 2026-11-06
+
+| Time (Helsinki) | Step                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 15:05           | Merged `origin/main`, read the review.                                                                                                |
+| 15:07           | `planExit` refuses a pass-on below `good` (`pass_on_below_leasable`), test first in `exit-plan.test.ts`.                              |
+| 15:08           | `Quote.customer_id` (nullable, `npm run db:migrate`); apply and sign refuse another customer (`quote_reserved_for_another_customer`). |
+| 15:09           | The pass-on writes `repriced` and sets the item `reserved`; the named customer's signing leases it from `reserved`.                   |
+| 15:10           | My leases shows "Passed on to you"; the leaver's contract keeps a line without a link. Keys in all four languages. Tests green.       |
+| 15:14           | `docs/features/exits.md`, D16 (superseded in part) and D90 rows, this log.                                                            |
+
+**Done:** review points 1 to 3. The "left undone" above about the quote not being tied to the
+customer is fixed by `customer_id`.
+
+**Left undone:** the quote's expiry does not release the hold: the item stays `reserved` until the
+admin sets it `available` by hand (written in D90 and the feature page's open questions).
+`nextQuoteIdOf` still reads the quote id from the audit entry for the leaver's info line.
