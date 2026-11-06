@@ -349,6 +349,7 @@
   "passport.co2Life": "{kg} kg CO₂e säästetty",
   "passport.co2FirstLife": "Ensimmäinen elämä: ei säästöä, tuote valmistettiin sitä varten",
   "passport.co2Total": "Myöhempien elämien säästämä CO₂e",
+  "passport.co2AtLeaseEnd": "{kg} kg nykyisen vuokrasopimuksen päättyessä ({date})",
   "passport.kg": "{kg} kg",
   "passport.method": "Näin laskemme: myöhempi elämä välttää uuden tuotteen valmistuksen CO₂:n ({footprint} kg) vähennettynä kunnostuksen {share} %:n osuudella, jaettuna {designLife} kuukauden suunnitellulle käyttöiälle ja laskettuna elämän kestämiltä kuukausilta. Ensimmäinen elämä ei säästä mitään, ja kun elämät ovat käyttäneet koko käyttöiän, uusi elämä ei säästä enää: loppuun kulunut tuote ei korvaa uutta.",
   "passport.noMoney": "Rahallista säästöä ei näytetä: aineistossa ei ole sille kerrointa.",

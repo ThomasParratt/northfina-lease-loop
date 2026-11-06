@@ -349,6 +349,7 @@
   "passport.co2Life": "{kg} kg CO₂e sparat",
   "passport.co2FirstLife": "Första livet: ingen besparing, föremålet tillverkades för det",
   "passport.co2Total": "CO₂e sparat av senare liv",
+  "passport.co2AtLeaseEnd": "{kg} kg när det nuvarande leasingavtalet slutar ({date})",
   "passport.kg": "{kg} kg",
   "passport.method": "Så räknar vi: ett senare liv undviker CO₂ för att tillverka ett nytt föremål ({footprint} kg) minus renoveringens {share} %, fördelat på {designLife} månaders livslängd och räknat för de månader livet varade. Det första livet sparar inget, och när liven har använt hela livslängden sparar ett nytt liv inget mer: ett utslitet föremål ersätter inget nytt.",
   "passport.noMoney": "Sparade pengar visas inte: datapaketet har ingen faktor för det.",

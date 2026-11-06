@@ -349,6 +349,7 @@
   "passport.co2Life": "{kg} kg CO₂e saved",
   "passport.co2FirstLife": "First life: no saving, the item was made for it",
   "passport.co2Total": "CO₂e saved by its later lives",
+  "passport.co2AtLeaseEnd": "{kg} kg at the end of the current lease ({date})",
   "passport.kg": "{kg} kg",
   "passport.method": "How we count: a later life avoids the CO₂ of making a new item ({footprint} kg) minus the {share} % refurbishment costs, spread over its {designLife}-month design life and counted for the months that life lasted. The first life saves nothing, and once the lives have used the whole design life, a further life saves nothing more: a worn-out item replaces no new one.",
   "passport.noMoney": "Money saved is not shown: the data pack has no money factor for it.",
