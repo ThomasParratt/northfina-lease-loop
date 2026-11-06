@@ -37,7 +37,7 @@ The VAT in the totals is the quote day's rate and is labelled an estimate: VAT i
 
 `data/term-limits.json` (the team's rule, beside the organiser's pack) caps the term per category: e-bike 48, laptop 36, farm machine 48. The terms an item may be offered are the coefficient table's terms up to the cap, in order (`allowedTerms`): a cap between two terms rounds down to the terms the table has, and a cap below the shortest term leaves none. `priceQuote` checks the cap after the term and the asset and before the money, so a laptop at 48 months is refused with `term_over_category_max` and the params `{ category: 'laptop', termMonths: 48, maxTermMonths: 36 }`, which the page writes as "Laptops are leased for at most 36 months; 48 months is over that." The slider and the comparison only show the allowed terms, and the data pack's assets give each item its category.
 
-Worked on the cards: `laptop-004` (card 2) at 36 months still prices at 9 627 on list v1; at 48 months it is refused. `farm-002` (card 7) at 48 months still prices at 272 038, and the four `ebike-004` (card 6) keep every term. No scenario card leases a laptop beyond 36 months, so no card is refused. Data built without the limits (the scenario harness, older tests) prices every term of the table; `loadPricingData()` always loads the limits and the assets, so the app always applies the cap.
+Worked on the cards: `laptop-004` (card 2) at 36 months still prices at 9 627 on list v1; at 48 months it is refused. `farm-002` (card 7) at 48 months still prices at 272 038, and the four `ebike-004` (card 6) keep every term. No scenario card leases a laptop beyond 36 months, so no card is refused. The limits and the assets are required fields of `PricingData`, so no caller can price without the cap: `loadPricingData()` loads them for the app and the scenario harness (`fixtures.ts`) passes them from the pack, so every card runs under the cap. The refusal names the longest term the table offers under the cap (a cap of 40 would still say "at most 36"); the page shows one allowed term as a line instead of a slider, and says when a category has no term at all.
 
 ### Card 1, line by line (`ebike-003`, 36 months, no down payment, 5 Nov 2026)
 
@@ -79,7 +79,7 @@ On 5 Nov 2026 list v1 is 349 000 → 9 627 a month. On 6 Nov list v2 is 321 100 
 
 ```ts
 priceQuote(data: PricingData, input: QuoteInput): QuoteResult
-  // PricingData = { priceLists, table, vatRates, termLimits?, assets? }   (the cap applies when termLimits is given)
+  // PricingData = { priceLists, table, vatRates, termLimits, assets }   (the limits and the assets' categories are required)
   // QuoteInput = { assetId, quantity, termMonths, downPaymentCents, isoDate }
   // QuoteResult = { ok: true; quote: QuoteBreakdown } | { ok: false; reason: QuoteRefusal }
 breakdownFromFrozen(frozen: FrozenQuote): QuoteBreakdown   // the stored numbers → every derived line
