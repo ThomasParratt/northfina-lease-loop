@@ -16,3 +16,7 @@ Branch `chore/wave3-upkeep` from `main` at `7f0b39f`, slot `nostalgic-sutherland
 - Every code finding of `docs/reviews/wave-3.md` (1, 3 to 6, 8, 10 to 13) is open for the code-review round; finding 2 is the wave 3 hardening's.
 - The demo script was not rehearsed against a running server; the numbers are the tests'.
 - The submission draft's two placeholders and the team name are for the coordinator and Johannes; the Engineering check boxes are ticked on the day.
+
+## Coordinator's review of #56
+
+- 05:50 to 06:05 the eleven points: the card 6 wording (the link's holder signs), card 10's by-hand steps and "card 1 before card 8" in the demo; the submission in the template's order with absolute links and the "review finding 1 fixed" gate; D4's end day, D25, D37's date, D43 against the code, D52's split row (a bare `|` in a code span, now escaped) and D69; findings 1, 5, 8 and 13 restated; the clock time on the twenty log closings.

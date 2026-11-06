@@ -14,4 +14,4 @@ Panu's session, 2026-11-05 (Helsinki time).
 
 Left undone: fonts from `next/font/local` (the build needs Google Fonts today); gating the audit page itself.
 
-Closed by the wave 3 upkeep, 2026-11-06: the task is merged (#19); the 375 px check of every page is the hardening's.
+Closed by the wave 3 upkeep, 2026-11-06 05:39: the task is merged (#19); the 375 px check of every page is the hardening's.

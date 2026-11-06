@@ -13,4 +13,4 @@ Panu's session, 2026-11-05 (Helsinki time), stacked on PR #19.
 
 Left undone: the dead `?quote=` section on the price page (card 2 holds on the contract page; remove when the contract page shows the quote). The organiser's README lines ("You should see the asset catalogue", "`page.tsx`: the catalogue page") are not ours to edit; the landing page leads to the catalogue in one click.
 
-Closed by the wave 3 upkeep, 2026-11-06: the task is merged (#23); its review findings were fixed before the merge.
+Closed by the wave 3 upkeep, 2026-11-06 05:39: the task is merged (#23); its review findings were fixed before the merge.

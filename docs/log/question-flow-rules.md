@@ -20,4 +20,4 @@ Real clock, Helsinki. Session started by the coordinator in the worktree `nostal
 - The consumer limits are their own team file beside `data/term-limits.json`; one team-limits file would be tidier.
 - D59 has no server test: no persona can be approved under 18, so the refusal is pinned in `sign.test.ts` only.
 
-Closed by the wave 3 upkeep, 2026-11-06: the task is merged (#51); the decision page's access is finding 1 of `docs/reviews/wave-3.md`, the consumer-limits note finding 13.
+Closed by the wave 3 upkeep, 2026-11-06 05:39: the task is merged (#51); the decision page's access is finding 1 of `docs/reviews/wave-3.md`, the consumer-limits note finding 13.

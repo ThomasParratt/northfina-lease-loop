@@ -21,4 +21,4 @@ Nothing.
 - `readFleetImpact` still returns the per-item list, now read only by its test.
 - Smooth scrolling itself was not watched (the browser pane was hidden); the call and the instant path were checked.
 
-Closed by the wave 3 upkeep, 2026-11-06: the task is merged (#30); the per-item saving stays on each passport, Johannes's call.
+Closed by the wave 3 upkeep, 2026-11-06 05:39: the task is merged (#30); the per-item saving stays on each passport, Johannes's call.

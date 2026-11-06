@@ -23,4 +23,4 @@ Real clock, Helsinki. Session started by the coordinator, in the worktree `relax
 - Whether the cap also bounds a second or third life (design life minus the item's age) is an open question on the pricing page for wave 3.
 - The scenario harness builds `PricingData` without the limits (`fixtures.ts` is the hardening session's file), so the cap is proved by the pricing tests and the route test, not by a card.
 
-Closed by the wave 3 upkeep, 2026-11-06: the task is merged (#33); later lives are capped by the same table (`matchDemand`, #53).
+Closed by the wave 3 upkeep, 2026-11-06 05:39: the task is merged (#33); later lives get the same category cap (`matchDemand`, #53); a shorter cap for them is open (`docs/features/second-life.md`).

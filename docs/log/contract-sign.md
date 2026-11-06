@@ -17,4 +17,4 @@ Real clock, Helsinki. Coding agent: Opus, in the main checkout, branch `feat/con
 - Who signs after the named signatory approves an `awaiting_signatory` case stays open (`contracts.md`); the form follows today's rule: the applicant customer or admin.
 - Card 8 still needs seven paid rents set up by hand: no Pay button yet (issue 34, the demo buttons).
 
-Closed by the wave 3 upkeep, 2026-11-06: the task is merged (#47); who signs after the named signatory approves is the signing link of #49.
+Closed by the wave 3 upkeep, 2026-11-06 05:39: the task is merged (#47); who signs after the named signatory approves is the signing link of #49.
