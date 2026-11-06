@@ -2,7 +2,7 @@
 // decided (D9), plus the person's decision on a manual review or the signatory's sign-off (D10).
 import { randomUUID } from 'node:crypto';
 import type { Application as ApplicationRow } from '@/generated/prisma/client';
-import { loadCoefficientTable, loadQuestions } from '@/data/load';
+import { loadCoefficientTable, loadConsumerLimits, loadQuestions } from '@/data/load';
 import { applicationDecisionSchema, type ApplicationDecision } from '@/domain/statuses';
 import type { Customer } from '@/data/schemas';
 import {
@@ -77,7 +77,7 @@ export async function flowSetupFor(
   | {
       ok: true;
       setup: FlowSetup;
-      quote: { monthlyNetCents: number; vatRateBp: number };
+      quote: { monthlyNetCents: number; vatRateBp: number; quantity: number };
       customer: Customer;
     }
   | { ok: false; reason: 'quote_not_found' | 'customer_not_found' }
@@ -101,7 +101,11 @@ export async function flowSetupFor(
       quoteValidUntil: quote.validUntil,
       customerIsPep: customer.is_pep,
     },
-    quote: { monthlyNetCents: deal.monthlyNetCents, vatRateBp: deal.vatRateBasisPoints },
+    quote: {
+      monthlyNetCents: deal.monthlyNetCents,
+      vatRateBp: deal.vatRateBasisPoints,
+      quantity: deal.quantity,
+    },
     customer,
   };
 }
@@ -164,7 +168,7 @@ export async function createApplication(
   const missing = nextQuestion(questions, context, answers);
   if (missing) return { ok: false, reason: 'incomplete_answers', questionId: missing.id };
 
-  const table = await loadCoefficientTable();
+  const [table, consumerLimits] = await Promise.all([loadCoefficientTable(), loadConsumerLimits()]);
   const result = evaluate(
     rules,
     eligibilityInputFromAnswers({
@@ -178,6 +182,8 @@ export async function createApplication(
       },
       knownPep: customerIsPep,
       recordMismatches: recordMismatches(found.customer, answers),
+      quantity: found.quote.quantity,
+      consumerLimits,
     })
   );
 

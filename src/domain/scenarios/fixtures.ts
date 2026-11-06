@@ -7,6 +7,7 @@
 import assetsJson from '../../../data/assets.json';
 import co2FactorsJson from '../../../data/co2-factors.json';
 import coefficientTableJson from '../../../data/coefficient-table.json';
+import consumerLimitsJson from '../../../data/consumer-limits.json';
 import customersJson from '../../../data/customers.json';
 import priceListsJson from '../../../data/price-lists.json';
 import questionsJson from '../../../data/questions.json';
@@ -16,6 +17,7 @@ import {
   assetsFileSchema,
   co2FactorsSchema,
   coefficientTableSchema,
+  consumerLimitsSchema,
   customersFileSchema,
   priceListsFileSchema,
   questionsFileSchema,
@@ -51,6 +53,7 @@ export const pack = {
   customers: customersFileSchema.parse(customersJson),
   demand: secondLifeDemandFileSchema.parse(secondLifeDemandJson),
   co2Factors: co2FactorsSchema.parse(co2FactorsJson),
+  consumerLimits: consumerLimitsSchema.parse(consumerLimitsJson),
 };
 
 export const pricing: PricingData = {
@@ -155,6 +158,8 @@ export function applyFor(
       financedLimits,
       knownPep: customer.is_pep,
       recordMismatches: recordMismatches(customer, answers),
+      quantity: deal.quantity ?? 1,
+      consumerLimits: pack.consumerLimits,
     })
   );
   return {
