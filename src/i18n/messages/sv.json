@@ -551,6 +551,8 @@
   "exit.ended.body": "Status: {status}. Avslutat {date}. Slutfakturan finns i listan nedan.",
   "exit.refusal.not_started": "Avtalet har inte börjat än, så det kan inte avslutas.",
   "exit.refusal.usage_below_signing": "Den angivna användningen ({value} {unit}) är lägre än de {atSigning} {unit} varan hade när den hyrdes ut.",
+  "contract.refusal.quote_not_yet_valid": "Offerten är daterad {quoteDate}, efter i dag. Ett avtal kan inte undertecknas före sin offert.",
+  "apply.quoteNotYetValid": "Offerten är daterad efter i dag, så den kan inte sökas än.",
   "apply.hint.finnish_business_id": "Format 1234567-8, med en giltig kontrollsiffra",
   "apply.notApplicant": "Du kan bara ansöka i ditt eget namn. Välj dig själv under ”Fortsätt som”.",
   "apply.notSignatory": "Endast firmatecknaren skriver under, via signeringslänken som skickats till hen.",

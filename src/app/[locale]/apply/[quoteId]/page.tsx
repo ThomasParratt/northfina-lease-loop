@@ -76,6 +76,11 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
     );
   }
 
+  // A quote dated after today (the demo clock moved back) cannot be applied for (finding 10).
+  if (quote && today < quote.quoteDate) {
+    return page(<Notice tone="warning">{t('apply.quoteNotYetValid')}</Notice>);
+  }
+
   const bank = (await loadQuestions()).questions;
   const dictionary: Record<string, string> = messages[locale];
   const texts = Object.fromEntries(
