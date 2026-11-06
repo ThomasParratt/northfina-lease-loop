@@ -77,6 +77,8 @@ export type EarlyExitInput = {
   curve: FirstLeaseCurve;
   /** What the customer reports; the assessment (wave 3) checks it. */
   reported: { condition: AssetCondition; usage: Usage };
+  /** The usage at the last per-block service (review finding 7); absent: none on record. */
+  usageAtLastService?: number;
   curves: ResidualCurves;
   costs: RefurbishmentCosts;
 };
@@ -142,6 +144,7 @@ export function earlyExitCost(input: EarlyExitInput): EarlyExitCost {
       category: asset.category,
       condition: reported.condition,
       usage: reported.usage,
+      usageAtLastService: input.usageAtLastService,
       targetCondition: LEASABLE_CONDITION,
     },
     input.costs

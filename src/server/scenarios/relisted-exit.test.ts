@@ -127,3 +127,34 @@ describe('a second lease of an item that was ours from new (finding 3)', () => {
     expect(second.contract.unitListPriceCents).not.toBe(contract.unitListPriceCents);
   });
 });
+
+describe('a farm machine returned twice (review finding 7)', () => {
+  it('farm-005 serviced at 4 200 h on its assessment, returned at 4 500 h: one major service', async () => {
+    const assessed = await assessAsset(db, {
+      assetId: 'farm-005',
+      actor: 'admin',
+      today: '2026-11-06',
+    });
+    if (!assessed.ok) throw new Error(assessed.reason.code);
+    const first = assessed.view.match.relist.plan.steps.find((s) => s.id === 'major_service');
+    expect(first).toMatchObject({ quantity: 5 });
+
+    const pekka = 'cust-pekka';
+    const trip = { customerId: pekka, assetId: 'farm-005', termMonths: 12, quoteOn: '2026-11-06' };
+    const { contract } = await signedContract(db, trip);
+    const preview = await previewExit(
+      db,
+      {
+        contractId: contract.id,
+        mode: 'return',
+        reported: { condition: 'good', usage: { unit: 'engine_hours', value: 4_500 } },
+      },
+      contract.endDate
+    );
+    if (!preview.ok) throw new Error(preview.reason.code);
+    const service = preview.preview.return.lines.find(
+      (l) => l.code === 'refurb_fixed' && l.params.step === 'major_service'
+    );
+    expect(service?.params).toMatchObject({ times: 1, amountCents: 150_000 });
+  });
+});

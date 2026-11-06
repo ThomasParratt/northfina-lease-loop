@@ -22,6 +22,7 @@ import {
   type ReturnAssessmentResult,
 } from '@/domain/second-life/assess';
 import { firstLeaseCurve } from '@/domain/second-life/first-lease';
+import { usageAtLastService } from '@/domain/refurbishment/plan';
 import { matchDemand, type MatchResult } from '@/domain/second-life/match';
 import type { AuthzRefusal } from '@/domain/authz/policy';
 import { appendAssetEvent } from './asset-events';
@@ -89,6 +90,30 @@ async function matchedDemandIds(db: PrismaClient | TransactionClient): Promise<s
   return rows.flatMap((row) => (row.matched_demand_id ? [row.matched_demand_id] : []));
 }
 
+/**
+ * Past assessments of an asset, newest first: the usage and the plan's step ids, for the hours
+ * at the last major service (`usageAtLastService`, review finding 7). The exit reads it too.
+ */
+export async function assessmentHistory(
+  db: PrismaClient | TransactionClient,
+  assetId: string
+): Promise<{ usageValue: number; stepIds: string[] }[]> {
+  const rows = await db.returnAssessment.findMany({
+    where: { asset_id: assetId },
+    orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+    select: { usage_value: true, refurbishment_json: true },
+  });
+  return rows.map((row) => {
+    const steps = parseJson(row.refurbishment_json);
+    const stepIds = Array.isArray(steps)
+      ? steps.flatMap((s: unknown) =>
+          s && typeof s === 'object' && 'step' in s && typeof s.step === 'string' ? [s.step] : []
+        )
+      : [];
+    return { usageValue: row.usage_value, stepIds };
+  });
+}
+
 async function buildProposal(
   db: PrismaClient | TransactionClient,
   asset: Asset,
@@ -96,9 +121,10 @@ async function buildProposal(
   data: SecondLifeData,
   inspected: Inspection = {}
 ): Promise<Built> {
-  const [contracts, taken] = await Promise.all([
+  const [contracts, taken, history] = await Promise.all([
     listAssetContracts(db, asset.id),
     matchedDemandIds(db),
+    assessmentHistory(db, asset.id),
   ]);
   // D60, the same read the exit uses (first-lease.ts).
   const curve = firstLeaseCurve({
@@ -118,6 +144,7 @@ async function buildProposal(
     // D77: the inspection wins over the customer's report the exit stored on the asset.
     condition: inspected.condition ?? asset.condition,
     usage: { unit: asset.usage.unit, value: inspected.usageValue ?? asset.usage.value },
+    usageAtLastService: usageAtLastService(history, asset.category, data.costs),
     age: curve.age,
     newPriceCents: curve.listPriceCents,
     isoDate: today,

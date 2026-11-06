@@ -43,6 +43,8 @@ export type AssessInput = {
   /** As returned. */
   condition: AssetCondition;
   usage: { unit: UsageUnit; value: number };
+  /** The usage at the last per-block service (review finding 7); absent: none on record. */
+  usageAtLastService?: number;
   /** For the curve age (D11 / D31). */
   age: CurveAgeInput;
   /** Net list price of one unit at its first lease (D60: `firstLeaseListPriceCents`). */
@@ -146,6 +148,7 @@ export function assessReturn(input: AssessInput, data: AssessData): ReturnAssess
         category: input.category,
         condition: input.condition,
         usage: input.usage,
+        usageAtLastService: input.usageAtLastService,
         targetCondition: target,
       },
       data.costs

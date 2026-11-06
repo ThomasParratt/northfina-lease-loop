@@ -19,11 +19,13 @@ import type {
   VatRates,
 } from '@/data/schemas';
 import type { PlanExitInput } from '@/domain/exits';
+import { usageAtLastService } from '@/domain/refurbishment/plan';
 import { firstLeaseCurve } from '@/domain/second-life/first-lease';
 import type { TransactionClient } from './audit';
 import { getAsset } from './assets';
 import { getContract, listAssetContracts, type ContractView } from './contracts';
 import { listInvoices, type InvoiceView } from './invoices';
+import { assessmentHistory } from './second-life';
 import type { PrismaClient } from './prisma-client';
 
 export type ExitData = {
@@ -52,6 +54,8 @@ export type ExitContext = {
   invoices: InvoiceView[];
   /** Every contract on the asset, oldest signing first: D60 reads the first one. */
   assetContracts: ContractView[];
+  /** The asset's past assessments, newest first: the hours at the last major service. */
+  assessments: { usageValue: number; stepIds: string[] }[];
 };
 
 /**
@@ -64,13 +68,14 @@ export async function readExitContext(
 ): Promise<ExitContext | null> {
   const contract = await getContract(db, contractId);
   if (!contract) return null;
-  const [asset, invoices, assetContracts] = await Promise.all([
+  const [asset, invoices, assetContracts, assessments] = await Promise.all([
     getAsset(db, contract.assetId),
     listInvoices(db, contractId),
     listAssetContracts(db, contract.assetId),
+    assessmentHistory(db, contract.assetId),
   ]);
   if (!asset) throw new Error(`Contract ${contractId} names a missing asset`);
-  return { contract, asset, invoices, assetContracts };
+  return { contract, asset, invoices, assetContracts, assessments };
 }
 
 export type ExitChoice = Pick<
@@ -121,6 +126,7 @@ export function planInputOf(
     asset: { category: asset.category },
     // Not written during the lease: the asset as it was leased (D77).
     atSigning: { condition: asset.condition, usage: asset.usage },
+    usageAtLastService: usageAtLastService(context.assessments, asset.category, data.costs),
     // D60, the read the assessment uses too (review finding 1). A relisted item's contract price
     // is its second-life amount; no price list for an item with past lives is a data error.
     curve: curveOf(context, data, choice.today),
