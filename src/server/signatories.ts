@@ -264,6 +264,20 @@ export async function revokeSignatory(
 }
 
 /**
+ * The list entry a signing link for `email` goes to (wave 3 finding 3): a revoked and re-added
+ * e-mail has two entries, and the link goes to the one that has not ended on `today` (active,
+ * waiting for its link or not yet valid), the ended one only when there is no other.
+ */
+export function entryForLink<R extends SignatoryRow>(
+  rows: readonly R[],
+  email: string,
+  today: string
+): R | undefined {
+  const same = rows.filter((row) => row.email === email);
+  return same.find((row) => stateOn(row, today) !== 'ended') ?? same[0];
+}
+
+/**
  * Inside the transaction that puts a case into `awaiting_signatory`: the signing link for the
  * named e-mail. An e-mail not on the list becomes an entry waiting for its link (granted by
  * the simulated register check, no `valid_from`): a stranger's address signs nothing until
@@ -274,10 +288,7 @@ export async function createSignatureRequest(
   input: { applicationId: string; customerId: string; email: string; today: string }
 ): Promise<{ requestId: string; signatoryId: string; registered: boolean }> {
   const email = signatoryEmailSchema.parse(input.email);
-  // A revoked and re-added e-mail has two entries: the link goes to the one that has not
-  // ended (active, waiting for its link or not yet valid), never to the ended one.
-  const same = (await rowsOf(tx, input.customerId)).filter((row) => row.email === email);
-  const found = same.find((row) => stateOn(row, input.today) !== 'ended') ?? same[0];
+  const found = entryForLink(await rowsOf(tx, input.customerId), email, input.today);
   const signatory =
     found ??
     (await tx.companySignatory.create({
