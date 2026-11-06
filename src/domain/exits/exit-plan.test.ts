@@ -176,6 +176,26 @@ describe('planExit refusals and guards', () => {
     });
   });
 
+  it('refuses a pass-on below good: it would relist without refurbishment (D90, review 2)', () => {
+    for (const condition of ['fair', 'poor'] as const) {
+      expect(
+        planExit(
+          input({
+            mode: 'pass_on',
+            nextCustomerId: 'cust-lena',
+            reported: { condition, usage: { unit: 'km', value: 1_800 } },
+          })
+        )
+      ).toEqual({
+        ok: false,
+        reason: { code: 'pass_on_below_leasable', params: { condition, needed: 'good' } },
+      });
+    }
+    expect(
+      planExit(input({ mode: 'pass_on', nextCustomerId: 'cust-lena' })) // reported good
+    ).toMatchObject({ ok: true });
+  });
+
   it('refuses a reason that contradicts the day, and a usage in the wrong unit', () => {
     expect(planExit(input({ reason: 'end_of_term' }))).toMatchObject({
       ok: false,
