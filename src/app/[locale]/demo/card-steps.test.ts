@@ -25,8 +25,14 @@ const STEPS: CodedLine[] = [
   },
   {
     code: 'application_decided',
-    params: { decision: 'rejected', reasons: 'too_young', date: '2026-11-05' },
+    params: { decision: 'rejected', date: '2026-11-05' },
   },
+  {
+    code: 'application_reason',
+    params: { reason: 'too_young', birthDate: '2009-03-10', eighteenOn: '2027-03-10' },
+  },
+  { code: 'application_reason', params: { reason: 'pep' } },
+  { code: 'application_reused', params: { decision: 'approved', date: '2026-11-05' } },
   {
     code: 'contract_signed',
     params: {
@@ -68,7 +74,38 @@ describe('codedMessage', () => {
     expect(codedMessage('demo.step', STEPS[0]!, t, 'en')).toContain('€107.30');
     expect(codedMessage('demo.step', STEPS[0]!, t, 'en')).toContain('5 November 2026');
     expect(codedMessage('demo.step', STEPS[1]!, t, 'en')).toContain(t('decision.status.rejected'));
-    expect(codedMessage('demo.step', STEPS[5]!, t, 'en')).toContain('€945.32');
+    expect(
+      codedMessage(
+        'demo.step',
+        { code: 'rents_paid', params: { count: 7, grossCents: 94_532 } },
+        t,
+        'en'
+      )
+    ).toContain('€945.32');
+  });
+
+  it('writes a decision reason with its own sentence and params, never the code', () => {
+    const t = getT('en');
+    const line = codedMessage('demo.step', STEPS[2]!, t, 'en');
+    expect(line).toBe(t('decision.reason.too_young', { eighteenOn: '10 March 2027' }));
+    expect(line).not.toContain('too_young');
+    expect(
+      codedMessage('demo.step', { code: 'application_reason', params: { reason: 'nope' } }, t, 'en')
+    ).toBe(t('decision.reason.unknown', { code: 'nope' }));
+  });
+
+  it("writes a refused step with the step's name and the service's own refusal sentence", () => {
+    const t = getT('en');
+    expect(codedMessage('demo.run', REFUSALS[1]!, t, 'en')).toBe(
+      `Card 5 stopped at the quote: ${t('pricing.refusal.asset_not_available')}`
+    );
+    const payment = {
+      code: 'card_step_refused',
+      params: { cardId: 8, step: 'payment', reason: 'already_paid' },
+    };
+    expect(codedMessage('demo.run', payment, t, 'en')).toBe(
+      'Card 8 stopped at a payment: already_paid'
+    );
   });
 
   it.each(locales)('fills every placeholder of every step and refusal in %s', (locale) => {
