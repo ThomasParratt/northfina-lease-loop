@@ -2,7 +2,7 @@
 // usage it came back with, every way to relist it with its refurbishment plan, market value
 // and D12 price, the rent per term, the waiting list with every D13 step, and the decision.
 // Before the assessment it is a preview computed on today's date; after it, the stored
-// assessment. The admin's "Assess and relist" writes it. Back office (D84): the waiting list is
+// assessment. The admin's "Assess and relist" writes it. Back office (D85): the waiting list is
 // other customers' data, so the page is the admin's alone; anyone else gets a refusal notice.
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -354,7 +354,7 @@ export default async function SecondLifePage({
   const t = getT(locale);
   const today = await todayForRequest(); // read once here, passed down
   const actor = await readActor(db);
-  // D84: back office. Authorized before anything is read; anyone but the admin gets the refusal.
+  // D85: back office. Authorized before anything is read; anyone but the admin gets the refusal.
   const read = await readSecondLifePage(db, actor, id, today);
   if (!read.ok) {
     const refusal =
@@ -443,7 +443,7 @@ export default async function SecondLifePage({
         </>
       ) : null}
 
-      {/* Only the admin reaches this far (D84), and only the admin assesses. */}
+      {/* Only the admin reaches this far (D85), and only the admin assesses. */}
       {preview?.ok ? <AssessButton assetId={asset.id} locale={locale} /> : null}
 
       <div className="flex flex-wrap gap-6">

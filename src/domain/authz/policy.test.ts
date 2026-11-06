@@ -47,7 +47,7 @@ const TABLE: Record<
     other: 'admin_only',
     admin: 'ok',
   },
-  // D84: the second-life page shows the whole waiting list (other customers' budgets and needs).
+  // D85: the second-life page shows the whole waiting list (other customers' budgets and needs).
   read_second_life: {
     anonymous: 'not_signed_in',
     owner: 'admin_only',
@@ -80,7 +80,7 @@ describe('can: every actor kind Ã— every action', () => {
     });
   }
 
-  it('D84: only the admin reads the second life; an unknown or empty actor is refused', () => {
+  it('D85: only the admin reads the second life; an unknown or empty actor is refused', () => {
     const asset = { customerId: null };
     expect(can(ADMIN, 'read_second_life', asset)).toEqual({ ok: true });
     expect(can('cust-nobody', 'read_second_life', asset)).toMatchObject({

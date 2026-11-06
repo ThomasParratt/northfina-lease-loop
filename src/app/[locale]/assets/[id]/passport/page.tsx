@@ -113,7 +113,7 @@ export default async function PassportPage({
             {t('passport.serial')}: {asset.serial_number}
           </Badge>
         </div>
-        {/* D84: the second life is back office; everyone keeps the passport itself. */}
+        {/* D85: the second life is back office; everyone keeps the passport itself. */}
         {actor === ADMIN_ACTOR && asset.status === 'returned' ? (
           <Link
             href={`/${locale}/assets/${encodeURIComponent(asset.id)}/second-life`}

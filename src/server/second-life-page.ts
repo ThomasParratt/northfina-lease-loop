@@ -1,4 +1,4 @@
-// What the second-life page reads (D84: back office, admin only). Authorized before anything is
+// What the second-life page reads (D85: back office, admin only). Authorized before anything is
 // read: the page shows the whole waiting list (second-life-demand.json: other customers'
 // budgets, minimum condition, deadlines and descriptions), so a customer, anonymous or an
 // unknown actor gets the refusal and nothing else, whichever item they ask for.

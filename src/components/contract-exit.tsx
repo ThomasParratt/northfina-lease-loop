@@ -2,7 +2,7 @@
 // mounts it with one line. For an active contract: the exit plan previewed on the request's day
 // with the catalogue's last known condition and usage, and the form that posts the exit. Once
 // the contract has ended: its status and end day, and while the item waits as returned, the
-// admin's way to its second life (the assessment and the waiting list; D84: back office, so a
+// admin's way to its second life (the assessment and the waiting list; D85: back office, so a
 // customer never sees the link). A server component.
 import Link from 'next/link';
 import type { Asset } from '@/data/schemas';
@@ -25,7 +25,7 @@ type ContractExitProps = {
   today: string;
   locale: Locale;
   t: Translate;
-  /** D84: the second-life link is shown to the admin only. */
+  /** D85: the second-life link is shown to the admin only. */
   isAdmin: boolean;
 };
 

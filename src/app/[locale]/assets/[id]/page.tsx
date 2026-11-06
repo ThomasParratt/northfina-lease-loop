@@ -201,7 +201,7 @@ export default async function PricePage({
       >
         {t('passport.link')}
       </Link>
-      {/* D84: the second life is back office, linked for the admin only. */}
+      {/* D85: the second life is back office, linked for the admin only. */}
       {actor === ADMIN_ACTOR && (asset.status === 'returned' || secondLife) ? (
         <Link
           href={`/${locale}/assets/${encodeURIComponent(asset.id)}/second-life`}

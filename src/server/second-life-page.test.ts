@@ -1,4 +1,4 @@
-// D84: the second-life page is back office. Its read answers the admin with the assessment and
+// D85: the second-life page is back office. Its read answers the admin with the assessment and
 // the waiting list, and anyone else (a customer, anonymous, an unknown actor) with a refusal
 // and no data: the waiting list holds other customers' budgets, deadlines and needs.
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -23,7 +23,7 @@ beforeEach(async () => {
 
 const TODAY = '2026-11-05';
 
-describe('readSecondLifePage (D84)', () => {
+describe('readSecondLifePage (D85)', () => {
   it('the admin gets card 9 (ebike-007): the preview with every waiting-list verdict', async () => {
     const read = await readSecondLifePage(db, 'admin', 'ebike-007', TODAY);
     if (!read.ok) throw new Error(read.reason.code);
