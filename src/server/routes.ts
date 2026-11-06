@@ -21,6 +21,16 @@ import {
 } from '@/domain/statuses';
 import { auditChainVerdictSchema } from './audit-schemas';
 import {
+  addSignatoryBodySchema,
+  customerIdParamsSchema,
+  signByTokenBodySchema,
+  signatoryListSchema,
+  signatoryParamsSchema,
+  signatorySchema,
+  signingLinkSchema,
+  signingTokenParamsSchema,
+} from './signatory-schemas';
+import {
   contractIdParamsSchema,
   contractResponseSchema,
   signContractBodySchema,
@@ -64,9 +74,9 @@ export const listAssetsQuerySchema = z.object({ category: assetCategorySchema.op
 
 export const assetIdParamsSchema = z.object({ id: z.string().min(1) });
 
+/** Body of `PATCH /api/assets/[id]/status`. The actor is the cookie's, never the body's (D17). */
 export const changeAssetStatusBodySchema = z.strictObject({
   status: assetStatusSchema,
-  actor: z.string().trim().min(1).max(100),
 });
 
 // ---------- actor ----------
@@ -138,14 +148,16 @@ export const createApplicationBodySchema = z.strictObject({
   quoteId: z.string().trim().min(1).max(100),
   customerId: z.string().trim().min(1).max(100),
   answers: answersSchema,
+  /** The admin applying for a customer names them here (D47); equal to `customerId`. */
+  onBehalfOf: z.string().min(1).max(100).optional(),
 });
 
 export const applicationIdParamsSchema = z.object({ id: z.string().min(1).max(100) });
 
-/** Body of `POST /api/applications/[id]/decision` (D10). */
+/** Body of `POST /api/applications/[id]/decision` (D10): the admin's review only (D46). */
 export const decideApplicationBodySchema = z.strictObject({
   decision: z.enum(['approved', 'rejected']),
-  /** The reviewer, or the named signatory who signs or declines. */
+  /** The reviewer. */
   reviewedBy: z.string().trim().min(1).max(200),
 });
 
@@ -230,7 +242,7 @@ export const ROUTES: readonly RouteDefinition[] = [
   {
     method: 'PATCH',
     path: '/api/assets/[id]/status',
-    summary: "Change an asset's status and write the audit row in the same transaction",
+    summary: "Admin only: change an asset's status along D22's transitions, audited",
     tag: 'assets',
     params: assetIdParamsSchema,
     body: changeAssetStatusBodySchema,
@@ -314,7 +326,7 @@ export const ROUTES: readonly RouteDefinition[] = [
     method: 'POST',
     path: '/api/applications',
     summary:
-      'Submit the answers for a quote: prunes, validates, evaluates the eligibility rules (D9); 409 QUOTE_IN_USE while another application holds the quote',
+      'Submit the answers for a quote: prunes, validates, evaluates the eligibility rules (D9); the admin only with onBehalfOf (D47); 409 QUOTE_IN_USE while another application holds the quote (D56)',
     tag: 'applications',
     body: createApplicationBodySchema,
     response: applicationSchema,
@@ -332,10 +344,57 @@ export const ROUTES: readonly RouteDefinition[] = [
   {
     method: 'POST',
     path: '/api/applications/[id]/decision',
-    summary: 'An admin decides a manual review, or the named signatory signs or declines (D10)',
+    summary:
+      'An admin decides a manual review (D10); an awaiting_signatory case answers 403 NOT_SIGNATORY: it is signed through the link (D46)',
     tag: 'applications',
     params: applicationIdParamsSchema,
     body: decideApplicationBodySchema,
+    response: applicationSchema,
+  },
+  {
+    method: 'GET',
+    path: '/api/customers/[id]/signatories',
+    summary:
+      "The company's signatory list with each entry's state today (the company or admin, D46)",
+    tag: 'signatories',
+    params: customerIdParamsSchema,
+    response: signatoryListSchema,
+  },
+  {
+    method: 'POST',
+    path: '/api/customers/[id]/signatories',
+    summary:
+      "Add a signatory, valid from validFrom up to validTo (the company's own signatory or admin, D46)",
+    tag: 'signatories',
+    params: customerIdParamsSchema,
+    body: addSignatoryBodySchema,
+    response: signatorySchema,
+    status: 201,
+  },
+  {
+    method: 'POST',
+    path: '/api/customers/[id]/signatories/[signatoryId]/revoke',
+    summary: "End a signatory's right today; the last active one cannot be revoked (D46)",
+    tag: 'signatories',
+    params: signatoryParamsSchema,
+    response: signatorySchema,
+  },
+  {
+    method: 'GET',
+    path: '/api/sign/[token]',
+    summary: 'The signing link: who signs for which application, and whether it is pending (D46)',
+    tag: 'signatories',
+    params: signingTokenParamsSchema,
+    response: signingLinkSchema,
+  },
+  {
+    method: 'POST',
+    path: '/api/sign/[token]',
+    summary:
+      'The signatory signs (approved) or declines (rejected) through the link; registers them (D46)',
+    tag: 'signatories',
+    params: signingTokenParamsSchema,
+    body: signByTokenBodySchema,
     response: applicationSchema,
   },
   {

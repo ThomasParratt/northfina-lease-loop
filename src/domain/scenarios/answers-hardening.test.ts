@@ -318,9 +318,9 @@ describe('conflicting and extra answers', () => {
     });
   });
 
-  it('q_email other than the record e-mail is allowed: not compared, not held (people change e-mail)', () => {
+  it('q_email other than the record e-mail holds the case (D38 as amended in #49, which superseded D53)', () => {
     expect(outcome(applyFor(aino, bike(), { answers: { q_email: 'aino.new@example.net' } }))).toBe(
-      'approved:all_checks_passed'
+      'manual_review:answer_differs_from_record'
     );
   });
 });

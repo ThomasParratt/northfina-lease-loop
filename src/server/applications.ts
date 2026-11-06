@@ -1,5 +1,6 @@
 // Applications: the customer's answers to the question flow for a quote, and what the rules
-// decided (D9), plus the person's decision on a manual review or the signatory's sign-off (D10).
+// decided (D9), plus the person's decision on a manual review (D10). The company signatory's
+// sign-off goes through the signing link (src/server/signatories.ts, D46).
 import { randomUUID } from 'node:crypto';
 import type { Application as ApplicationRow } from '@/generated/prisma/client';
 import { loadCoefficientTable, loadConsumerLimits, loadQuestions } from '@/data/load';
@@ -13,7 +14,7 @@ import {
 } from '@/domain/question-flow/answers';
 import { evaluate } from '@/domain/question-flow/eligibility';
 import { recordMismatches } from '@/domain/question-flow/record-check';
-import { mayDecideAsSignatory } from '@/domain/question-flow/signatory';
+import { whoDecides } from '@/domain/question-flow/signatory';
 import {
   answersSchema,
   applicationDecisionUpdateSchema,
@@ -28,11 +29,12 @@ import {
 } from '@/domain/question-flow/engine';
 import { ADMIN_ACTOR } from './actor';
 import { listAssets } from './assets';
-import { withAudit } from './audit';
+import { withAudit, type TransactionClient } from './audit';
 import { getCustomer } from './customers';
 import type { PrismaClient } from './prisma-client';
 import { parseRow, parseStoredJson } from './row-rules';
 import { getQuote } from './quotes';
+import { createSignatureRequest } from './signatories';
 
 /** A reason as stored: the eligibility codes plus the two decision codes of D10. */
 export type StoredReason = { code: string; params: Record<string, string | number> };
@@ -117,6 +119,8 @@ export type CreateApplicationInput = {
   /** The request's day (`todayForRequest()`): the decision date and the contract start. */
   today: string;
   actor: string;
+  /** The admin applies on a customer's behalf (D47): must equal `customerId`. */
+  onBehalfOf?: string;
 };
 
 export type CreateApplicationResult =
@@ -138,6 +142,12 @@ export type CreateApplicationResult =
       problem?: AnswerProblem;
     };
 
+/** D40, D47: the acting customer in their own name, or the admin naming whom it acts for. */
+function mayApply(input: CreateApplicationInput): boolean {
+  if (input.actor === ADMIN_ACTOR) return input.onBehalfOf === input.customerId;
+  return input.actor === input.customerId && input.onBehalfOf === undefined;
+}
+
 /**
  * The decisions that hold a quote: one pending or approved application per quote. A rejected
  * one does not, so a rejected customer may change the answers and apply again.
@@ -157,7 +167,8 @@ class QuoteInUse extends Error {
 
 /**
  * Only the customer who is acting applies, in their own name (D40): not another customer, not
- * the admin, not anonymous. Then it prunes the answers to the questions that apply, checks that every one is answered and
+ * anonymous; the admin only with `onBehalfOf` naming the customer, written into the audit
+ * (D47). Then it prunes the answers to the questions that apply, checks that every one is answered and
  * valid on the day (D37, D39), compares them with the customer record (D38), evaluates the
  * eligibility rules and writes the application with its audit row, unless the quote is already
  * held by a pending or approved application (`quote_in_use`, checked inside the transaction).
@@ -166,7 +177,7 @@ export async function createApplication(
   db: PrismaClient,
   input: CreateApplicationInput
 ): Promise<CreateApplicationResult> {
-  if (input.actor !== input.customerId) return { ok: false, reason: 'not_applicant' };
+  if (!mayApply(input)) return { ok: false, reason: 'not_applicant' };
   const found = await flowSetupFor(db, input.quoteId, input.customerId);
   if (!found.ok) return found;
   const { context, quoteValidUntil, customerIsPep } = found.setup;
@@ -209,6 +220,7 @@ export async function createApplication(
   );
 
   const id = randomUUID();
+  const signatoryEmail = stringAnswer(answers.q_signatory_email);
   let row: ApplicationRow;
   try {
     row = await withAudit(
@@ -223,6 +235,10 @@ export async function createApplication(
           customerId: input.customerId,
           decision: result.decision,
           reasons: result.reasons,
+          ...(input.onBehalfOf === undefined ? {} : { onBehalfOf: input.onBehalfOf }),
+          ...(result.decision === 'awaiting_signatory' && signatoryEmail
+            ? { signingLinkTo: signatoryEmail }
+            : {}),
         },
       },
       async (tx) => {
@@ -232,7 +248,7 @@ export async function createApplication(
           select: { id: true },
         });
         if (holder) throw new QuoteInUse(holder.id);
-        return tx.application.create({
+        const created = await tx.application.create({
           data: parseRow('application', applicationRowSchema, {
             id,
             customer_id: input.customerId,
@@ -243,6 +259,15 @@ export async function createApplication(
             decided_on: input.today,
           }),
         });
+        if (result.decision === 'awaiting_signatory' && signatoryEmail) {
+          await createSignatureRequest(tx, {
+            applicationId: id,
+            customerId: input.customerId,
+            email: signatoryEmail,
+            today: input.today,
+          });
+        }
+        return created;
       }
     );
   } catch (error) {
@@ -255,7 +280,7 @@ export async function createApplication(
 }
 
 export async function getApplication(
-  db: PrismaClient,
+  db: PrismaClient | TransactionClient,
   id: string
 ): Promise<ApplicationView | null> {
   const row = await db.application.findUnique({ where: { id } });
@@ -288,7 +313,7 @@ export function mayReadApplication(
 export type DecideApplicationInput = {
   id: string;
   decision: 'approved' | 'rejected';
-  /** Who decided: the reviewer (admin) or the signatory who signed or declined. */
+  /** Who decided: the reviewer (admin). */
   reviewedBy: string;
   today: string;
   actor: string;
@@ -306,9 +331,10 @@ export type DecideApplicationResult =
 
 /**
  * D10. A manual review is decided by an admin; a manual review that also needs a signatory
- * becomes `awaiting_signatory` when approved. An `awaiting_signatory` case is signed (approved)
- * or declined (rejected) by the named signatory only, on the company's own account (D39).
- * Any other state is final. Two decisions at
+ * becomes `awaiting_signatory` when approved, and the signing link is made in the same
+ * transaction. An `awaiting_signatory` case is signed or declined only through that link
+ * (`decideByToken`, D39, D46): here it answers `not_signatory` for everyone, the company's
+ * account and the admin included. Any other state is final. Two decisions at
  * the same instant: the first wins, the second answers `not_pending` and writes nothing.
  */
 export async function decideApplication(
@@ -317,34 +343,19 @@ export async function decideApplication(
 ): Promise<DecideApplicationResult> {
   const current = await getApplication(db, input.id);
   if (!current) return { ok: false, reason: 'not_found' };
-  if (current.decision !== 'manual_review' && current.decision !== 'awaiting_signatory') {
-    return { ok: false, reason: 'not_pending' };
-  }
-  if (current.decision === 'manual_review' && input.actor !== ADMIN_ACTOR) {
-    return { ok: false, reason: 'admin_only' };
-  }
-  if (
-    current.decision === 'awaiting_signatory' &&
-    !mayDecideAsSignatory({
-      actor: input.actor,
-      applicantId: current.customerId,
-      signatoryEmail: stringAnswer(current.answers.q_signatory_email),
-      claimedBy: input.reviewedBy,
-    })
-  ) {
-    return { ok: false, reason: 'not_signatory' };
-  }
+  const path = whoDecides(current.decision);
+  if (path === 'final') return { ok: false, reason: 'not_pending' };
+  if (path === 'signing_link') return { ok: false, reason: 'not_signatory' };
+  if (input.actor !== ADMIN_ACTOR) return { ok: false, reason: 'admin_only' };
 
-  const code = current.decision === 'manual_review' ? 'reviewed' : 'signatory_decided';
   const reason: StoredReason = {
-    code,
+    code: 'reviewed',
     params: { by: input.reviewedBy, decision: input.decision, on: input.today },
   };
   const needsSignatory = current.reasons.some((r) => r.code === 'signatory_needed');
   const decision: ApplicationDecision =
-    code === 'reviewed' && input.decision === 'approved' && needsSignatory
-      ? 'awaiting_signatory'
-      : input.decision;
+    input.decision === 'approved' && needsSignatory ? 'awaiting_signatory' : input.decision;
+  const signatoryEmail = stringAnswer(current.answers.q_signatory_email);
 
   const data = parseRow('application', applicationDecisionUpdateSchema, {
     decision,
@@ -371,6 +382,14 @@ export async function decideApplication(
           data,
         });
         if (count === 0) throw new LostDecisionRace();
+        if (decision === 'awaiting_signatory' && signatoryEmail) {
+          await createSignatureRequest(tx, {
+            applicationId: input.id,
+            customerId: current.customerId,
+            email: signatoryEmail,
+            today: input.today,
+          });
+        }
         return tx.application.findUniqueOrThrow({ where: { id: input.id } });
       }
     );
@@ -379,4 +398,35 @@ export async function decideApplication(
     throw error;
   }
   return { ok: true, application: toApplicationView(row) };
+}
+
+/**
+ * Inside `decideByToken`'s transaction (src/server/signatories.ts): the signatory's answer on
+ * a case still in `awaiting_signatory`, with the `signatory_decided` reason. Null when the case
+ * is no longer waiting (another request decided first), so the caller rolls back.
+ */
+export async function recordSignatoryDecision(
+  tx: TransactionClient,
+  input: { id: string; decision: 'approved' | 'rejected'; by: string; today: string }
+): Promise<ApplicationView | null> {
+  const row = await tx.application.findUnique({ where: { id: input.id } });
+  if (!row) return null;
+  const current = toApplicationView(row);
+  if (current.decision !== 'awaiting_signatory') return null;
+  const reason: StoredReason = {
+    code: 'signatory_decided',
+    params: { by: input.by, decision: input.decision, on: input.today },
+  };
+  const data = parseRow('application', applicationDecisionUpdateSchema, {
+    decision: input.decision,
+    reasons_json: JSON.stringify([...current.reasons, reason]),
+    decided_on: input.today,
+    reviewed_by: input.by,
+  });
+  const { count } = await tx.application.updateMany({
+    where: { id: input.id, decision: 'awaiting_signatory' },
+    data,
+  });
+  if (count === 0) return null;
+  return toApplicationView(await tx.application.findUniqueOrThrow({ where: { id: input.id } }));
 }

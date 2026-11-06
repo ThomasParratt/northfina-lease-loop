@@ -1,15 +1,16 @@
 // The decision on an application: a clear yes, no or "a person will check", and every reason
 // written from its code in the visitor's language (team rule 6). An admin decides a manual
-// review here, the named signatory signs an awaiting_signatory case (D10), and the applicant
-// signs an approved one into a contract (issue 39), or follows the link to the contract.
+// review here (D10); an awaiting_signatory case shows the demo outbox: the signing link that
+// was sent to the signatory, who signs there, never here (D46). The applicant signs an
+// approved one into a contract (issue 39), or follows the link to the contract.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { SignContractForm } from '@/components/sign-contract-form';
 import { Card, LinkButton, Notice, PageHeader } from '@/components/ui';
 import { loadQuestions } from '@/data/load';
-import { addDays } from '@/domain/civil-days';
-import { START_DAYS_MAX } from '@/domain/contracts';
+import { START_MONTHS_MAX } from '@/domain/contracts';
+import { addMonthsClamped } from '@/domain/invoicing/dates';
 import { formatEuro } from '@/domain/money';
 import { formatIsoDate } from '@/i18n/format';
 import { getT, messages, type MessageKey } from '@/i18n/get-t';
@@ -19,6 +20,7 @@ import { getApplication, type StoredReason } from '@/server/applications';
 import { contractIdOfApplication } from '@/server/contracts';
 import { db } from '@/server/db';
 import { todayForRequest } from '@/server/demo-clock';
+import { latestSigningLink } from '@/server/signatories';
 import { DecisionForm } from './decision-form';
 
 export async function generateMetadata({
@@ -108,6 +110,8 @@ export default async function ApplicationPage({
   // Read once here and passed down (team rule 4); the server signs on its own today anyway.
   const today = await todayForRequest();
   const contractId = decision === 'approved' ? await contractIdOfApplication(db, id) : null;
+  const link =
+    decision === 'awaiting_signatory' ? await latestSigningLink(db, application.id, today) : null;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
@@ -161,8 +165,8 @@ export default async function ApplicationPage({
                 applicationId={application.id}
                 locale={locale}
                 today={today}
-                latestStartDate={addDays(today, START_DAYS_MAX)}
-                maxDays={START_DAYS_MAX}
+                maxStartDate={addMonthsClamped(today, START_MONTHS_MAX)}
+                maxMonths={START_MONTHS_MAX}
               />
             </div>
           ) : (
@@ -197,24 +201,30 @@ export default async function ApplicationPage({
       {decision === 'awaiting_signatory' ? (
         <Card
           as="section"
-          title={t('decision.sign.title')}
-          titleId="decision-sign"
+          title={t('decision.outbox.title')}
+          titleId="decision-outbox"
           className="mt-6"
         >
-          {actor === application.customerId ? (
-            <DecisionForm
-              applicationId={application.id}
-              reviewer={String(application.answers.q_signatory_email ?? '')}
-              askWho={t('decision.sign.who')}
-              labels={{
-                approve: t('decision.sign'),
-                reject: t('decision.decline'),
-                error: t('decision.error'),
-                forbidden: t('decision.sign.notSignatory'),
-              }}
-            />
+          <Notice tone="info">{t('decision.outbox.notHere')}</Notice>
+          {link ? (
+            <div className="mt-4 space-y-3">
+              <p>
+                {t('decision.outbox.sent', {
+                  email: link.signatoryEmail,
+                  date: formatIsoDate(link.sentOn, locale),
+                  expires: formatIsoDate(link.expiresOn, locale),
+                })}
+              </p>
+              <p className="text-sm text-ink-muted">{t('decision.outbox.demo')}</p>
+              <LinkButton href={`/${locale}/sign/${link.token}`}>
+                {t('decision.outbox.open')}
+              </LinkButton>
+              <p className="text-sm text-ink-muted break-all">
+                /{locale}/sign/{link.token}
+              </p>
+            </div>
           ) : (
-            <Notice tone="info">{t('decision.sign.companyOnly')}</Notice>
+            <p className="mt-4">{t('decision.outbox.none')}</p>
           )}
         </Card>
       ) : null}

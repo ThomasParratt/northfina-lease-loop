@@ -98,11 +98,12 @@ describe('quantity', () => {
   });
 
   // the consumer limits (data/consumer-limits.json): e-bike 2, laptop 2, farm machine 1 and
-  // always checked; a rich income so affordability never decides
-  const rich = { answers: { q_monthly_income: '5000000' } };
+  // always checked; Aino with a rich income on record (D38 compares the answer with the record),
+  // so affordability never decides
+  const richAino = { ...aino, monthly_net_income_cents: 5_000_000 };
 
   it('a consumer with a large income asking for 20 e-bikes is held: quantity_over_consumer_cap', () => {
-    const app = applyFor(aino, bikes(20), rich);
+    const app = applyFor(richAino, bikes(20));
     expect(app.ok && app.result).toEqual({
       decision: 'manual_review',
       reasons: [
@@ -115,9 +116,9 @@ describe('quantity', () => {
   });
 
   it('two e-bikes or two laptops are within the cap; six laptops are held', () => {
-    expect(outcome(applyFor(aino, bikes(2), rich))).toBe('approved:all_checks_passed');
-    expect(outcome(applyFor(aino, laptops(2), rich))).toBe('approved:all_checks_passed');
-    expect(outcome(applyFor(aino, laptops(6), rich))).toBe(
+    expect(outcome(applyFor(richAino, bikes(2)))).toBe('approved:all_checks_passed');
+    expect(outcome(applyFor(richAino, laptops(2)))).toBe('approved:all_checks_passed');
+    expect(outcome(applyFor(richAino, laptops(6)))).toBe(
       'manual_review:quantity_over_consumer_cap'
     );
   });
@@ -133,11 +134,11 @@ describe('quantity', () => {
       termMonths: 48,
       isoDate: DAY,
     });
-    const one = applyFor(aino, farm(1), rich);
+    const one = applyFor(richAino, farm(1));
     expect(one.ok && one.result.reasons).toEqual([
       { code: 'category_needs_review', params: { category: 'farm_machine' } },
     ]);
-    expect(outcome(applyFor(aino, farm(2), rich))).toBe(
+    expect(outcome(applyFor(richAino, farm(2)))).toBe(
       'manual_review:quantity_over_consumer_cap+category_needs_review'
     );
   });
@@ -174,8 +175,22 @@ describe('term', () => {
 describe('affordability: gross rent × 100 ≤ net income × 30', () => {
   // card 1: ebike-003, 36 months, 10 730 net → 13 466 gross; the income that just carries it
   // is ceil(13 466 × 100 / 30) = 44 887
+  // The record carries the same income: an income other than the record holds the case for a
+  // person (D38), so the rule under test is reached only with a record that agrees.
   const withIncome = (q_monthly_income: string, deal = bikes(1)) =>
-    applyFor(aino, deal, { answers: { q_monthly_income } });
+    applyFor(
+      /^\d+$/.test(q_monthly_income)
+        ? ({ ...aino, monthly_net_income_cents: Number(q_monthly_income) } as typeof aino)
+        : aino,
+      deal,
+      { answers: { q_monthly_income } }
+    );
+
+  it('D38: an income other than the record is held for a person, never approved', () => {
+    expect(
+      outcome(applyFor(aino, bikes(1), { answers: { q_monthly_income: '9999999999999' } }))
+    ).toBe('manual_review:answer_differs_from_record+income_implausible');
+  });
 
   it('an income of 44 887 passes exactly; 44 886 is one cent short', () => {
     expect(outcome(withIncome('44887'))).toBe('approved:all_checks_passed');
@@ -255,7 +270,7 @@ describe('company answers at 5 000 000 and over', () => {
   });
 
   it('annual revenue below the financed amount (1 cent on 5 235 000) is held: revenue_below_financed', () => {
-    const app = applyFor(kettu, big, { answers: { q_annual_revenue: '1' } });
+    const app = applyFor({ ...kettu, annual_revenue_cents: 1 }, big);
     expect(app.ok && app.result).toEqual({
       decision: 'manual_review',
       reasons: [
@@ -265,12 +280,12 @@ describe('company answers at 5 000 000 and over', () => {
   });
 
   it('revenue equal to the financed amount passes; 0 counts as below (norvi has 410 000 000 on record)', () => {
-    expect(outcome(applyFor(kettu, big, { answers: { q_annual_revenue: '5235000' } }))).toBe(
+    expect(outcome(applyFor({ ...kettu, annual_revenue_cents: 5_235_000 }, big))).toBe(
       'approved:all_checks_passed'
     );
     // norvi's applicant may not sign, so the signatory is still named
     expect(outcome(applyFor(norvi, big, { answers: { q_annual_revenue: '0' } }))).toBe(
-      'manual_review:revenue_below_financed+signatory_needed'
+      'manual_review:answer_differs_from_record+revenue_below_financed+signatory_needed'
     );
   });
 
