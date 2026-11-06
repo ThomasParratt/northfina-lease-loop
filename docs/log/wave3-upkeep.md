@@ -19,4 +19,5 @@ Branch `chore/wave3-upkeep` from `main` at `7f0b39f`, slot `nostalgic-sutherland
 
 ## Coordinator's review of #56
 
-- 05:50 to 06:05 the eleven points: the card 6 wording (the link's holder signs), card 10's by-hand steps and "card 1 before card 8" in the demo; the submission in the template's order with absolute links and the "review finding 1 fixed" gate; D4's end day, D25, D37's date, D43 against the code, D52's split row (a bare `|` in a code span, now escaped) and D69; findings 1, 5, 8 and 13 restated; the clock time on the twenty log closings.
+- 05:55 to 06:10 the eleven points: the card 6 wording (the link's holder signs), card 10's by-hand steps and "card 1 before card 8" in the demo; the submission in the template's order with absolute links and the "review finding 1 fixed" gate; D4's end day, D25, D37's date, D43 against the code, D52's split row (a bare `|` in a code span, now escaped) and D69; findings 1, 5, 8 and 13 restated; the clock time on the twenty log closings.
+- 06:10 `npm run check:all` once, push.
