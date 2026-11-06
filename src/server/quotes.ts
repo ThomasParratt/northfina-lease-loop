@@ -138,7 +138,13 @@ export async function createQuote(
 }
 
 /** The frozen numbers as a parsed Quote row (D27): a number that does not follow fails here. */
-function quoteRowData(id: string, q: QuoteBreakdown, today: string, validUntil: string) {
+function quoteRowData(
+  id: string,
+  q: QuoteBreakdown,
+  today: string,
+  validUntil: string,
+  customerId: string | null = null
+) {
   return parseRow('quote', quoteRowSchema, {
     id,
     asset_id: q.assetId,
@@ -155,6 +161,7 @@ function quoteRowData(id: string, q: QuoteBreakdown, today: string, validUntil: 
     monthly_net_cents: q.monthlyNetCents,
     buyout_cents: q.buyoutCents,
     vat_rate_bp_at_quote: q.vatRateBasisPoints,
+    customer_id: customerId,
   });
 }
 
@@ -200,10 +207,7 @@ export async function createQuoteInTx(
   }
   const validUntil = addDays(input.today, QUOTE_VALID_DAYS);
   const row = await tx.quote.create({
-    data: {
-      ...quoteRowData(input.id, priced.quote, input.today, validUntil),
-      customer_id: input.customerId,
-    },
+    data: quoteRowData(input.id, priced.quote, input.today, validUntil, input.customerId),
   });
   return { ok: true, quote: toStoredQuote(row) };
 }
