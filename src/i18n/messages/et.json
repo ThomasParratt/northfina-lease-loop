@@ -307,7 +307,7 @@
   "decision.failure.APPLICATION_NOT_PENDING": "Taotlus on juba otsustatud. Laadi leht uuesti, et otsust näha.",
   "passport.link": "Pass",
   "passport.title": "Tootepass",
-  "passport.intro": "{make} {model}: toote kõik liisinguperioodid ja hilisemate elude säästetud CO₂.",
+  "passport.intro": "{make} {model}: toote kõik liisinguperioodid ja hilisemate elude säästetud CO₂ ja raha.",
   "passport.back": "Tagasi kataloogi",
   "passport.serial": "Seerianumber",
   "passport.asOf": "Seisuga {date}",

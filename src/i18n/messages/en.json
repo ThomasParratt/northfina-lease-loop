@@ -307,7 +307,7 @@
   "decision.failure.APPLICATION_NOT_PENDING": "This application has already been decided. Reload the page to see the decision.",
   "passport.link": "Passport",
   "passport.title": "Passport",
-  "passport.intro": "{make} {model}: every lease this item has had, and the CO₂ its later lives saved.",
+  "passport.intro": "{make} {model}: every lease this item has had, and the CO₂ and money its later lives saved.",
   "passport.back": "Back to the catalogue",
   "passport.serial": "Serial number",
   "passport.asOf": "As of {date}",

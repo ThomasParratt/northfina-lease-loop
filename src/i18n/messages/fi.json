@@ -307,7 +307,7 @@
   "decision.failure.APPLICATION_NOT_PENDING": "Hakemus on jo ratkaistu. Lataa sivu uudelleen nähdäksesi päätöksen.",
   "passport.link": "Passi",
   "passport.title": "Tuotepassi",
-  "passport.intro": "{make} {model}: tuotteen kaikki leasingkaudet ja myöhempien elämien säästämä CO₂.",
+  "passport.intro": "{make} {model}: tuotteen kaikki leasingkaudet ja myöhempien elämien säästämä CO₂ ja raha.",
   "passport.back": "Takaisin luetteloon",
   "passport.serial": "Sarjanumero",
   "passport.asOf": "Tilanne {date}",
