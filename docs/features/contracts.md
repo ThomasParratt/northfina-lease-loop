@@ -6,7 +6,7 @@ The applicant (or admin) signs an approved application: the contract copies the 
 
 ## The rule
 
-`planContract` refuses, in this order: the decision is not `approved` (`application_not_approved`), the quote is past its `valid_until` on the signing day (`quote_expired`, the last day included, the same rule as `storedQuoteStatusOn`), the asset is not `available` (`asset_not_available`), the start is before the signing day (`start_before_signing`) or more than 12 calendar months after it (`start_too_far` with `maxStartDate`, `addMonthsClamped(signedOn, 12)`, so a 29 February 2028 signing may start up to 28 February 2029; D42). Otherwise the contract copies the quote: list price per unit, down payment, financed amount, band, factor, monthly net, buyout, price-list version and the VAT rate at quote, and the quantity. Nothing is re-priced. The end date is the last day of the term, `termEndDate(start, months)` from `src/domain/invoicing/dates.ts`: start plus the term in months (the day clamped to a short month), minus one day. The number is `LL-` + the signing day + the last 8 characters of the application id.
+`planContract` refuses, in this order: the decision is not `approved` (`application_not_approved`), the quote is past its `valid_until` on the signing day (`quote_expired`, the last day included, the same rule as `storedQuoteStatusOn`), the asset is not `available` (`asset_not_available`), the start is before the signing day (`start_before_signing`) or more than 12 calendar months after it (`start_too_far` with `maxStartDate`, `addMonthsClamped(signedOn, 12)`, so a 29 February 2028 signing may start up to 28 February 2029; D44). Otherwise the contract copies the quote: list price per unit, down payment, financed amount, band, factor, monthly net, buyout, price-list version and the VAT rate at quote, and the quantity. Nothing is re-priced. The end date is the last day of the term, `termEndDate(start, months)` from `src/domain/invoicing/dates.ts`: start plus the term in months (the day clamped to a short month), minus one day. The number is `LL-` + the signing day + the last 8 characters of the application id.
 
 The server (`signContract`) adds: the signer must be the application's customer or `admin` (`not_allowed_to_sign`); one contract per application (`already_signed`, backed by the unique `application_id`). Inside one `withAudit`: `leaseAvailableAsset` sets the asset `leased` with `updateMany where { id, status: 'available' }` and throws unless exactly one row changed, then the contract row is created and `CONTRACT_SIGNED` emitted. A lost race throws, the whole transaction rolls back (no contract, no invoices, no passport entry, no audit row) and the caller gets `asset_not_available`.
 
@@ -21,7 +21,7 @@ The server (`signContract`) adds: the signer must be the application's customer 
 - D5: invoice 0 on the signing day, written by invoicing's handler from the event's `signedOn`.
 - D6: the totals with VAT stay with pricing and invoicing; the contract stores the net numbers.
 - D7: signing copies the quote and never re-prices; the signing day may precede the start day; the page prints the quote day and the list version and says when a newer list is live.
-- D42: the start is the signing day or a chosen later day up to one year ahead; `CHALLENGE.md` and `data/DATA.md` state no bound.
+- D44: the start is the signing day or a chosen later day up to one year ahead; `CHALLENGE.md` and `data/DATA.md` state no bound.
 - D10: only `approved` signs; `manual_review` and `awaiting_signatory` are refused until the application slice decides them.
 - D22: signing sets the asset `leased`, as the race's conditional write.
 - D23: the decision, the asset status, the days and the written statuses are parsed with their Zod schemas before use; a bad value throws and nothing is written.
@@ -31,7 +31,7 @@ The server (`signContract`) adds: the signer must be the application's customer 
 - `planContract(input) → { ok: true, contract, event, priceLock } | { ok: false, reason: { code, params } }` (`src/domain/contracts/sign.ts`). Input: `contractId`, `applicationId`, `customerId`, `decision`, `assetStatus`, `quote` (the frozen quote with `isoDate` the quote day and `validUntil`), `quoteStatus` (from `storedQuoteStatusOn` on the signing day), `currentMonthlyNetCents` (today's list price of the same lease, or null), `signedOn`, `startDate`. The event is parsed with `contractSignedSchema`.
 - `priceLockOf({ quote, quoteStatus, currentMonthlyNetCents }) → PriceLock | null`: the card 2 explanation when today's list is another version.
 - `contractNumber(signedOn, applicationId) → 'LL-YYYYMMDD-XXXXXXXX'` (`src/domain/contracts/number.ts`).
-- `START_MONTHS_MAX = 12` (D42).
+- `START_MONTHS_MAX = 12` (D44).
 
 ## Files
 
