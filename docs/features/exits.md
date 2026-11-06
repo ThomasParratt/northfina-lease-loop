@@ -55,6 +55,10 @@ Market value (D31): the bike is on its first life, so its age is the whole month
 
 **Chosen against (D11 for every item).** Counting from 1 January of the model year gives 17 months, 62.5 % on the curve: 202 523 as good with 1 800 km (return 132 652) and 243 125 as new (return 92 050). `market-value.test.ts` pins both rules.
 
+### Pass on (D90): the next deal starts in the exit
+
+A pass-on hands the item straight to the named person, so no refurbishment is charged: card 8 passed on in month 7 costs 330 675 − 259 230 = **71 445** net (invoice 71 445 + 18 576 VAT), the return's 75 945 without the 4 500 safety inspection, and the preview shows the pass-on beside the return with the refurbishment at 0. At the end of the term a pass-on costs nothing. The 29 unpaid rents are cancelled as in any early exit. In the same audited transaction the item is relisted as reported (`returned` → `available`) and the next person gets a stored quote dated the exit day, priced from the market value 259 230 as its second-life price through the normal band and factor, 36 months, no down payment (`nextDealQuote` in `src/domain/exits/next-deal.ts`, `createQuoteInTx` in `src/server/quotes.ts`). The exit returns `nextQuoteId` and the ended contract links to `/[locale]/apply/<quoteId>`, where the next person applies and signs in the normal way. A quote that cannot be priced refuses the whole exit (`next_quote_refused`) and nothing is written. Tests: `early-exit.test.ts`, `next-deal.test.ts`, `exits.test.ts`, `scenarios/pass-on-next-deal.test.ts`.
+
 ### Card 9 and card 10: the exits they start from
 
 - Card 9, `ebike-007` (fair, 18 400 km): `refurbishmentPlan` gives the battery 35 000 (18 400 ≥ 15 000 km, resets the usage to 0) + the safety inspection 4 500 = 39 500 to keep it fair, + fair->good 12 000 = 51 500 to reach good. The assessment and re-pricing (D12 and D86, PR #53, [second-life.md](second-life.md)) import this and `marketValueCents`: the second-life price is the market value, 115 976 (D86), and the rent 6 497 for 12 months to `wait-02`.
@@ -71,6 +75,7 @@ Market value (D31): the bike is on its first life, so its age is the whole month
 - **D31** (decided 2026-11-06 as an assumption, stated in the README): the curve age of a first-life item from its lease start; **D11** (`ageInMonths`, from the model year) for an item with previous lives. `curveAgeInMonths` picks the rule.
 - **D14**: the balance by amortisation, buy = balance, return = max(0, balance − market value) + refurbishment, shown line by line.
 - **D16**: pass on names the next person (a picker of the customers, the leaving customer left out). It is assessed and costed like a return. The next person applies in the normal way on the second-life price after the assessment, and the new contract carries `previous_contract_id` (D66, PR #53).
+- **D90** (decided 2026-11-06, Johannes): a pass-on charges no refurbishment and starts the next person's quote at the market value in the same transaction; the item is relisted `available` at once.
 - **D22**: `CONTRACT_BOUGHT_OUT` sets the asset `sold`; `UNIT_RETURNED` and `UNIT_PASSED_ON` set it `returned`, on the bus (`src/server/catalogue-handlers.ts`), each a conditional write on `leased`.
 - **D23**: every status (the contract's, the invoice's, the asset's), mode, condition, reason and invoice kind is parsed with its schema before use or write; a bad value throws.
 - **D1, D2**: one half-up rounding per amount, the VAT per invoice line at the rate of the invoice day.
