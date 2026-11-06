@@ -5,12 +5,12 @@ import { getT } from '@/i18n/get-t';
 import { locales } from '@/i18n/locales';
 import { DEMO_CARDS } from '@/server/demo-cards';
 import { cardInputs } from './card-list';
-import { codedMessage } from './card-steps';
+import { codedMessage, type CodedLine } from './card-steps';
 
 const names = new Map([['cust-aino', 'Aino Virtanen']]);
 
 /** Every code the runner (src/server/demo-cards.ts) can answer, with params of its shape. */
-const STEPS = [
+const STEPS: CodedLine[] = [
   {
     code: 'quote_created',
     params: {
@@ -54,7 +54,7 @@ const STEPS = [
   },
   { code: 'asset_status', params: { assetId: 'ebike-007', status: 'returned', condition: 'fair' } },
 ];
-const REFUSALS = [
+const REFUSALS: CodedLine[] = [
   { code: 'card_already_run', params: { cardId: 1 } },
   {
     code: 'card_step_refused',
