@@ -1,4 +1,4 @@
-// Who may sign for a company on a day (D44): the company's list of authorised signatories,
+// Who may sign for a company on a day (D46): the company's list of authorised signatories,
 // each valid over a range of days, and the signing link sent to one of them. In production
 // the trade register and Suomi.fi e-Authorizations give the list and the link identifies the
 // person; here the list is a table and opening the link stands in for both.

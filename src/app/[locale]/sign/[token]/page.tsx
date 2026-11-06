@@ -1,4 +1,4 @@
-// The signing link (D44): who signs for which company and application, the quote they sign
+// The signing link (D46): who signs for which company and application, the quote they sign
 // for, and Sign or Decline. Whoever holds the link acts as the named signatory; in production
 // Suomi.fi identification would check the person first. The actor picker plays no part.
 import type { Metadata } from 'next';

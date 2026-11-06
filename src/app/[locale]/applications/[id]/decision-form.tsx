@@ -1,7 +1,7 @@
 'use client';
 
 // The admin approves or rejects a manual review: POST /api/applications/:id/decision, then
-// re-render. A case waiting for the signatory is signed through the signing link (D44).
+// re-render. A case waiting for the signatory is signed through the signing link (D46).
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Notice } from '@/components/ui';

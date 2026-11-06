@@ -245,7 +245,7 @@ model AuditLog {
   @@index([created_at])
 }
 
-// Who may sign for a company (D44): the company's own list of authorised signatories, as the
+// Who may sign for a company (D46): the company's own list of authorised signatories, as the
 // trade register and Suomi.fi e-Authorizations would give it in production. Owned by
 // src/server/signatories.ts. Days are ISO strings: valid from `valid_from` (null while the
 // entry waits for its signing link to be opened) up to, not including, `valid_to`.
@@ -266,7 +266,7 @@ model CompanySignatory {
   @@index([customer_id])
 }
 
-// The signing link sent to a signatory when a case waits for them (D44). The token is made
+// The signing link sent to a signatory when a case waits for them (D46). The token is made
 // server-side with node:crypto; the link works up to, not including, `expires_on`.
 model SignatureRequest {
   id             String  @id @default(cuid())

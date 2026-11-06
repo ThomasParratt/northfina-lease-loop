@@ -1,4 +1,4 @@
-// Who decides an application that is still open (D10, D39, D44). There is no login (D17): the
+// Who decides an application that is still open (D10, D39, D46). There is no login (D17): the
 // actor is the "continue as" picker's customer or the admin. A manual review is the admin's.
 // A case waiting for the company's signatory is signed or declined only through the signing
 // link sent to the signatory (`signingCheck` in src/domain/signatories/mandates.ts): not on

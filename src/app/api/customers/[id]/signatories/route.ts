@@ -1,6 +1,6 @@
 // GET  /api/customers/:id/signatories   the company's signatory list with each entry's state today
 // POST /api/customers/:id/signatories   body: { name, email, validFrom, validTo }
-// D44: the list is seen and changed by the company's own account when it is a signatory, and
+// D46: the list is seen and changed by the company's own account when it is a signatory, and
 // by the admin. The day is the request's (demo clock).
 import { ADMIN_ACTOR, readActor } from '@/server/actor';
 import { fail, handleRoute, ok, readJsonBody } from '@/server/api-response';

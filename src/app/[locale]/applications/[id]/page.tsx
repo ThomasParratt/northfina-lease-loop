@@ -1,7 +1,7 @@
 // The decision on an application: a clear yes, no or "a person will check", and every reason
 // written from its code in the visitor's language (team rule 6). An admin decides a manual
 // review here (D10); an awaiting_signatory case shows the demo outbox: the signing link that
-// was sent to the signatory, who signs there, never here (D44). The applicant signs an
+// was sent to the signatory, who signs there, never here (D46). The applicant signs an
 // approved one into a contract (issue 39), or follows the link to the contract.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -9,8 +9,8 @@ import { connection } from 'next/server';
 import { SignContractForm } from '@/components/sign-contract-form';
 import { Card, LinkButton, Notice, PageHeader } from '@/components/ui';
 import { loadQuestions } from '@/data/load';
-import { addDays } from '@/domain/civil-days';
-import { START_DAYS_MAX } from '@/domain/contracts';
+import { START_MONTHS_MAX } from '@/domain/contracts';
+import { addMonthsClamped } from '@/domain/invoicing/dates';
 import { formatEuro } from '@/domain/money';
 import { formatIsoDate } from '@/i18n/format';
 import { getT, messages, type MessageKey } from '@/i18n/get-t';
@@ -165,8 +165,8 @@ export default async function ApplicationPage({
                 applicationId={application.id}
                 locale={locale}
                 today={today}
-                latestStartDate={addDays(today, START_DAYS_MAX)}
-                maxDays={START_DAYS_MAX}
+                maxStartDate={addMonthsClamped(today, START_MONTHS_MAX)}
+                maxMonths={START_MONTHS_MAX}
               />
             </div>
           ) : (

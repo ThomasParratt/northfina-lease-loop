@@ -1,7 +1,7 @@
 'use client';
 
 // Add a signatory, or revoke one: POST /api/customers/:id/signatories(/:signatoryId/revoke),
-// then re-render (D44). A refusal is written from the code the server sends.
+// then re-render (D46). A refusal is written from the code the server sends.
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Field, Notice, inputClasses } from '@/components/ui';

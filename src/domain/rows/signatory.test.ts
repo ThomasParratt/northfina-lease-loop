@@ -25,7 +25,7 @@ describe('signatoryEmailSchema', () => {
   });
 });
 
-describe('companySignatoryRowSchema (D44)', () => {
+describe('companySignatoryRowSchema (D46)', () => {
   it('takes a seeded entry and one still waiting for its link', () => {
     expect(companySignatoryRowSchema.safeParse(entry).success).toBe(true);
     expect(companySignatoryRowSchema.safeParse({ ...entry, valid_from: null }).success).toBe(true);

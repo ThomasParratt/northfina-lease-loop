@@ -1,6 +1,6 @@
 // Applications: the customer's answers to the question flow for a quote, and what the rules
 // decided (D9), plus the person's decision on a manual review (D10). The company signatory's
-// sign-off goes through the signing link (src/server/signatories.ts, D44).
+// sign-off goes through the signing link (src/server/signatories.ts, D46).
 import { randomUUID } from 'node:crypto';
 import type { Application as ApplicationRow } from '@/generated/prisma/client';
 import { loadCoefficientTable, loadQuestions } from '@/data/load';
@@ -115,7 +115,7 @@ export type CreateApplicationInput = {
   /** The request's day (`todayForRequest()`): the decision date and the contract start. */
   today: string;
   actor: string;
-  /** The admin applies on a customer's behalf (D45): must equal `customerId`. */
+  /** The admin applies on a customer's behalf (D47): must equal `customerId`. */
   onBehalfOf?: string;
 };
 
@@ -135,7 +135,7 @@ export type CreateApplicationResult =
       problem?: AnswerProblem;
     };
 
-/** D40, D45: the acting customer in their own name, or the admin naming whom it acts for. */
+/** D40, D47: the acting customer in their own name, or the admin naming whom it acts for. */
 function mayApply(input: CreateApplicationInput): boolean {
   if (input.actor === ADMIN_ACTOR) return input.onBehalfOf === input.customerId;
   return input.actor === input.customerId && input.onBehalfOf === undefined;
@@ -144,7 +144,7 @@ function mayApply(input: CreateApplicationInput): boolean {
 /**
  * Only the customer who is acting applies, in their own name (D40): not another customer, not
  * anonymous; the admin only with `onBehalfOf` naming the customer, written into the audit
- * (D45). Then it prunes the answers to the questions that apply, checks that every one is answered and
+ * (D47). Then it prunes the answers to the questions that apply, checks that every one is answered and
  * valid on the day (D37, D39), compares them with the customer record (D38), evaluates the
  * eligibility rules and writes the application with its audit row.
  */
@@ -239,7 +239,7 @@ export async function createApplication(
 }
 
 export async function getApplication(
-  db: PrismaClient,
+  db: PrismaClient | TransactionClient,
   id: string
 ): Promise<ApplicationView | null> {
   const row = await db.application.findUnique({ where: { id } });
@@ -284,7 +284,7 @@ export type DecideApplicationResult =
  * D10. A manual review is decided by an admin; a manual review that also needs a signatory
  * becomes `awaiting_signatory` when approved, and the signing link is made in the same
  * transaction. An `awaiting_signatory` case is signed or declined only through that link
- * (`decideByToken`, D39, D44): here it answers `not_signatory` for everyone, the company's
+ * (`decideByToken`, D39, D46): here it answers `not_signatory` for everyone, the company's
  * account and the admin included. Any other state is final. Two decisions at
  * the same instant: the first wins, the second answers `not_pending` and writes nothing.
  */

@@ -22,8 +22,8 @@ Every company has a list of the people who may sign leases for it, each valid ov
 
 ## Decisions
 
-- **D44** the signatory list and the signing link (this page).
-- **D45** the admin applies on a customer's behalf with `onBehalfOf`, recorded in the audit (the wave 3 demo buttons).
+- **D46** the signatory list and the signing link (this page).
+- **D47** the admin applies on a customer's behalf with `onBehalfOf`, recorded in the audit (the wave 3 demo buttons).
 - **D39** (narrows D10) only the link signs an `awaiting_signatory` case; **D38** can-sign, e-mail, income and revenue compared with the record; **D40** (narrows D17) who applies.
 
 ## Pure functions
@@ -63,12 +63,12 @@ Routes: `GET`/`POST /api/customers/[id]/signatories`, `POST /api/customers/[id]/
 | What                                                                                        | Test                                                                               |
 | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `valid_from` inclusive, `valid_to` exclusive; the last active one; expired and used links   | `src/domain/signatories/mandates.test.ts`                                          |
-| Card 6: the case waits, the link goes to the named e-mail, expires 2026-11-19               | `src/server/applications.test.ts` "the signing link (D39, D44), card 6"            |
+| Card 6: the case waits, the link goes to the named e-mail, expires 2026-11-19               | `src/server/applications.test.ts` "the signing link (D39, D46), card 6"            |
 | Signing approves, registers the signatory, audit actor `signatory:<email>`; decline rejects | same describe                                                                      |
-| Norvi's account and the admin get `not_signatory`; a second use `already_used`; a race      | same describe; `applications.hardening.test.ts` "the signatory (D39, D44)"         |
+| Norvi's account and the admin get `not_signatory`; a second use `already_used`; a race      | same describe; `applications.hardening.test.ts` "the signatory (D39, D46)"         |
 | The routes: NOT_SIGNATORY on the decision page, the link signs, used 409, unknown 404       | `src/app/api/applications/route.test.ts`; `src/server/signatory-responses.test.ts` |
 | The list: seed idempotent, add by the company, a stranger and Norvi refused, revoke, last   | `src/server/signatories.test.ts`                                                   |
-| The admin on behalf (D45)                                                                   | `applications.test.ts` "D45: …"                                                    |
+| The admin on behalf (D47)                                                                   | `applications.test.ts` "D47: …"                                                    |
 
 ## Open questions
 
