@@ -2001,7 +2001,12 @@
                             },
                             "reason": {
                               "type": "string",
-                              "enum": ["prev_hash_mismatch", "hash_mismatch", "unhashed_in_chain"]
+                              "enum": [
+                                "prev_hash_mismatch",
+                                "hash_mismatch",
+                                "unhashed_in_chain",
+                                "head_mismatch"
+                              ]
                             }
                           },
                           "required": ["ok", "brokenAt", "reason"],

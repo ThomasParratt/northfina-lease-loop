@@ -551,6 +551,7 @@
   "exit.ended.body": "Tila: {status}. Päättyi {date}. Loppulasku on alla olevassa luettelossa.",
   "exit.refusal.not_started": "Sopimus ei ole vielä alkanut, joten sitä ei voi päättää.",
   "exit.refusal.usage_below_signing": "Ilmoitettu käyttö ({value} {unit}) on pienempi kuin tuotteen {atSigning} {unit} vuokrauksen alkaessa.",
+  "audit.chain.reason.head_mismatch": "uusimmat merkinnät eivät enää vastaa tallennettua päätä (merkintä on poistettu)",
   "contract.refusal.quote_not_yet_valid": "Tarjous on päivätty {quoteDate}, tämän päivän jälkeen. Sopimusta ei voi allekirjoittaa ennen tarjousta.",
   "apply.quoteNotYetValid": "Tarjous on päivätty tämän päivän jälkeen, joten sitä ei voi vielä hakea.",
   "apply.hint.finnish_business_id": "Muoto 1234567-8, tarkistusmerkin on oltava oikein",
