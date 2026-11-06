@@ -183,6 +183,26 @@ describe('payInvoice', () => {
     });
   });
 
+  it('a cancelled invoice is refused as cancelled, not already paid (review finding 9)', async () => {
+    const [first] = await listInvoices(db, contractId);
+    await db.invoice.update({ where: { id: first!.id }, data: { status: 'cancelled' } });
+    const before = await db.auditLog.count();
+    expect(await payInvoice(db, { id: first!.id, paidOn: '2026-11-06', actor: 'admin' })).toEqual({
+      ok: false,
+      reason: 'cancelled',
+    });
+    expect(await db.auditLog.count()).toBe(before);
+  });
+
+  it('a payment day before the contract was signed (the clock moved back) is refused', async () => {
+    const [first] = await listInvoices(db, contractId);
+    expect(await payInvoice(db, { id: first!.id, paidOn: '2026-11-04', actor: 'admin' })).toEqual({
+      ok: false,
+      reason: 'paid_before_signing',
+    });
+    expect((await listInvoices(db, contractId))[0]?.status).toBe('issued');
+  });
+
   it('D73: anonymous and another customer are refused before anything is read or written', async () => {
     const [first] = await listInvoices(db, contractId);
     const before = await db.auditLog.count();

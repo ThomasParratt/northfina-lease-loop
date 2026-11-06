@@ -13,7 +13,7 @@ import { invoiceRowSchema } from '@/domain/rows/invoice';
 import type { AuthzRefusal } from '@/domain/authz/policy';
 import { withAudit, type TransactionClient } from './audit';
 import { authorize } from './authorize';
-import { contractCustomerId, listContracts } from './contracts';
+import { contractCustomerId, getContract, listContracts } from './contracts';
 import { emit } from './events';
 import type { PrismaClient } from './prisma-client';
 import { parseRow } from './row-rules';
@@ -123,13 +123,15 @@ class LostPaymentRace extends Error {}
 
 export type PayInvoiceResult =
   | { ok: true; invoice: InvoiceView }
-  | { ok: false; reason: 'not_found' | 'already_paid' }
+  | { ok: false; reason: 'not_found' | 'already_paid' | 'cancelled' | 'paid_before_signing' }
   | { ok: false; reason: 'forbidden'; refusal: AuthzRefusal };
 
 /**
  * Marks an invoice paid on `paidOn` (the request's today), writes `invoice.paid` to the audit
  * log and emits INVOICE_PAID with the gross amount, all in one transaction. Paying early is
- * allowed (an advance payment); paying twice is an answer, not a crash.
+ * allowed (an advance payment); paying twice is an answer, not a crash. A cancelled invoice
+ * (a rent after an exit) and a day before the contract's signing (the demo clock moved back)
+ * are refusals of their own; both statuses are parsed before the write (D23, review finding 9).
  */
 export async function payInvoice(
   db: PrismaClient,
@@ -144,7 +146,15 @@ export async function payInvoice(
   }
   const existing = await db.invoice.findUnique({ where: { id: input.id } });
   if (!existing) return { ok: false, reason: 'not_found' };
-  if (existing.status === 'paid') return { ok: false, reason: 'already_paid' };
+  const current = invoiceStatusSchema.parse(existing.status);
+  if (current === 'paid') return { ok: false, reason: 'already_paid' };
+  if (current === 'cancelled') return { ok: false, reason: 'cancelled' };
+  const contract = await getContract(db, existing.contract_id);
+  if (contract && input.paidOn < contract.signedOn) {
+    return { ok: false, reason: 'paid_before_signing' };
+  }
+  const issued = invoiceStatusSchema.parse('issued');
+  const paid = invoiceStatusSchema.parse('paid');
 
   let row: InvoiceRow;
   try {
@@ -164,8 +174,8 @@ export async function payInvoice(
       async (tx) => {
         // The status guard in the where makes a concurrent second payment a no-op, not a double.
         const { count } = await tx.invoice.updateMany({
-          where: { id: input.id, status: 'issued' },
-          data: { status: 'paid', paid_on: input.paidOn },
+          where: { id: input.id, status: issued },
+          data: { status: paid, paid_on: input.paidOn },
         });
         if (count === 0) throw new LostPaymentRace();
         await emit(tx, {
@@ -179,7 +189,12 @@ export async function payInvoice(
       }
     );
   } catch (error) {
-    if (error instanceof LostPaymentRace) return { ok: false, reason: 'already_paid' };
+    if (error instanceof LostPaymentRace) {
+      // Another change won: an exit cancelled it, or a second payment paid it.
+      const now = await db.invoice.findUnique({ where: { id: input.id } });
+      const status = now ? invoiceStatusSchema.parse(now.status) : null;
+      return { ok: false, reason: status === 'cancelled' ? 'cancelled' : 'already_paid' };
+    }
     throw error;
   }
   return { ok: true, invoice: toInvoiceView(row) };
