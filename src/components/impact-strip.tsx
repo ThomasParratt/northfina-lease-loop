@@ -1,8 +1,8 @@
 // Why it's greener: on the left, why leasing an item again saves CO2; on the right, the total
 // CO2 and money that items leased again (second and third lives) have saved so far (D15, D80),
-// and under it the same totals broken down by category, so the small numbers add up to the big one. Each item's own
-// saving is on its passport, reached from the catalogue. A server component: it reads the
-// database itself.
+// and under it the same totals broken down by category, so the small numbers add up to the big
+// one. Each item's own saving is on its passport, reached from the catalogue. A server
+// component: it reads the database itself.
 import { loadCo2Factors } from '@/data/load';
 import { formatEuro } from '@/domain/money';
 import { formatNumber } from '@/i18n/format';
@@ -21,6 +21,8 @@ export async function ImpactStrip({ today, locale, t }: ImpactStripProps) {
   ]);
   const kg = (value: number) => formatNumber(value, locale);
   const euro = (cents: number) => formatEuro(cents, intlLocale[locale]);
+  // The share as a whole percent, as on the passport (0.12 × 100 is not exactly 12 in floats).
+  const share = formatNumber(Math.round(factors.refurbishment_share_of_new * 100), locale);
   const centsOf = (category: string) =>
     money.perCategory.find((row) => row.category === category)?.cents ?? 0;
 
@@ -61,10 +63,10 @@ export async function ImpactStrip({ today, locale, t }: ImpactStripProps) {
           <InfoPopover id="co2-method" label={t('impact.how.label')} className="mt-6">
             <p>
               {t('impact.how.body', {
-                share: formatNumber(factors.refurbishment_share_of_new * 100, locale),
+                share,
               })}
             </p>
-            <p>{t('impact.how.money')}</p>
+            <p>{t('impact.how.money', { share })}</p>
           </InfoPopover>
         </div>
       </div>
