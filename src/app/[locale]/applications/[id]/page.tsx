@@ -196,11 +196,17 @@ export default async function ApplicationPage({
           {actor === ADMIN_ACTOR ? (
             <DecisionForm
               applicationId={application.id}
-              reviewer={ADMIN_ACTOR}
               labels={{
                 approve: t('decision.approve'),
                 reject: t('decision.reject'),
-                error: t('decision.error'),
+                refusals: {
+                  error: t('decision.error'),
+                  APPLICATION_NOT_PENDING: t('decision.refusal.notPending'),
+                  APPLICATION_NOT_FOUND: t('decision.refusal.notFound'),
+                  not_signed_in: t('authz.refusal.not_signed_in'),
+                  admin_only: t('authz.refusal.admin_only'),
+                  signatory_required: t('authz.refusal.signatory_required'),
+                },
               }}
             />
           ) : (
