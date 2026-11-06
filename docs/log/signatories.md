@@ -16,3 +16,4 @@
 
 - The decision page does not link to the signatory list page (reach it at `/<locale>/customers/<id>/signatories`).
 - 03:40 merged main again (#33 term limits took D43, #48 My leases): mine are now D44 (signatories) and D45 (admin on behalf); the message files merged key by key.
+- 04:00 merged main again (#36 squash-merged as 0e6312b): main's hardening log; my versions of the test files (they hold #36 plus the signing link). Main's property test missed `term_over_category_max` (#33 came first): added to its known refusals.
