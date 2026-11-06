@@ -364,3 +364,12 @@ export async function listAssetContracts(
   });
   return rows.map(toContractView);
 }
+
+/**
+ * The latest signing and ending days written: the demo clock floor's days (D90). Not the start
+ * or end date, which are planned days and may lie ahead of the day the lease was signed.
+ */
+export async function latestContractDays(db: PrismaClient): Promise<(string | null)[]> {
+  const { _max } = await db.contract.aggregate({ _max: { signed_on: true, ended_on: true } });
+  return [_max.signed_on, _max.ended_on];
+}

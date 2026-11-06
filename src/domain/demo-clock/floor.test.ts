@@ -1,4 +1,4 @@
-// D87: manual time travel never goes earlier than the latest business day already recorded,
+// D90: manual time travel never goes earlier than the latest business day already recorded,
 // so a payment can never sit before its contract or a quote after it. Travel 2 months forward,
 // sign there, travel 1 month back: refused. With nothing written it is allowed.
 import { describe, expect, it } from 'vitest';

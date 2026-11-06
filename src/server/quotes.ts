@@ -224,3 +224,9 @@ export function previewQuote(
     }),
   };
 }
+
+/** The latest quote day written, or null: one of the demo clock floor's days (D90). */
+export async function latestQuoteDay(db: PrismaClient): Promise<string | null> {
+  const { _max } = await db.quote.aggregate({ _max: { quote_date: true } });
+  return _max.quote_date;
+}

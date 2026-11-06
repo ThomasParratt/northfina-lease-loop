@@ -8,7 +8,7 @@ import { AuditChainBadge } from '@/components/audit-chain-badge';
 import { Badge, Card, DateText, LinkButton, Notice, PageHeader, StaffNote } from '@/components/ui';
 import { loadCustomers } from '@/data/load';
 import { formatIsoDate } from '@/i18n/format';
-import { getT } from '@/i18n/get-t';
+import { getT, messages } from '@/i18n/get-t';
 import { isLocale } from '@/i18n/locales';
 import { verifyAuditChain } from '@/server/audit';
 import { db } from '@/server/db';
@@ -85,6 +85,7 @@ export default async function DemoPage({ params }: PageProps<'/[locale]/demo'>) 
           key={clock.today}
           today={clock.today}
           overridden={clock.overridden}
+          locale={locale}
           presets={PRESET_DAYS.map((iso) => ({ iso, label: formatIsoDate(iso, locale) }))}
           labels={{
             date: t('demo.clock.date'),
@@ -94,6 +95,7 @@ export default async function DemoPage({ params }: PageProps<'/[locale]/demo'>) 
             reset: t('demo.clock.reset'),
             pending: t('demo.clock.pending'),
             error: t('demo.clock.error'),
+            beforeRecords: messages[locale]['demo.clock.beforeRecords'],
           }}
         />
       </Card>

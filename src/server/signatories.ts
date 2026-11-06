@@ -460,3 +460,14 @@ export async function decideByToken(
     throw error;
   }
 }
+
+/**
+ * The latest days a signature request was sent, opened, signed or declined: the demo clock
+ * floor's days (D90). Not its expiry, a day ahead, nor `granted_on`, which the seed writes.
+ */
+export async function latestSignatureRequestDays(db: PrismaClient): Promise<(string | null)[]> {
+  const { _max } = await db.signatureRequest.aggregate({
+    _max: { sent_on: true, opened_on: true, signed_on: true, declined_on: true },
+  });
+  return [_max.sent_on, _max.opened_on, _max.signed_on, _max.declined_on];
+}

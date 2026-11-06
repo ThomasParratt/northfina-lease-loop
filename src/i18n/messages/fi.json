@@ -57,6 +57,7 @@
   "demo.clock.reset": "Takaisin todelliseen päivään",
   "demo.clock.pending": "Siirretään kelloa…",
   "demo.clock.error": "Kelloa ei voitu siirtää. Tarkista päivämäärä ja yritä uudelleen.",
+  "demo.clock.beforeRecords": "Tietoja on tallennettu {date} asti; kelloa ei voi siirtää sitä aiemmaksi. Aloita alusta tyhjentämällä tietokanta (npm run db:reset).",
   "demo.cards.title": "Skenaariokortit",
   "demo.cards.intro": "Jokainen painike ajaa korttinsa oikean sovelluksen läpi kortin omina päivinä, asettaa kellon ja käyttäjän ja avaa sivun, jolla luvut verrataan. Jokainen vaihe näkyy muutoslokissa.",
   "demo.card.1": "Onnistunut polku",

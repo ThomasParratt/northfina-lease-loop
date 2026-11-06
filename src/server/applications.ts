@@ -460,3 +460,9 @@ export async function recordSignatoryDecision(
   if (count === 0) return null;
   return toApplicationView(await tx.application.findUniqueOrThrow({ where: { id: input.id } }));
 }
+
+/** The latest decision day written, or null: one of the demo clock floor's days (D90). */
+export async function latestApplicationDay(db: PrismaClient): Promise<string | null> {
+  const { _max } = await db.application.aggregate({ _max: { decided_on: true } });
+  return _max.decided_on;
+}

@@ -395,3 +395,9 @@ export function toAssessmentResponse(view: AssessmentView): AssessmentResponse {
     })),
   };
 }
+
+/** The latest assessment day written, or null: one of the demo clock floor's days (D90). */
+export async function latestAssessmentDay(db: PrismaClient): Promise<string | null> {
+  const { _max } = await db.returnAssessment.aggregate({ _max: { assessed_on: true } });
+  return _max.assessed_on;
+}

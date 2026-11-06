@@ -57,6 +57,7 @@
   "demo.clock.reset": "Tillbaka till den verkliga dagen",
   "demo.clock.pending": "Flyttar klockan…",
   "demo.clock.error": "Klockan kunde inte flyttas. Kontrollera datumet och försök igen.",
+  "demo.clock.beforeRecords": "Det finns poster fram till {date}; klockan kan inte flyttas före det. Återställ databasen (npm run db:reset) för att börja om.",
   "demo.cards.title": "Scenariokort",
   "demo.cards.intro": "Varje knapp kör sitt kort genom den riktiga appen på kortets egna dagar, ställer klockan och vem du agerar som och öppnar sidan där siffrorna jämförs. Varje steg finns i ändringsloggen.",
   "demo.card.1": "Den lyckliga vägen",

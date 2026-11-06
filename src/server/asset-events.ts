@@ -179,3 +179,15 @@ export async function readFleetImpact(db: PrismaClient, asOf: string): Promise<F
       .sort((a, b) => b.kg - a.kg || a.asset.id.localeCompare(b.asset.id)),
   };
 }
+
+/**
+ * The latest passport event day written, or null: one of the demo clock floor's days (D90).
+ * Not `leased`, whose day is the contract's start date, a planned day that may lie ahead.
+ */
+export async function latestAssetEventDay(db: PrismaClient): Promise<string | null> {
+  const { _max } = await db.assetEvent.aggregate({
+    where: { kind: { not: 'leased' } },
+    _max: { on_date: true },
+  });
+  return _max.on_date;
+}

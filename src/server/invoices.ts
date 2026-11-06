@@ -212,3 +212,12 @@ export async function listCustomerInvoices(
   });
   return rows.map(toInvoiceView);
 }
+
+/**
+ * The latest payment day written, or null: one of the demo clock floor's days (D90). Not the
+ * issue or due dates, which the schedule writes ahead for the whole term.
+ */
+export async function latestPaymentDay(db: PrismaClient): Promise<string | null> {
+  const { _max } = await db.invoice.aggregate({ _max: { paid_on: true } });
+  return _max.paid_on;
+}

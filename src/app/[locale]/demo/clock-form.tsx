@@ -1,10 +1,13 @@
 'use client';
 
 // The demo clock controls: a date field, quick jumps and a reset. Each posts to
-// POST /api/demo/clock, which sets the cookie, then re-renders the server pages.
+// POST /api/demo/clock, which sets the cookie, then re-renders the server pages. A day before
+// the latest recorded day is refused (D90, `clock_before_records`); the form says up to when.
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Field, Notice, inputClasses } from '@/components/ui';
+import { formatIsoDate } from '@/i18n/format';
+import type { Locale } from '@/i18n/locales';
 
 export type ClockFormLabels = {
   date: string;
@@ -14,37 +17,50 @@ export type ClockFormLabels = {
   reset: string;
   pending: string;
   error: string;
+  /** The `clock_before_records` message, its `{date}` still to fill. */
+  beforeRecords: string;
 };
 
 type ClockFormProps = {
   today: string;
   overridden: boolean;
+  locale: Locale;
   /** Quick jumps: the ISO day and its label in the page's language. */
   presets: Array<{ iso: string; label: string }>;
   labels: ClockFormLabels;
 };
 
-export function ClockForm({ today, overridden, presets, labels }: ClockFormProps) {
+type ClockRefusal = { error?: { details?: { code?: string; params?: { latestDay?: string } } } };
+
+export function ClockForm({ today, overridden, locale, presets, labels }: ClockFormProps) {
   const router = useRouter();
   const [date, setDate] = useState(today);
   const [pending, setPending] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function move(asOf: string | null, which: string) {
     setPending(which);
-    setFailed(false);
+    setError(null);
     try {
       const response = await fetch('/api/demo/clock', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ asOf }),
       });
+      if (response.status === 409) {
+        const details = ((await response.json()) as ClockRefusal).error?.details;
+        const latestDay = details?.params?.latestDay;
+        if (details?.code === 'clock_before_records' && latestDay) {
+          setError(labels.beforeRecords.replace('{date}', formatIsoDate(latestDay, locale)));
+          return;
+        }
+      }
       if (!response.ok) throw new Error(`status ${response.status}`);
       const body = (await response.json()) as { data: { today: string } };
       setDate(body.data.today);
       router.refresh();
     } catch {
-      setFailed(true);
+      setError(labels.error);
     } finally {
       setPending(null);
     }
@@ -108,9 +124,9 @@ export function ClockForm({ today, overridden, presets, labels }: ClockFormProps
         </div>
       </fieldset>
 
-      {failed ? (
+      {error ? (
         <Notice tone="error" live>
-          {labels.error}
+          {error}
         </Notice>
       ) : null}
     </div>

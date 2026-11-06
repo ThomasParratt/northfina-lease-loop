@@ -274,7 +274,7 @@ export const ROUTES: readonly RouteDefinition[] = [
     method: 'POST',
     path: '/api/demo/clock',
     summary:
-      'Set the demo clock to a day, or clear it with null (the one date the browser may send)',
+      'Set the demo clock to a day, or clear it with null (the one date the browser may send); 409 clock_before_records before the latest recorded business day (D90)',
     tag: 'demo',
     body: demoClockBodySchema,
     response: demoClockResponseSchema,
