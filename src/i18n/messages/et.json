@@ -357,6 +357,7 @@
   "contract.refusal.asset_not_available": "Kahjuks liisiti see toode just kellelegi teisele.",
   "contract.refusal.start_before_signing": "Liising ei saa alata ({startDate}) enne allkirjastamise päeva ({signedOn}).",
   "contract.refusal.start_too_far": "Liising peab algama {maxDays} päeva jooksul allkirjastamisest, hiljemalt {latestStartDate}.",
+  "contract.refusal.too_young_at_start": "Pead olema liisingu alguspäeval 18-aastane. Vali alguskuupäev {adultFrom} või hiljem.",
   "contract.refusal.already_signed": "Taotlus on juba allkirjastatud.",
   "contract.refusal.not_allowed_to_sign": "Lepingut saab allkirjastada ainult taotleja.",
   "contract.refusal.application_not_found": "Taotlust ei leitud.",

@@ -357,6 +357,7 @@
   "contract.refusal.asset_not_available": "Sorry, this item was just leased to someone else.",
   "contract.refusal.start_before_signing": "The lease cannot start ({startDate}) before the signing day ({signedOn}).",
   "contract.refusal.start_too_far": "The lease must start within {maxDays} days of signing, by {latestStartDate} at the latest.",
+  "contract.refusal.too_young_at_start": "You must be 18 on the day the lease starts. Choose a start on or after {adultFrom}.",
   "contract.refusal.already_signed": "This application has already been signed.",
   "contract.refusal.not_allowed_to_sign": "Only the applicant can sign this contract.",
   "contract.refusal.application_not_found": "That application was not found.",

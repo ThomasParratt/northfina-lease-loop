@@ -357,6 +357,7 @@
   "contract.refusal.asset_not_available": "Tyvärr hyrdes artikeln just ut till någon annan.",
   "contract.refusal.start_before_signing": "Leasingen kan inte börja ({startDate}) före undertecknandet ({signedOn}).",
   "contract.refusal.start_too_far": "Leasingen måste börja inom {maxDays} dagar från undertecknandet, senast {latestStartDate}.",
+  "contract.refusal.too_young_at_start": "Du måste vara 18 år den dag leasingen börjar. Välj en start den {adultFrom} eller senare.",
   "contract.refusal.already_signed": "Ansökan är redan undertecknad.",
   "contract.refusal.not_allowed_to_sign": "Endast sökanden kan underteckna avtalet.",
   "contract.refusal.application_not_found": "Ansökan hittades inte.",

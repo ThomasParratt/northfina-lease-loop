@@ -6,6 +6,7 @@ import { assetStatusSchema, isoDateSchema } from '@/data/schemas';
 import { contractSignedSchema, type ContractSigned } from '@/domain/events';
 import { addDays } from '@/domain/civil-days';
 import { termEndDate } from '@/domain/invoicing/dates';
+import { birthdayAtAge, MIN_AGE_YEARS } from '@/domain/question-flow/eligibility';
 import type { FrozenQuote, QuoteStatus } from '@/domain/pricing';
 import { applicationDecisionSchema, type ContractStatus } from '@/domain/statuses';
 import { contractNumber } from './number';
@@ -31,6 +32,8 @@ export type PlanContractInput = {
   /** The request's day (`todayForRequest()`), never the browser's. */
   signedOn: string;
   startDate: string;
+  /** The customer's birth date from the record; undefined for a company (no age check). */
+  birthDate?: string;
 };
 
 export type PlannedContract = {
@@ -76,7 +79,8 @@ export type SignRefusal =
   | {
       code: 'start_too_far';
       params: { latestStartDate: string; startDate: string; maxDays: number };
-    };
+    }
+  | { code: 'too_young_at_start'; params: { adultFrom: string } };
 
 export type PlanContractResult =
   | { ok: true; contract: PlannedContract; event: ContractSigned; priceLock: PriceLock | null }
@@ -84,13 +88,16 @@ export type PlanContractResult =
 
 /**
  * Plans a signing. Refusals in this order: the decision, the quote's validity, the asset, the
- * start day. A bad decision, status or day throws (D23): the caller writes nothing.
+ * start day, then the age: a person under 18 on the start day is refused (D9 checked again at
+ * signing, since the start may come after the application day). A bad decision, status or day throws (D23): the caller writes nothing.
  */
 export function planContract(input: PlanContractInput): PlanContractResult {
   const decision = applicationDecisionSchema.parse(input.decision);
   const assetStatus = assetStatusSchema.parse(input.assetStatus);
   const signedOn = isoDateSchema.parse(input.signedOn);
   const startDate = isoDateSchema.parse(input.startDate);
+  const birthDate =
+    input.birthDate === undefined ? undefined : isoDateSchema.parse(input.birthDate);
   const { quote, quoteStatus } = input;
 
   if (decision !== 'approved') {
@@ -118,6 +125,13 @@ export function planContract(input: PlanContractInput): PlanContractResult {
         params: { latestStartDate, startDate, maxDays: START_DAYS_MAX },
       },
     };
+  }
+
+  if (birthDate !== undefined) {
+    const adultFrom = birthdayAtAge(birthDate, MIN_AGE_YEARS);
+    if (startDate < adultFrom) {
+      return { ok: false, reason: { code: 'too_young_at_start', params: { adultFrom } } };
+    }
   }
 
   const endDate = termEndDate(startDate, quote.termMonths);

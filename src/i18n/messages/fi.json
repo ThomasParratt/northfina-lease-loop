@@ -357,6 +357,7 @@
   "contract.refusal.asset_not_available": "Valitettavasti tämä tuote vuokrattiin juuri toiselle.",
   "contract.refusal.start_before_signing": "Vuokrakausi ei voi alkaa ({startDate}) ennen allekirjoituspäivää ({signedOn}).",
   "contract.refusal.start_too_far": "Vuokrakauden on alettava {maxDays} päivän kuluessa allekirjoituksesta, viimeistään {latestStartDate}.",
+  "contract.refusal.too_young_at_start": "Sinun on oltava 18-vuotias vuokrakauden alkaessa. Valitse alkupäivä {adultFrom} tai sen jälkeen.",
   "contract.refusal.already_signed": "Hakemus on jo allekirjoitettu.",
   "contract.refusal.not_allowed_to_sign": "Vain hakija voi allekirjoittaa sopimuksen.",
   "contract.refusal.application_not_found": "Hakemusta ei löytynyt.",
