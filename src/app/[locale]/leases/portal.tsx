@@ -141,6 +141,9 @@ type InvoiceSectionsProps = {
 
 function InvoiceSections({ invoices, numberOf, locale, t }: InvoiceSectionsProps) {
   const overdue = new Set(invoices.overdue.map((i) => i.id));
+  // What is owed reads soonest first; paid and cancelled keep the read's newest-first order.
+  const soonestFirst = (items: InvoiceView[]) =>
+    [...items].sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.sequence - b.sequence);
   const list = (items: InvoiceView[], statusOf: (invoice: InvoiceView) => LineStatus) => (
     <ul className="divide-y divide-line">
       {items.map((invoice) => (
@@ -182,12 +185,12 @@ function InvoiceSections({ invoices, numberOf, locale, t }: InvoiceSectionsProps
             {invoices.open.length === 0 ? (
               <p className="py-4 text-sm text-ink-muted">{t('portal.invoices.noneOpen')}</p>
             ) : (
-              list(invoices.open, (i) => (overdue.has(i.id) ? 'overdue' : 'due'))
+              list(soonestFirst(invoices.open), (i) => (overdue.has(i.id) ? 'overdue' : 'due'))
             )}
           </div>
           {invoices.upcoming.length > 0 ? (
             <Disclosure title={t('portal.invoices.upcoming', { count: invoices.upcoming.length })}>
-              {list(invoices.upcoming, () => 'upcoming')}
+              {list(soonestFirst(invoices.upcoming), () => 'upcoming')}
             </Disclosure>
           ) : null}
           {invoices.paid.length > 0 ? (

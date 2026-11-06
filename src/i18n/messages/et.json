@@ -705,7 +705,7 @@
   "portal.totals.nextDue": "Järgmine maksetähtaeg",
   "portal.totals.nothingDue": "Midagi pole tasuda",
   "portal.exit.early_exit": "Lõpeta varem (periood kestab kuni {date}):",
-  "portal.exit.end_of_term": "Periood lõppes {date}. Vali:",
+  "portal.exit.end_of_term": "Periood lõpeb {date}. Vali:",
   "portal.exit.not_started": "Liising algab {date}.",
   "portal.invoices.open": "Avatud",
   "portal.invoices.noneOpen": "Praegu pole midagi tasuda.",

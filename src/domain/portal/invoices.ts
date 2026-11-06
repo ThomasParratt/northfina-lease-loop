@@ -1,7 +1,8 @@
 // The portal's invoice overview (D75): every invoice of one customer, across their contracts,
 // sorted into what is owed today, what is not issued yet, what is paid and what was cancelled.
-// The per-invoice status is the invoicing slice's `invoiceStatusOn`, so the portal and the
-// contract page never disagree; today comes in as an argument.
+// The per-invoice status is the invoicing slice's `invoiceStatusOn`; the open and overdue sums
+// equal `contractBalanceOn`'s summed over the contracts (pinned on card 8 in the tests). Today
+// comes in as an argument.
 import { invoiceStatusSchema } from '../statuses';
 import { invoiceStatusOn, parseIsoDate } from '../invoicing';
 
@@ -18,7 +19,7 @@ export type PortalInvoice = {
 };
 
 export type InvoiceGroups<T> = {
-  /** Issued and unpaid on `today`: due today or overdue (overdue ones included). */
+  /** Issued and unpaid on `today`: due today or overdue (D3: issue and due on one day). */
   open: T[];
   /** The part of `open` past its due day. */
   overdue: T[];

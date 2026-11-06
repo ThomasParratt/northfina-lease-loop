@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildSchedule } from '../invoicing';
+import { buildSchedule, contractBalanceOn } from '../invoicing';
+import { invoiceStatusSchema } from '../statuses';
 import { pack, quoteFor } from '../scenarios/fixtures';
 import { groupInvoices, type PortalInvoice } from './invoices';
 
@@ -26,6 +27,24 @@ function cardOneInvoices(): PortalInvoice[] {
     status: 'issued',
     paidOn: null,
   }));
+}
+
+/** Card 8: card 1's first seven rents paid, the other 29 cancelled, the exit invoice issued and
+ * due on 5 Jun 2027; `exitPaidOn` pays it. */
+function cardEight(exitPaidOn: string | null): PortalInvoice[] {
+  return [
+    ...cardOneInvoices().map((i, index) =>
+      index < 7 ? { ...i, status: 'paid', paidOn: i.dueDate } : { ...i, status: 'cancelled' }
+    ),
+    {
+      id: 'inv-exit',
+      issueDate: '2027-06-05',
+      dueDate: '2027-06-05',
+      grossCents: 416_651,
+      status: exitPaidOn ? 'paid' : 'issued',
+      paidOn: exitPaidOn,
+    },
+  ];
 }
 
 const invoice = (over: Partial<PortalInvoice> & { id: string }): PortalInvoice => ({
@@ -68,20 +87,7 @@ describe('groupInvoices', () => {
   });
 
   it('card 8 after the exit on 5 Jun 2027: seven paid, 29 cancelled, the exit invoice open', () => {
-    const invoices: PortalInvoice[] = [
-      ...cardOneInvoices().map((i, index) =>
-        index < 7
-          ? { ...i, status: 'paid', paidOn: i.dueDate }
-          : { ...i, status: 'cancelled' as const }
-      ),
-      invoice({
-        id: 'inv-exit',
-        issueDate: '2027-06-05',
-        dueDate: '2027-06-05',
-        grossCents: 416_651,
-      }),
-    ];
-    const g = groupInvoices(invoices, '2027-06-05');
+    const g = groupInvoices(cardEight(null), '2027-06-05');
     expect(g.paid).toHaveLength(7);
     expect(g.cancelled).toHaveLength(29);
     expect(g.open.map((i) => i.id)).toEqual(['inv-exit']);
@@ -90,15 +96,43 @@ describe('groupInvoices', () => {
     expect(g.nextDueDate).toBe('2027-06-05');
   });
 
-  it('card 8 once the exit invoice is paid: nothing open, no next due date', () => {
-    const invoices: PortalInvoice[] = [
-      invoice({ id: 'a', status: 'paid', paidOn: '2026-11-05' }),
-      invoice({ id: 'b', status: 'cancelled', dueDate: '2026-12-05', issueDate: '2026-12-05' }),
-    ];
-    const g = groupInvoices(invoices, '2027-01-01');
+  it('card 8: the open and overdue sums match contractBalanceOn on the exit day and a month later', () => {
+    for (const today of ['2027-06-05', '2027-07-06']) {
+      const g = groupInvoices(cardEight(null), today);
+      const stored = cardEight(null).map((i) => ({
+        ...i,
+        status: invoiceStatusSchema.parse(i.status),
+      }));
+      const balance = contractBalanceOn(stored, {}, today);
+      expect(g.openTotalCents).toBe(balance.openCents);
+      expect(g.overdueTotalCents).toBe(balance.overdueCents);
+      expect(g.open.map((i) => i.id)).toEqual(balance.openInvoiceIds);
+    }
+  });
+
+  it('card 8 once the exit invoice is paid: nothing open, no next due date, 8 paid, 29 cancelled', () => {
+    const g = groupInvoices(cardEight('2027-06-05'), '2027-06-05');
     expect(g.openTotalCents).toBe(0);
     expect(g.nextDueDate).toBeNull();
-    expect(g.cancelled.map((i) => i.id)).toEqual(['b']);
+    expect(g.paid).toHaveLength(8);
+    expect(g.cancelled).toHaveLength(29);
+  });
+
+  it('all cancelled: nothing open, nothing paid, no next due date', () => {
+    const g = groupInvoices(
+      cardOneInvoices().map((i) => ({ ...i, status: 'cancelled' })),
+      '2027-06-05'
+    );
+    expect(g.cancelled).toHaveLength(36);
+    expect(g).toMatchObject({ open: [], upcoming: [], paid: [], openTotalCents: 0 });
+    expect(g.nextDueDate).toBeNull();
+  });
+
+  it('an overdue invoice beside upcoming ones pins the next due date to the overdue day', () => {
+    const g = groupInvoices(cardOneInvoices(), '2026-11-20');
+    expect(g.overdue.map((i) => i.id)).toEqual(['inv-1']);
+    expect(g.upcoming).toHaveLength(35);
+    expect(g.nextDueDate).toBe('2026-11-05');
   });
 
   it('an unpaid invoice past its due day is open and overdue, and counts in both totals', () => {
@@ -121,7 +155,12 @@ describe('groupInvoices', () => {
     expect(g.open.map((i) => i.id)).toEqual(['x']);
   });
 
-  it('keeps the input order inside each group and handles an empty list', () => {
+  it('keeps the input order inside each group', () => {
+    const g = groupInvoices(cardOneInvoices().slice(0, 3).reverse(), '2027-01-10');
+    expect(g.overdue.map((i) => i.id)).toEqual(['inv-3', 'inv-2', 'inv-1']);
+  });
+
+  it('handles an empty list', () => {
     const g = groupInvoices([], '2026-11-05');
     expect(g).toMatchObject({ open: [], paid: [], openTotalCents: 0, nextDueDate: null });
   });

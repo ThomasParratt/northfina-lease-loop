@@ -705,7 +705,7 @@
   "portal.totals.nextDue": "Next due",
   "portal.totals.nothingDue": "Nothing due",
   "portal.exit.early_exit": "Leave early (the term runs to {date}):",
-  "portal.exit.end_of_term": "The term ended on {date}. Choose:",
+  "portal.exit.end_of_term": "The term ends on {date}. Choose:",
   "portal.exit.not_started": "The lease starts on {date}.",
   "portal.invoices.open": "Open",
   "portal.invoices.noneOpen": "Nothing to pay right now.",

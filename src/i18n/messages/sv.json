@@ -705,7 +705,7 @@
   "portal.totals.nextDue": "Nästa förfallodag",
   "portal.totals.nothingDue": "Inget att betala",
   "portal.exit.early_exit": "Avsluta i förtid (perioden löper till {date}):",
-  "portal.exit.end_of_term": "Perioden slutade {date}. Välj:",
+  "portal.exit.end_of_term": "Perioden slutar {date}. Välj:",
   "portal.exit.not_started": "Leasingen börjar {date}.",
   "portal.invoices.open": "Öppna",
   "portal.invoices.noneOpen": "Inget att betala just nu.",

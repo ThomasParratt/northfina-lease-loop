@@ -705,7 +705,7 @@
   "portal.totals.nextDue": "Seuraava eräpäivä",
   "portal.totals.nothingDue": "Ei maksettavaa",
   "portal.exit.early_exit": "Lopeta aikaisemmin (kausi päättyy {date}):",
-  "portal.exit.end_of_term": "Kausi päättyi {date}. Valitse:",
+  "portal.exit.end_of_term": "Kausi päättyy {date}. Valitse:",
   "portal.exit.not_started": "Leasing alkaa {date}.",
   "portal.invoices.open": "Avoimet",
   "portal.invoices.noneOpen": "Ei mitään maksettavaa juuri nyt.",
