@@ -119,6 +119,8 @@ export function planInputOf(
     },
     invoices: invoices.map((i) => ({ id: i.id, kind: i.kind, status: i.status })),
     asset: { category: asset.category },
+    // Not written during the lease: the asset as it was leased (D77).
+    atSigning: { condition: asset.condition, usage: asset.usage },
     // D60, the read the assessment uses too (review finding 1). A relisted item's contract price
     // is its second-life amount; no price list for an item with past lives is a data error.
     curve: curveOf(context, data, choice.today),

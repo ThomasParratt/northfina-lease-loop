@@ -550,6 +550,7 @@
   "exit.ended.title": "Tämä sopimus on päättynyt",
   "exit.ended.body": "Tila: {status}. Päättyi {date}. Loppulasku on alla olevassa luettelossa.",
   "exit.refusal.not_started": "Sopimus ei ole vielä alkanut, joten sitä ei voi päättää.",
+  "exit.refusal.usage_below_signing": "Ilmoitettu käyttö ({value} {unit}) on pienempi kuin tuotteen {atSigning} {unit} vuokrauksen alkaessa.",
   "apply.notApplicant": "Voit hakea vain omissa nimissäsi. Valitse itsesi kohdasta ”Jatka nimellä”.",
   "apply.notSignatory": "Vain allekirjoittaja allekirjoittaa, hänelle lähetetyn allekirjoituslinkin kautta.",
   "apply.answerRefused": "Vastaustasi kysymykseen ”{question}” ei voida hyväksyä: {problem}",

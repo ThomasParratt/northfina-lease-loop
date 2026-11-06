@@ -550,6 +550,7 @@
   "exit.ended.title": "See leping on lõppenud",
   "exit.ended.body": "Olek: {status}. Lõppes {date}. Lõpparve on allolevas loendis.",
   "exit.refusal.not_started": "Leping pole veel alanud, seega ei saa seda lõpetada.",
+  "exit.refusal.usage_below_signing": "Teatatud kasutus ({value} {unit}) on väiksem kui eseme {atSigning} {unit} liisingu alguses.",
   "apply.notApplicant": "Saad taotleda ainult enda nimel. Vali end jaotises „Jätka kui”.",
   "apply.notSignatory": "Allkirjastab ainult allkirjaõiguslik isik talle saadetud allkirjastamislingi kaudu.",
   "apply.answerRefused": "Sinu vastust küsimusele „{question}” ei saa vastu võtta: {problem}",

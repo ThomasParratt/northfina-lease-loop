@@ -550,6 +550,7 @@
   "exit.ended.title": "This lease has ended",
   "exit.ended.body": "Status: {status}. Ended on {date}. The final invoice is in the list below.",
   "exit.refusal.not_started": "The lease has not started yet, so it cannot be ended.",
+  "exit.refusal.usage_below_signing": "The usage reported ({value} {unit}) is below the {atSigning} {unit} the item had when it was leased.",
   "apply.notApplicant": "You can apply only in your own name. Choose yourself in “Continue as”.",
   "apply.notSignatory": "Only the signatory signs, through the signing link sent to them.",
   "apply.answerRefused": "Your answer to “{question}” cannot be taken: {problem}",

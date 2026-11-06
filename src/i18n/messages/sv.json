@@ -550,6 +550,7 @@
   "exit.ended.title": "Det här avtalet har avslutats",
   "exit.ended.body": "Status: {status}. Avslutat {date}. Slutfakturan finns i listan nedan.",
   "exit.refusal.not_started": "Avtalet har inte börjat än, så det kan inte avslutas.",
+  "exit.refusal.usage_below_signing": "Den angivna användningen ({value} {unit}) är lägre än de {atSigning} {unit} varan hade när den hyrdes ut.",
   "apply.notApplicant": "Du kan bara ansöka i ditt eget namn. Välj dig själv under ”Fortsätt som”.",
   "apply.notSignatory": "Endast firmatecknaren skriver under, via signeringslänken som skickats till hen.",
   "apply.answerRefused": "Ditt svar på ”{question}” kan inte tas emot: {problem}",

@@ -37,7 +37,7 @@ async function relistAndLease(assetId: string, termMonths: number) {
 }
 
 describe('an early return of a relisted item (finding 1)', () => {
-  it('card 9: ebike-007 returned good with 0 km on 2027-11-06 is worth 121 329 (549 000, 58 months)', async () => {
+  it('card 9: ebike-007 (relisted fair) returned on 2027-11-06 is valued from 549 000 at 58 months', async () => {
     const { contract } = await relistAndLease('ebike-007', 24);
     expect(contract.unitListPriceCents).toBe(155_476);
     const preview = await previewExit(
@@ -50,10 +50,12 @@ describe('an early return of a relisted item (finding 1)', () => {
       '2027-11-06'
     );
     if (!preview.ok) throw new Error(preview.reason.code);
-    // The review's 448,99 € came from 155 476/203 161 aged again; D60 gives 1 213,29 €.
+    // The review's 448,99 € came from the second-life price aged again; D60 gives 1 213,29 € as
+    // good. Reported good, it was leased fair, so D77 values it fair: 121 329 × 0.65 / 0.85.
     expect(marketValueOf(preview.preview.return.lines)).toMatchObject({
-      amountCents: 121_329,
+      amountCents: 92_781,
       ageMonths: 58,
+      condition: 'fair',
     });
   });
 

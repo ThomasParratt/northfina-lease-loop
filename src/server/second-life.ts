@@ -13,7 +13,7 @@
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '@/generated/prisma/client';
 import { loadRefurbishmentCosts, loadResidualCurves, loadSecondLifeDemand } from '@/data/load';
-import type { Asset, SecondLifeRequest } from '@/data/schemas';
+import type { Asset, AssetCondition, SecondLifeRequest } from '@/data/schemas';
 import { returnAssessmentRowSchema } from '@/domain/rows/return-assessment';
 import {
   assessReturn,
@@ -75,6 +75,9 @@ export type AssessRefusal =
   | { code: 'no_list_price'; params: { assetId: string } }
   | { code: 'demand_taken'; params: { demandId: string } };
 
+/** What the admin found on inspection (D77); a missing field keeps the stored (reported) value. */
+export type Inspection = { condition?: AssetCondition; usageValue?: number };
+
 type Built = { ok: true; proposal: SecondLifeProposal } | { ok: false; reason: AssessRefusal };
 
 /** The waiting-list entries an earlier assessment already matched (D62): one item each. */
@@ -90,7 +93,8 @@ async function buildProposal(
   db: PrismaClient | TransactionClient,
   asset: Asset,
   today: string,
-  data: SecondLifeData
+  data: SecondLifeData,
+  inspected: Inspection = {}
 ): Promise<Built> {
   const [contracts, taken] = await Promise.all([
     listAssetContracts(db, asset.id),
@@ -111,8 +115,9 @@ async function buildProposal(
   const input: AssessInput = {
     assetId: asset.id,
     category: asset.category,
-    condition: asset.condition,
-    usage: asset.usage,
+    // D77: the inspection wins over the customer's report the exit stored on the asset.
+    condition: inspected.condition ?? asset.condition,
+    usage: { unit: asset.usage.unit, value: inspected.usageValue ?? asset.usage.value },
     age: curve.age,
     newPriceCents: curve.listPriceCents,
     isoDate: today,
@@ -149,11 +154,12 @@ export async function previewAssessment(
   db: PrismaClient,
   assetId: string,
   today: string,
-  data?: SecondLifeData
+  data?: SecondLifeData,
+  inspected?: Inspection
 ): Promise<Built> {
   const found = await returnedAsset(db, assetId);
   if (!found.ok) return found;
-  return buildProposal(db, found.asset, today, data ?? (await loadSecondLifeData()));
+  return buildProposal(db, found.asset, today, data ?? (await loadSecondLifeData()), inspected);
 }
 
 export type AssessResult =
@@ -166,13 +172,13 @@ export type AssessResult =
  */
 export async function assessAsset(
   db: PrismaClient,
-  input: { assetId: string; actor: string; today: string },
+  input: { assetId: string; actor: string; today: string; inspected?: Inspection },
   data?: SecondLifeData
 ): Promise<AssessResult> {
   // D73: authorized before anything is read.
   const auth = await authorize(db, input.actor, 'assess_asset', { none: true });
   if (!auth.ok && auth.reason.code !== 'not_found') return { ok: false, reason: auth.reason };
-  const built = await previewAssessment(db, input.assetId, input.today, data);
+  const built = await previewAssessment(db, input.assetId, input.today, data, input.inspected);
   if (!built.ok) return built;
   const { proposal } = built;
   const { assessment, match } = proposal;
