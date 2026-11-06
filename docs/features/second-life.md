@@ -66,7 +66,7 @@ D12 (re-pricing), D13 (matchmaking), D15 (CO2), D16 and D66 (the contract chain)
 
 ## Open questions
 
-- D60 for seeded items assumes v1 is the price as new; the pack has no first-lease date or price. Ask the mentors.
+- D60 for seeded items assumes v1 is the price as new; the pack has no first-lease date or price. Asked as question 3 in [mentor-questions.md](../mentor-questions.md).
 - The assessment is made on the button; a `UNIT_RETURNED` handler could make it automatic (D64).
 - `wait-06` and `wait-14` (the laptop twins) differ only in their sign-up day, which the data does not hold; D13 then falls back to the lower id, `wait-06`, which matches the brief's answer.
 - Whether D43's term cap should shorten a later life (an old item on a 48-month lease outlives its design life) is still open.
