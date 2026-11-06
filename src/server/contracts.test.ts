@@ -16,6 +16,7 @@ import {
   endContract,
   getContract,
   getContractDetails,
+  listContracts,
   signContract,
 } from './contracts';
 import { listInvoices } from './invoices';
@@ -273,7 +274,7 @@ describe('signContract refusals write nothing', () => {
     }
   );
 
-  it('quote_expired after the 14 days, start_too_far past one year (D44)', async () => {
+  it('quote_expired after the 14 days, start_too_far past one year (D45)', async () => {
     const applicationId = await application();
     expect(
       await signContract(db, { applicationId, actor: 'cust-aino' }, '2026-11-20', data)
@@ -370,5 +371,27 @@ describe('endContract, the contract operation the exits call (kickoff brief sect
       )
     ).rejects.toThrow();
     expect((await getContract(db, id))?.status).toBe('active');
+  });
+
+  it('listContracts gives one customer their own contracts, newest first, and admin all (My leases)', async () => {
+    const sign = async (terms: QuoteTerms) => {
+      const result = await signContract(
+        db,
+        { applicationId: await application(terms), actor: 'cust-aino' },
+        terms.today,
+        data
+      );
+      if (!result.ok) throw new Error(result.reason.code);
+      return result.details.contract.id;
+    };
+    const first = await sign(CARD_1);
+    const second = await sign({ ...CARD_1, assetId: 'laptop-001', today: '2026-11-06' });
+
+    expect((await listContracts(db, { customerId: 'cust-aino' })).map((c) => c.id)).toEqual([
+      second,
+      first,
+    ]);
+    expect(await listContracts(db, { customerId: 'cust-mikko' })).toEqual([]);
+    expect(await listContracts(db, {})).toHaveLength(2);
   });
 });

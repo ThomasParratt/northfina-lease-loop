@@ -20,6 +20,7 @@ Session: Opus, from the coordinating session's brief. Base `origin/main` at `c7a
 | 23:20 | The review (`967ae67`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 23:22 | `main` moved again (#25, D37 to D40): merged, renumbered this branch's rows to D41 (test isolation) and D42 (start date); later D43 and D44, see the last row (`0db07af`). `check:all` green on the second run (99 files, 1009 tests).                                                                                                                                                                                                                                                                                            |
 | 02:29 | Thomas's review: #29 to #32 landed and #32 took D41 and D42. The coordinating session had already merged `main` and renumbered on the branch (11-06 00:37, `57fd00c`, `08615dc`); this session finished its own merge the same way, merged #37 to #47 (the Sign form moved to the one-year cap), made `contractBalanceOn`'s `status` required and gave the README test a shallow-clone message (Thomas's notes), then merged the two branch commits. Targeted tests, one `check:all` before the push (timeouts only, under load). |
+| 03:11 | Main moved again (#33, #36, #48): #33 took D43, so this branch's rows are D44 (test isolation) and D45 (start date); My leases joins the feature lists; #33's Pricing paragraph moved into `docs/team-notes.md`.                                                                                                                                                                                                                                                                                                                  |
 
 ## Blocked
 
@@ -27,11 +28,11 @@ Session: Opus, from the coordinating session's brief. Base `origin/main` at `c7a
 
 ## Left undone
 
-- D43 (test isolation) was filled from `docs/features/test-isolation.md` once #26 landed.
+- D44 (test isolation) was filled from `docs/features/test-isolation.md` once #26 landed.
 - The "Tests that pin the numbers" lines in `contracts.md` (still "the 90-day boundary"), `catalogue.md` and `invoicing.md` (the new transition and D35 tests): the hardening session's sections.
 - #25's validation was merged, not reviewed.
 - The 375 px check of every page after #19 (Johannes's TODO) is in the hardening brief.
 - Housekeeping: merged branches with generated names are still on the fork; deleting them needs an admin.
-- The commit `a5c8f4f` names the start-date decision D38 in its subject; it is D44 after #25 and #32 took D37 to D42 (the squash commit will say D44).
+- The commit `a5c8f4f` names the start-date decision D38 in its subject; it is D45 after #25, #32 and #33 took D37 to D43 (the squash commit will say D45).
 
 Closed 2026-11-05 23:36: pushed to `origin/chore/wave2-upkeep`, the PR waits for Thomas's review.

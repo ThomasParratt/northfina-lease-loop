@@ -154,7 +154,11 @@ export async function createApplication(
     const problem =
       answer === undefined
         ? null
-        : answerProblem(question, answer, { today: input.today, answers });
+        : answerProblem(question, answer, {
+            today: input.today,
+            answers,
+            applicantEmail: found.customer.email,
+          });
     if (problem) return { ok: false, reason: 'invalid_answer', questionId: question.id, problem };
   }
   const missing = nextQuestion(questions, context, answers);
@@ -214,6 +218,21 @@ export async function getApplication(
 ): Promise<ApplicationView | null> {
   const row = await db.application.findUnique({ where: { id } });
   return row ? toApplicationView(row) : null;
+}
+
+/**
+ * The applications of one customer (`{ customerId }`) or, without it, every application
+ * (admin), newest first. For the My leases page.
+ */
+export async function listApplications(
+  db: PrismaClient,
+  filter: { customerId?: string }
+): Promise<ApplicationView[]> {
+  const rows = await db.application.findMany({
+    where: filter.customerId ? { customer_id: filter.customerId } : {},
+    orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+  });
+  return rows.map(toApplicationView);
 }
 
 export type DecideApplicationInput = {

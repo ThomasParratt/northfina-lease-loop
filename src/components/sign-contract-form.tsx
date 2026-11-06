@@ -14,7 +14,7 @@ import { Button, Field, Notice, inputClasses } from './ui';
 type SignContractFormProps = {
   applicationId: string;
   locale: Locale;
-  /** The signing day (the server's today) and the latest start it allows (D7, D44). */
+  /** The signing day (the server's today) and the latest start it allows (D7, D45). */
   today: string;
   maxStartDate: string;
   maxMonths: number;

@@ -275,7 +275,7 @@ describe('planContract refusals (codes with params)', () => {
     });
   });
 
-  it(`accepts a start ${START_MONTHS_MAX} months after signing (D44; D7: signing day before start day)`, () => {
+  it(`accepts a start ${START_MONTHS_MAX} months after signing (D45; D7: signing day before start day)`, () => {
     const plan = signed(planContract(input({ startDate: '2027-11-05' })));
     expect(plan.contract).toMatchObject({ signedOn: '2026-11-05', startDate: '2027-11-05' });
     expect(plan.event.signedOn).toBe('2026-11-05');

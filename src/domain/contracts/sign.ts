@@ -10,7 +10,7 @@ import { applicationDecisionSchema, type ContractStatus } from '@/domain/statuse
 import { contractNumber } from './number';
 
 /**
- * The latest start is this many calendar months after the signing day (D44: today or a chosen
+ * The latest start is this many calendar months after the signing day (D45: today or a chosen
  * day up to one year ahead; D7 lets the start come later). Counted with `addMonthsClamped`, so
  * a signing on 29 February 2028 may start up to 28 February 2029.
  */
