@@ -1,6 +1,7 @@
 // Card 9 on a real migrated database: `ebike-007` came back fair with 18 400 km. Assessed on
 // 6 Nov 2026 it is relisted as returned (no refurbishment beyond the mandatory steps) for
 // wait-02, at 155 476 financed, and a quote at wait-02's term gives the matched rent.
+import { refusal } from '../../../tests/helpers/authz';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { seedPack } from '../../../tests/helpers/invoice-fixture';
 import { resetDb } from '../../../tests/helpers/reset-db';
@@ -112,7 +113,7 @@ describe('card 9: ebike-007 assessed, matched and relisted', () => {
   it('only admin assesses, and only a returned asset', async () => {
     expect(await assessAsset(db, { assetId: 'ebike-007', actor: 'cust-aino', today })).toEqual({
       ok: false,
-      reason: { code: 'admin_only', params: {} },
+      reason: refusal('admin_only', 'assess_asset'),
     });
     expect(await assessAsset(db, { assetId: 'ebike-003', actor: 'admin', today })).toEqual({
       ok: false,

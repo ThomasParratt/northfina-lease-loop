@@ -1,4 +1,5 @@
 // Runs against a real, migrated SQLite database (see tests/global-setup.ts).
+import { forbidden } from '../../tests/helpers/authz';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { loadCustomers } from '@/data/load';
 import type { Customer } from '@/data/schemas';
@@ -80,14 +81,12 @@ describe('addSignatory', () => {
   });
 
   it('the trap: a stranger, anonymous or Norvi’s coordinator who may not sign is refused', async () => {
-    expect(await addSignatory(db, { ...cfo, actor: 'cust-aino' })).toEqual({
-      ok: false,
-      reason: 'not_allowed',
-    });
-    expect(await addSignatory(db, { ...cfo, actor: 'anonymous' })).toEqual({
-      ok: false,
-      reason: 'not_allowed',
-    });
+    expect(await addSignatory(db, { ...cfo, actor: 'cust-aino' })).toEqual(
+      forbidden('not_owner', 'manage_signatories')
+    );
+    expect(await addSignatory(db, { ...cfo, actor: 'anonymous' })).toEqual(
+      forbidden('not_signed_in', 'manage_signatories')
+    );
     expect(
       await addSignatory(db, {
         ...cfo,
@@ -95,7 +94,7 @@ describe('addSignatory', () => {
         email: 'friend@norvi.example.com',
         actor: 'cust-norvi',
       })
-    ).toEqual({ ok: false, reason: 'not_allowed' });
+    ).toEqual(forbidden('signatory_required', 'manage_signatories'));
     expect(await db.auditLog.count()).toBe(0);
   });
 
@@ -160,6 +159,6 @@ describe('revokeSignatory', () => {
         actor: 'cust-aino',
         today: TODAY,
       })
-    ).toEqual({ ok: false, reason: 'not_allowed' });
+    ).toEqual(forbidden('not_owner', 'manage_signatories'));
   });
 });

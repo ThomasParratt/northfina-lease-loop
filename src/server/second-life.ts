@@ -22,10 +22,11 @@ import {
   type ReturnAssessmentResult,
 } from '@/domain/second-life/assess';
 import { matchDemand, type MatchResult } from '@/domain/second-life/match';
-import { ADMIN_ACTOR } from './actor';
+import type { AuthzRefusal } from '@/domain/authz/policy';
 import { appendAssetEvent } from './asset-events';
 import { AssetNotReturnedError, getAsset, relistReturnedAsset } from './assets';
 import { withAudit, type TransactionClient } from './audit';
+import { authorize } from './authorize';
 import { listAssetContracts } from './contracts';
 import type { PrismaClient } from './prisma-client';
 import { loadPricingData } from './quotes';
@@ -67,7 +68,7 @@ export type AssessmentView = SecondLifeProposal & {
 };
 
 export type AssessRefusal =
-  | { code: 'admin_only'; params: Record<string, never> }
+  | AuthzRefusal
   | { code: 'asset_not_found'; params: { assetId: string } }
   | { code: 'asset_not_returned'; params: { assetId: string; status: string } }
   | { code: 'no_list_price'; params: { assetId: string } };
@@ -167,7 +168,9 @@ export async function assessAsset(
   input: { assetId: string; actor: string; today: string },
   data?: SecondLifeData
 ): Promise<AssessResult> {
-  if (input.actor !== ADMIN_ACTOR) return { ok: false, reason: { code: 'admin_only', params: {} } };
+  // D73: authorized before anything is read.
+  const auth = await authorize(db, input.actor, 'assess_asset', { none: true });
+  if (!auth.ok && auth.reason.code !== 'not_found') return { ok: false, reason: auth.reason };
   const built = await previewAssessment(db, input.assetId, input.today, data);
   if (!built.ok) return built;
   const { proposal } = built;
