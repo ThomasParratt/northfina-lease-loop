@@ -226,11 +226,12 @@ describe('drill: a waiting list where nobody fits', () => {
     expect(taken.winner).toBeNull();
   });
 
-  it('with no winner the item is relisted at good for the catalogue (D61)', () => {
+  it('with no winner the item is relisted at the largest net gain, like new (D86)', () => {
     expect(match.winner).toBeNull();
     expect(match.ranking).toEqual([]);
     expect(match.decision.code).toBe('relist_without_match');
-    expect(match.relist.condition).toBe('good');
+    // like new: +53 528 of value for +20 000 of work beats good's +35 685 for +12 000.
+    expect(match.relist.condition).toBe('like_new');
   });
 
   it('an empty waiting list gives the same decision', () => {
