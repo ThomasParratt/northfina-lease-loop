@@ -144,6 +144,33 @@ describe('card 9: ebike-007 assessed, matched and relisted', () => {
     expect((await getAsset(db, 'ebike-007'))?.condition).toBe('good');
   });
 
+  it('the race (wave 3 finding 4): an entry won between the read and the write answers demand_taken and writes nothing', async () => {
+    const first = await assessAsset(db, { assetId: 'ebike-008', actor: 'admin', today });
+    if (!first.ok) throw new Error(first.reason.code);
+    await db.returnAssessment.update({
+      where: { id: first.view.id },
+      data: { matched_demand_id: 'wait-02' },
+    });
+    // The second assessment read the taken entries before the first one wrote: a stale read.
+    const stale = new Proxy(db, {
+      get(target, property) {
+        if (property === 'returnAssessment') {
+          return { ...target.returnAssessment, findMany: async () => [] };
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    });
+    const audit = await db.auditLog.count();
+    const result = await assessAsset(stale, { assetId: 'ebike-007', actor: 'admin', today });
+    expect(result).toEqual({
+      ok: false,
+      reason: { code: 'demand_taken', params: { demandId: 'wait-02' } },
+    });
+    expect(await db.auditLog.count()).toBe(audit);
+    expect((await getAsset(db, 'ebike-007'))?.status).toBe('returned');
+  });
+
   it('a stored assessment that does not parse reads as none, never a crash', async () => {
     const result = await assessAsset(db, { assetId: 'ebike-007', actor: 'admin', today });
     if (!result.ok) throw new Error(result.reason.code);

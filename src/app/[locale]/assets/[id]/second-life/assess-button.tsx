@@ -11,7 +11,7 @@ import { getT, type MessageKey } from '@/i18n/get-t';
 import type { Locale } from '@/i18n/locales';
 import { authzRefusalKey } from '@/components/authz-refusal';
 
-const REFUSALS = ['asset_not_returned', 'asset_not_found', 'no_list_price'];
+const REFUSALS = ['demand_taken', 'asset_not_returned', 'asset_not_found', 'no_list_price'];
 
 export function AssessButton({ assetId, locale }: { assetId: string; locale: Locale }) {
   const t = getT(locale);

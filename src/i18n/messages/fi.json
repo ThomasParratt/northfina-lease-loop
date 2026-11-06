@@ -394,7 +394,7 @@
   "authz.refusal.not_owner": "Tämä kuuluu toiselle asiakkaalle.",
   "authz.refusal.admin_only": "Vain ylläpitäjä voi tehdä tämän.",
   "authz.refusal.signatory_required": "Vain yrityksen valtuutettu allekirjoittaja voi tehdä tämän allekirjoituslinkin kautta.",
-  "authz.page.title": "Ei saatavilla",
+  "secondLife.refusal.demand_taken": "Toinen arviointi ehti juuri yhdistää tämän jonon tilauksen. Arvioi uudelleen löytääksesi seuraavan.",
   "contract.sign.title": "Allekirjoita sopimus",
   "contract.sign.intro": "Allekirjoitus lukitsee tarjouksesi hinnan koko vuokra-ajaksi. Vain arvonlisävero seuraa kunkin laskun päivänä voimassa olevaa verokantaa.",
   "contract.sign.startDate": "Vuokra alkaa",

@@ -11,6 +11,7 @@
 // an item with past lives the pack only counts uses D11's model-year age and the earliest price
 // list that has it, the price as new.
 import { randomUUID } from 'node:crypto';
+import { Prisma } from '@/generated/prisma/client';
 import { loadRefurbishmentCosts, loadResidualCurves, loadSecondLifeDemand } from '@/data/load';
 import type { Asset, SecondLifeRequest } from '@/data/schemas';
 import { returnAssessmentRowSchema } from '@/domain/rows/return-assessment';
@@ -71,7 +72,8 @@ export type AssessRefusal =
   | AuthzRefusal
   | { code: 'asset_not_found'; params: { assetId: string } }
   | { code: 'asset_not_returned'; params: { assetId: string; status: string } }
-  | { code: 'no_list_price'; params: { assetId: string } };
+  | { code: 'no_list_price'; params: { assetId: string } }
+  | { code: 'demand_taken'; params: { demandId: string } };
 
 type Built = { ok: true; proposal: SecondLifeProposal } | { ok: false; reason: AssessRefusal };
 
@@ -265,6 +267,12 @@ export async function assessAsset(
       },
     };
   } catch (error) {
+    // D62, wave 3 finding 4: another assessment won the same waiting-list entry first; the
+    // unique index on `matched_demand_id` refused this one and the transaction rolled back.
+    const demandId = match.winner?.demandId;
+    if (demandId && isUniqueViolation(error)) {
+      return { ok: false, reason: { code: 'demand_taken', params: { demandId } } };
+    }
     if (!(error instanceof AssetNotReturnedError)) throw error;
     const now = await getAsset(db, input.assetId);
     return {
@@ -275,6 +283,11 @@ export async function assessAsset(
       },
     };
   }
+}
+
+/** P2002: a unique index refused the row. */
+function isUniqueViolation(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
 }
 
 /** The verdict code of every entry and each candidate's rank step, as `{ code, params }`. */

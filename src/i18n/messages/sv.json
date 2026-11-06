@@ -394,7 +394,7 @@
   "authz.refusal.not_owner": "Det här tillhör en annan kund.",
   "authz.refusal.admin_only": "Bara en administratör kan göra det här.",
   "authz.refusal.signatory_required": "Bara företagets behöriga firmatecknare kan göra det här, via signeringslänken.",
-  "authz.page.title": "Inte tillgängligt",
+  "secondLife.refusal.demand_taken": "En annan bedömning matchade just den här väntelisteposten. Bedöm igen för att hitta nästa.",
   "contract.sign.title": "Skriv under avtalet",
   "contract.sign.intro": "Underskriften låser offertens pris för hela leasingperioden. Bara momsen följer den sats som gäller på varje fakturas datum.",
   "contract.sign.startDate": "Leasingen börjar",

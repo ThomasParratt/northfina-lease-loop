@@ -394,7 +394,7 @@
   "authz.refusal.not_owner": "This belongs to another customer.",
   "authz.refusal.admin_only": "Only an admin can do this.",
   "authz.refusal.signatory_required": "Only the company’s authorised signatory can do this, through the signing link.",
-  "authz.page.title": "Not available",
+  "secondLife.refusal.demand_taken": "Another assessment matched this waiting-list entry a moment ago. Assess again to find the next one.",
   "contract.sign.title": "Sign your contract",
   "contract.sign.intro": "Signing locks the price of your quote for the whole lease. Only the VAT follows the rate on each invoice's date.",
   "contract.sign.startDate": "The lease starts on",

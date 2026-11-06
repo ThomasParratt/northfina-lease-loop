@@ -16,6 +16,7 @@ const STATUS_OF: Record<Exclude<AssessRefusal['code'], AuthzRefusalCode>, number
   asset_not_found: 404,
   asset_not_returned: 409,
   no_list_price: 422,
+  demand_taken: 409,
 };
 
 export const POST = handleRoute(
