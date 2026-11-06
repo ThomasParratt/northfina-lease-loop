@@ -40,22 +40,27 @@ On the signing day the third life has 0 months and the passport shows 29 kg; the
 
 ### Money saved (D80)
 
-The same method with money in place of CO2: the item's net list price as new on the day (the price list in force, as the catalogue shows it), net of the same refurbishment share:
+In euros, from the data pack's money: a later life is credited with the share of a new item's price it used and charged what getting the item ready for it really cost:
 
 ```
-money saved = new list price × (1 − refurbishment share) × months counted ÷ design life months
+money saved = new list price × months counted ÷ design life months − refurbishment cost of that life
+              (never below 0; months counted as for the CO2)
 ```
 
-Card 10, `ebike-008`, 188 900 on price list v2 (from 6 Nov 2026): 188 900 × 0.88 ÷ 120 = 1 385.27 a month of later life.
+- **New list price:** the item's net list price on the day (the price list in force, as the catalogue shows it), so the saving is in today's money and moves when a new list starts: card 10's life 2 shows 314,80 € on 5 Nov and 332,80 € on 6 Nov.
+- **Refurbishment cost:** what the return assessment spent before that life (the `refurbished` event's `costCents`, from `refurbishment-costs.json`). A past life from before our records has **no record of the exact costs**, so it is charged only the costs we know were there: the steps the cost table does on every relisting (`when: "always"`: e-bike safety inspection 4 500, laptop data wipe 2 500, farm machine safety inspection 40 000). Its amount is shown as **estimated**, on the passport (per life and under the total) and on the landing page.
+- **Worn out:** a life past the design life counts 0 months and saves nothing; a life whose refurbishment cost more than the use it gave saves 0, never a negative amount, and never takes away from another life.
 
-| Life       | Months counted | Saved                                          |
-| ---------- | -------------- | ---------------------------------------------- |
-| 1 (past)   | 0              | 0 (first life)                                 |
-| 2 (past)   | 24             | 33 246.4 → 33 246                              |
-| 3 (logged) | 24             | 33 246.4 → 33 246                              |
-| **Total**  |                | 66 492.8 → **66 493** (664,93 €), rounded once |
+Card 10, `ebike-008`, 188 900 on price list v2 (from 6 Nov 2026): a 24-month life is 188 900 × 24 ÷ 120 = 37 780 of a new bike's use.
 
-On 5 Nov 2026 the v1 price (179 900) applies and the passport shows 316,62 € for life 2. The saving is in today's money: a new price list moves it, as it moves what a new item would cost. Integer cents and the share in millionths, one division, half up (D1); an item's total and each category row are rounded once from the exact sum, and the fleet total is the sum of the rows, so the landing page's breakdown adds up.
+| Life       | Months counted | Refurbishment                      | Saved                   |
+| ---------- | -------------- | ---------------------------------- | ----------------------- |
+| 1 (past)   | 0              | —                                  | 0 (first life)          |
+| 2 (past)   | 24             | 4 500, estimated (inspection only) | 37 780 − 4 500 = 33 280 |
+| 3 (logged) | 24             | 4 500 (card 10's assessment)       | 37 780 − 4 500 = 33 280 |
+| **Total**  |                |                                    | **66 560** (665,60 €)   |
+
+Had card 10's refurbishment cost 39 500 (a battery and the inspection), life 3 would save 0. Integer cents, one division, half up (D1); an item's total and each category row are rounded once from the exact sum, and the fleet total is the sum of the rows, so the landing page's breakdown adds up.
 
 The e-bike's avoided car km factor is not used: the data pack's usage is a lifetime total, not per life.
 
@@ -95,8 +100,10 @@ countedMonths(method, life): number                          // shared with the 
 `src/domain/second-life/money-saved.ts` (pure):
 
 ```ts
-moneySavedByLife(method, { category, lifeIndex, months, monthsUsedBefore?, newPriceCents }): number  // cents
-moneySavedForAsset(method, { category, newPriceCents: number | null, lives }): { perLifeCents: number[]; totalCents: number }
+mandatoryRefurbishmentCents(costs, category): number  // the `always` steps
+refurbishmentByLife(lives: { between }[], fallbackCents): number[]
+moneySavedByLife(method, { category, lifeIndex, months, monthsUsedBefore?, newPriceCents, refurbishmentCents }): number  // cents
+moneySavedForAsset(method, { category, newPriceCents: number | null, lives: { months, refurbishmentCents }[] }): { perLifeCents: number[]; totalCents: number }
 fleetMoneySaved(method, assets): { perCategory: { category, cents }[]; totalCents: number }
 ```
 
@@ -132,8 +139,8 @@ readFleetImpact(db, asOf): Promise<{ fleet: FleetImpact; money: FleetMoney; asse
 
 - `co2.test.ts`: "an item returned after 2 of 60 months earns 2/60 of the net footprint, not the whole" (4.84 → 5 kg); "a worn-out item whose lives already used the design life earns nothing more"; "a life longer than the remaining design life is capped"; "rounds the total once, not each life"; "card 10: ebike-008, two past lives and a 24-month third life, has saved 58 kg" (`[0, 29, 29]`, 58 080 g).
 - `passport.test.ts`: whole months (15 Jan → 14 Feb is one month, 31 Jan clamps), open life, two events on one day in log order, "card 10: ebike-008 shows its two past lives, undated and estimated".
-- `money-saved.test.ts`: the first life saves nothing, a whole design life saves 88 % of the new price, 7 of 60 months rounded once (10 267), an almost worn-out item counts only what is left, a 26 000 000 farm machine stays exact, "card 10: ebike-008 on 6 Nov 2026 has saved 332,46 €, and 664,93 € after its third life".
-- `asset-events.test.ts`: card 10 through the database (58 kg and 66 493 cents after 24 months, 29 kg and 33 246 on the signing day), a new item with no history, the fleet totals.
+- `money-saved.test.ts`: the first life saves nothing, a whole design life saves the new price minus the cost, 7 of 60 months rounded once (9 167), an almost worn-out item counts only what is left, a costlier refurbishment saves 0 and never takes away from another life, the mandatory steps per category (4 500, 2 500, 40 000), `refurbishmentByLife` (the logged cost, the fallback, a malformed cost refused), "card 10: ebike-008 on 6 Nov 2026 has saved 332,80 €, and 665,60 € after its third life".
+- `asset-events.test.ts`: card 10 through the database (58 kg and 66 560 cents after 24 months, 29 kg and 33 280 on the signing day; a 39 500 refurbishment leaves life 3 at 0), a new item with no history, the fleet totals.
 - `passport-handlers.test.ts`: each event writes its row; a later handler failure rolls the row back with the audit row.
 - `src/domain/scenarios/card-10-third-life.test.ts` (scenario harness): the passport from the data pack and a logged third life feeds the CO2 counter, [0, 29, 29] → 58 kg; an open third life at 12 months adds 15 kg.
 
