@@ -4,12 +4,16 @@
 // many units a consumer may lease, whether an income or a revenue is believable) were decided
 // on 2026-11-06 and are pinned here on the real pack (plausibility.ts, data/consumer-limits.json).
 import { describe, expect, it } from 'vitest';
+import type { Customer } from '@/data/schemas';
 import { applyFor, customerById, quoteFor, type Application } from './fixtures';
 
 const DAY = '2026-11-05';
 const aino = customerById('cust-aino');
 const kettu = customerById('cust-kettukoodi');
 const norvi = customerById('cust-norvi');
+/** A company with another revenue on record, so D38 does not hold the answer as a difference. */
+const withRevenue = (c: Customer, cents: number): Customer =>
+  c.type === 'company' ? { ...c, annual_revenue_cents: cents } : c;
 
 const bikes = (quantity: number, downPaymentCents = 0) => ({
   assetId: 'ebike-003',
@@ -270,7 +274,7 @@ describe('company answers at 5 000 000 and over', () => {
   });
 
   it('annual revenue below the financed amount (1 cent on 5 235 000) is held: revenue_below_financed', () => {
-    const app = applyFor({ ...kettu, annual_revenue_cents: 1 }, big);
+    const app = applyFor(withRevenue(kettu, 1), big);
     expect(app.ok && app.result).toEqual({
       decision: 'manual_review',
       reasons: [
@@ -280,7 +284,7 @@ describe('company answers at 5 000 000 and over', () => {
   });
 
   it('revenue equal to the financed amount passes; 0 counts as below (norvi has 410 000 000 on record)', () => {
-    expect(outcome(applyFor({ ...kettu, annual_revenue_cents: 5_235_000 }, big))).toBe(
+    expect(outcome(applyFor(withRevenue(kettu, 5_235_000), big))).toBe(
       'approved:all_checks_passed'
     );
     // norvi's applicant may not sign, so the signatory is still named
