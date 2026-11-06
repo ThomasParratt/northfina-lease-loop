@@ -109,10 +109,11 @@ describe('planExit, card 8: Aino leaves in month 7', () => {
     expect(p.invoice).toMatchObject({ kind: 'early_exit', netCents: 75_945, vatCents: 19_746 });
   });
 
-  it('a pass-on names the next customer and costs what a return costs (D16)', () => {
+  it('D90: an early pass-on names the next customer, cancels the unpaid rents and bills 71 445 net, no refurbishment', () => {
     const p = plan({ mode: 'pass_on', nextCustomerId: 'cust-matti' });
     expect(p.event).toMatchObject({ type: 'UNIT_PASSED_ON', nextCustomerId: 'cust-matti' });
-    expect(p.invoice?.netCents).toBe(75_945);
+    expect(p.invoice?.netCents).toBe(71_445);
+    expect(p.status).toBe('ended_early');
   });
 
   it('an overdue unpaid rent is cancelled too: the balance already contains it', () => {
