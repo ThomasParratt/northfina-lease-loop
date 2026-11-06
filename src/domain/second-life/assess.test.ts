@@ -193,10 +193,10 @@ describe('assessReturn on other data', () => {
 
 describe('withSecondLifePrice', () => {
   it('replaces the asset price in every list and keeps the versions and other prices', () => {
-    const lists = withSecondLifePrice(pricing, 'ebike-007', 132_281).priceLists;
+    const lists = withSecondLifePrice(pricing, 'ebike-007', 155_476).priceLists;
     expect(lists.map((l) => [l.version, l.prices['ebike-007']])).toEqual([
-      [1, 132_281],
-      [2, 132_281],
+      [1, 155_476],
+      [2, 155_476],
     ]);
     expect(lists[0]!.prices['ebike-001']).toBe(pricing.priceLists[0]!.prices['ebike-001']);
     expect(pricing.priceLists[0]!.prices['ebike-007']).toBe(549_000);
