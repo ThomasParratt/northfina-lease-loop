@@ -551,6 +551,7 @@
   "exit.ended.body": "Status: {status}. Avslutat {date}. Slutfakturan finns i listan nedan.",
   "exit.refusal.not_started": "Avtalet har inte börjat än, så det kan inte avslutas.",
   "exit.refusal.usage_below_signing": "Den angivna användningen ({value} {unit}) är lägre än de {atSigning} {unit} varan hade när den hyrdes ut.",
+  "exit.refusal.asset_not_leased": "Varan är inte längre markerad som uthyrd, så avtalet kan inte avslutas nu. Be Northfina kontrollera den.",
   "signatories.notFound": "Den firmatecknaren finns inte längre i listan. Ladda om sidan.",
   "decision.refusal.notPending": "Ansökan är redan avgjord. Ladda om sidan för att se beslutet.",
   "decision.refusal.notFound": "Ansökan hittades inte.",
