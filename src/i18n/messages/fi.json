@@ -660,5 +660,7 @@
   "secondLife.refusal.unknown": "Jokin meni vikaan. Yritä uudelleen.",
   "secondLife.passportLink": "Katso tuotepassi",
   "secondLife.priceLink": "Tee tarjous toisen elämän hinnalla",
-  "secondLife.priceNote": "Hinnoiteltu toisen elämän summalla {price} arvion {date} perusteella (D12) listahinnan sijaan. Tarjous näyttää voimassa olevan hinnaston; summa on arvion."
+  "secondLife.priceNote": "Hinnoiteltu toisen elämän summalla {price} arvion {date} perusteella (D12) listahinnan sijaan. Tarjous näyttää voimassa olevan hinnaston; summa on arvion.",
+  "secondLife.verdict.expired": "Ei enää jonossa: tarvittiin viimeistään {date}",
+  "secondLife.verdict.already_matched": "Jo valittu toisen palautetun tuotteen saajaksi"
 }

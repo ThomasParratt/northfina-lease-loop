@@ -12,12 +12,7 @@
 // list that has it, the price as new.
 import { randomUUID } from 'node:crypto';
 import { loadRefurbishmentCosts, loadResidualCurves, loadSecondLifeDemand } from '@/data/load';
-import {
-  assetConditionSchema,
-  assetStatusSchema,
-  type Asset,
-  type SecondLifeRequest,
-} from '@/data/schemas';
+import type { Asset, SecondLifeRequest } from '@/data/schemas';
 import { returnAssessmentRowSchema } from '@/domain/rows/return-assessment';
 import {
   assessReturn,
@@ -29,12 +24,21 @@ import {
 import { matchDemand, type MatchResult } from '@/domain/second-life/match';
 import { ADMIN_ACTOR } from './actor';
 import { appendAssetEvent } from './asset-events';
-import { getAsset } from './assets';
+import { AssetNotReturnedError, getAsset, relistReturnedAsset } from './assets';
 import { withAudit, type TransactionClient } from './audit';
+import { listAssetContracts } from './contracts';
 import type { PrismaClient } from './prisma-client';
 import { loadPricingData } from './quotes';
 import { parseRow } from './row-rules';
-import type { AssessmentResponse } from './second-life-schemas';
+import { storedAssessmentSchema, type AssessmentResponse } from './second-life-schemas';
+
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
 
 export type SecondLifeData = AssessData & { demand: readonly SecondLifeRequest[] };
 
@@ -70,13 +74,13 @@ export type AssessRefusal =
 
 type Built = { ok: true; proposal: SecondLifeProposal } | { ok: false; reason: AssessRefusal };
 
-/** The asset's first and latest contracts in our books (oldest signing first). */
-async function contractsOf(db: PrismaClient | TransactionClient, assetId: string) {
-  return db.contract.findMany({
-    where: { asset_id: assetId },
-    orderBy: [{ signed_on: 'asc' }, { number: 'asc' }],
-    select: { id: true, start_date: true, list_price_cents: true },
+/** The waiting-list entries an earlier assessment already matched (D62): one item each. */
+async function matchedDemandIds(db: PrismaClient | TransactionClient): Promise<string[]> {
+  const rows = await db.returnAssessment.findMany({
+    where: { matched_demand_id: { not: null } },
+    select: { matched_demand_id: true },
   });
+  return rows.flatMap((row) => (row.matched_demand_id ? [row.matched_demand_id] : []));
 }
 
 async function buildProposal(
@@ -85,11 +89,14 @@ async function buildProposal(
   today: string,
   data: SecondLifeData
 ): Promise<Built> {
-  const contracts = await contractsOf(db, asset.id);
+  const [contracts, taken] = await Promise.all([
+    listAssetContracts(db, asset.id),
+    matchedDemandIds(db),
+  ]);
   const first = contracts[0];
   const ours = asset.previous_lives === 0 && first !== undefined;
   const newPriceCents = ours
-    ? first.list_price_cents
+    ? first.unitListPriceCents
     : firstLeaseListPriceCents(data.pricing.priceLists, asset.id);
   if (newPriceCents === null) {
     return { ok: false, reason: { code: 'no_list_price', params: { assetId: asset.id } } };
@@ -103,7 +110,7 @@ async function buildProposal(
     age: {
       modelYear: asset.model_year,
       previousLives: ours ? 0 : Math.max(1, asset.previous_lives),
-      leaseStart: ours ? first.start_date : today,
+      leaseStart: ours ? first.startDate : today,
     },
     newPriceCents,
     isoDate: today,
@@ -115,7 +122,7 @@ async function buildProposal(
       contractId: contracts.at(-1)?.id ?? null,
       input,
       assessment,
-      match: matchDemand(assessment, data.demand),
+      match: matchDemand(assessment, data.demand, taken),
     },
   };
 }
@@ -146,9 +153,6 @@ export async function previewAssessment(
   if (!found.ok) return found;
   return buildProposal(db, found.asset, today, data ?? (await loadSecondLifeData()));
 }
-
-/** Thrown inside the transaction when the asset stopped being `returned`. */
-class AssetNoLongerReturned extends Error {}
 
 export type AssessResult =
   { ok: true; view: AssessmentView } | { ok: false; reason: AssessRefusal };
@@ -239,16 +243,12 @@ export async function assessAsset(
             secondLifeFinancedCents: relist.secondLifeFinancedCents,
           },
         });
-        // D23: every status-like value parsed before the write.
-        const { count } = await tx.asset.updateMany({
-          where: { id: input.assetId, status: assetStatusSchema.parse('returned') },
-          data: {
-            status: assetStatusSchema.parse('available'),
-            condition: assetConditionSchema.parse(relist.condition),
-            usage_value: relist.plan.usageAfter.value,
-          },
+        // The catalogue's own write (team rule 3): D22's returned → available, D23's parsing.
+        await relistReturnedAsset(tx, {
+          assetId: input.assetId,
+          condition: relist.condition,
+          usageValue: relist.plan.usageAfter.value,
         });
-        if (count !== 1) throw new AssetNoLongerReturned();
         return saved;
       }
     );
@@ -262,7 +262,7 @@ export async function assessAsset(
       },
     };
   } catch (error) {
-    if (!(error instanceof AssetNoLongerReturned)) throw error;
+    if (!(error instanceof AssetNotReturnedError)) throw error;
     const now = await getAsset(db, input.assetId);
     return {
       ok: false,
@@ -296,7 +296,12 @@ export async function latestAssessment(
     orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
   });
   if (!row) return null;
-  const stored = JSON.parse(row.assessment_json) as Omit<SecondLifeProposal, 'contractId'>;
+  const parsed = storedAssessmentSchema.safeParse(parseJson(row.assessment_json));
+  // An unreadable row (an older build, a hand edit) shows as "not assessed"; its price column
+  // still prices the item (second-life-price.ts).
+  if (!parsed.success) return null;
+  // The schema checks every field the page and the route read; the rest is the domain's shape.
+  const stored = parsed.data as unknown as Omit<SecondLifeProposal, 'contractId'>;
   return {
     ...stored,
     contractId: row.contract_id,

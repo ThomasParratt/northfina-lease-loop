@@ -126,4 +126,30 @@ describe('card 9: ebike-007 assessed, matched and relisted', () => {
       reason: { code: 'asset_not_found' },
     });
   });
+
+  it('an entry already matched to another item is passed over (D62): wait-13 gets it, good', async () => {
+    const first = await assessAsset(db, { assetId: 'ebike-008', actor: 'admin', today });
+    if (!first.ok) throw new Error(first.reason.code);
+    // Stand-in for an earlier match of wait-02 to another item.
+    await db.returnAssessment.update({
+      where: { id: first.view.id },
+      data: { matched_demand_id: 'wait-02' },
+    });
+    const result = await assessAsset(db, { assetId: 'ebike-007', actor: 'admin', today });
+    if (!result.ok) throw new Error(result.reason.code);
+    const wait02 = result.view.match.verdicts.find((v) => v.demandId === 'wait-02');
+    expect(wait02?.outcome.code).toBe('already_matched');
+    expect(result.view.match.winner?.demandId).toBe('wait-13');
+    expect((await getAsset(db, 'ebike-007'))?.condition).toBe('good');
+  });
+
+  it('a stored assessment that does not parse reads as none, never a crash', async () => {
+    const result = await assessAsset(db, { assetId: 'ebike-007', actor: 'admin', today });
+    if (!result.ok) throw new Error(result.reason.code);
+    await db.returnAssessment.update({
+      where: { id: result.view.id },
+      data: { assessment_json: '{}' },
+    });
+    expect(await latestAssessment(db, 'ebike-007')).toBeNull();
+  });
 });

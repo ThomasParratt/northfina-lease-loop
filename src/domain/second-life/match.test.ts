@@ -181,3 +181,52 @@ describe('matchDemand on other data', () => {
     expect(match.relist.condition).toBe('fair');
   });
 });
+
+describe('matchDemand: who is still waiting (D62)', () => {
+  it('an entry whose need date has passed is expired, not the earliest', () => {
+    const later = assessReturn({ ...ebike007, isoDate: '2026-11-11' }, data);
+    const match = matchDemand(later, pack.demand);
+    expect(match.verdicts.find((v) => v.demandId === 'wait-02')!.outcome).toEqual({
+      code: 'expired',
+      params: { neededBy: '2026-11-10', isoDate: '2026-11-11' },
+    });
+    expect(match.winner?.demandId).toBe('wait-04');
+  });
+
+  it('needed on the assessment day itself still counts', () => {
+    const onTheDay = assessReturn({ ...ebike007, isoDate: '2026-11-10' }, data);
+    expect(matchDemand(onTheDay, pack.demand).winner?.demandId).toBe('wait-02');
+  });
+
+  it('an entry an earlier assessment matched is not matched twice', () => {
+    const match = matchDemand(assessed, pack.demand, ['wait-02']);
+    expect(match.verdicts.find((v) => v.demandId === 'wait-02')!.outcome.code).toBe(
+      'already_matched'
+    );
+    expect(match.winner?.demandId).toBe('wait-13');
+  });
+});
+
+describe('card 10 on a later clock (D62)', () => {
+  it('on 2026-11-09 wait-05 (needed by 11-08) is expired and wait-13 wins ebike-008', () => {
+    const ebike008 = assessReturn(
+      {
+        assetId: 'ebike-008',
+        category: 'e_bike',
+        condition: 'good',
+        usage: { unit: 'km', value: 9_800 },
+        age: { modelYear: 2022, previousLives: 2, leaseStart: '2022-01-01' },
+        newPriceCents: 179_900,
+        isoDate: '2026-11-09',
+      },
+      data
+    );
+    const match = matchDemand(ebike008, pack.demand);
+    expect(match.verdicts.find((v) => v.demandId === 'wait-05')!.outcome.code).toBe('expired');
+    // wait-02 and wait-13 tie on the first two steps; 24 × 1 359 beats 12 × 2 078.
+    expect(match.ranking.slice(0, 2).map((r) => [r.demandId, r.decidedBy])).toEqual([
+      ['wait-13', null],
+      ['wait-02', 'total_rent'],
+    ]);
+  });
+});

@@ -3,7 +3,8 @@
 // steps.
 //
 // 1. Each entry's verdict, the first failing step named:
-//    other category → the term is not offered for the category (D43) → the condition the entry
+//    other category → already matched to another item (D62) → needed before the assessment day
+//    (D62) → the term is not offered for the category (D43) → the condition the entry
 //    needs cannot be reached → the rent cannot be priced on that term → over budget.
 //    The condition an entry is offered is the lowest that satisfies it: max(as returned, its
 //    minimum, fair). Fair is the floor for anyone (D61: the cost table's note, "a returned item
@@ -38,6 +39,8 @@ export type CandidateParams = {
 
 export type MatchOutcome =
   | { code: 'other_category'; params: { category: AssetCategory } }
+  | { code: 'already_matched'; params: Record<string, never> }
+  | { code: 'expired'; params: { neededBy: string; isoDate: string } }
   | { code: 'term_not_offered'; params: { termMonths: number; terms: number[] } }
   | { code: 'condition_unreachable'; params: { minCondition: AssetCondition } }
   | { code: 'rent_not_priced'; params: { termMonths: number; refusal: string } }
@@ -88,10 +91,16 @@ const atLeast = (...conditions: AssetCondition[]): AssetCondition =>
 function verdictOf(
   assessed: ReturnAssessmentResult,
   category: AssetCategory,
-  entry: SecondLifeRequest
+  entry: SecondLifeRequest,
+  taken: ReadonlySet<string>
 ): MatchOutcome {
   if (entry.category !== category) {
     return { code: 'other_category', params: { category: entry.category } };
+  }
+  if (taken.has(entry.id)) return { code: 'already_matched', params: {} };
+  // ISO days compare as strings; needed on the assessment day itself still counts.
+  if (entry.needed_by < assessed.isoDate) {
+    return { code: 'expired', params: { neededBy: entry.needed_by, isoDate: assessed.isoDate } };
   }
   const termMonths = entry.preferred_term_months;
   const terms = assessed.options[0]!.rents.map((r) => r.termMonths);
@@ -146,16 +155,21 @@ function firstDifference(a: Candidate, b: Candidate): { step: RankStep; sign: nu
   return null;
 }
 
-/** D13 and D61 over `demand`, for the assessed item of `category`. */
+/**
+ * D13 and D61 over `demand`, for the assessed item. `taken`: the entries an earlier assessment
+ * already matched, so one entry never wins two items (D62).
+ */
 export function matchDemand(
   assessed: ReturnAssessmentResult,
-  demand: readonly SecondLifeRequest[]
+  demand: readonly SecondLifeRequest[],
+  taken: readonly string[] = []
 ): MatchResult {
+  const takenIds = new Set(taken);
   const { category } = assessed;
   const verdicts: Verdict[] = demand.map((entry) => ({
     demandId: entry.id,
     neededBy: entry.needed_by,
-    outcome: verdictOf(assessed, category, entry),
+    outcome: verdictOf(assessed, category, entry, takenIds),
   }));
 
   const candidates: Candidate[] = verdicts.flatMap((v) =>

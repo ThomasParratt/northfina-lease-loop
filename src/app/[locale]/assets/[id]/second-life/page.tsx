@@ -57,7 +57,7 @@ function stepLabel(step: RefurbishmentStep, { t }: Ctx): string {
   return step.quantity > 1 ? t('secondLife.plan.quantity', { label, count: step.quantity }) : label;
 }
 
-function verdictText(outcome: MatchOutcome, { t, euro }: Ctx): string {
+function verdictText(outcome: MatchOutcome, { t, euro, locale }: Ctx): string {
   switch (outcome.code) {
     case 'candidate':
       return t('secondLife.verdict.candidate', {
@@ -78,6 +78,12 @@ function verdictText(outcome: MatchOutcome, { t, euro }: Ctx): string {
       return t('secondLife.verdict.condition_unreachable', {
         condition: conditionText(t, outcome.params.minCondition),
       });
+    case 'expired':
+      return t('secondLife.verdict.expired', {
+        date: formatIsoDate(outcome.params.neededBy, locale),
+      });
+    case 'already_matched':
+      return t('secondLife.verdict.already_matched');
     case 'other_category':
       return '';
   }

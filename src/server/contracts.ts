@@ -346,3 +346,18 @@ export async function endContract(
   if (count !== 1) return null;
   return toContractView(await tx.contract.findUniqueOrThrow({ where: { id: input.id } }));
 }
+
+/**
+ * The contracts of one asset, oldest signing first: the second life reads the first one (the
+ * price and day of the first lease, D60) and the latest (the lease it came back from).
+ */
+export async function listAssetContracts(
+  db: PrismaClient | TransactionClient,
+  assetId: string
+): Promise<ContractView[]> {
+  const rows = await db.contract.findMany({
+    where: { asset_id: assetId },
+    orderBy: [{ signed_on: 'asc' }, { number: 'asc' }],
+  });
+  return rows.map(toContractView);
+}

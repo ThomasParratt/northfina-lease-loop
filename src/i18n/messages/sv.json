@@ -660,5 +660,7 @@
   "secondLife.refusal.unknown": "Något gick fel. Försök igen.",
   "secondLife.passportLink": "Se passet",
   "secondLife.priceLink": "Offerera till priset för andra livet",
-  "secondLife.priceNote": "Prissatt till beloppet för andra livet, {price}, från bedömningen {date} (D12) i stället för listpriset. Offerten visar den prislista som gäller; beloppet är bedömningens."
+  "secondLife.priceNote": "Prissatt till beloppet för andra livet, {price}, från bedömningen {date} (D12) i stället för listpriset. Offerten visar den prislista som gäller; beloppet är bedömningens.",
+  "secondLife.verdict.expired": "Väntar inte längre: behövdes senast {date}",
+  "secondLife.verdict.already_matched": "Redan matchad mot en annan returnerad vara"
 }

@@ -660,5 +660,7 @@
   "secondLife.refusal.unknown": "Something went wrong. Try again.",
   "secondLife.passportLink": "See the passport",
   "secondLife.priceLink": "Quote it at the second-life price",
-  "secondLife.priceNote": "Priced at its second-life amount, {price}, from the assessment on {date} (D12) instead of the list price. The quote names the price list that is live; the amount is the assessment’s."
+  "secondLife.priceNote": "Priced at its second-life amount, {price}, from the assessment on {date} (D12) instead of the list price. The quote names the price list that is live; the amount is the assessment’s.",
+  "secondLife.verdict.expired": "No longer waiting: needed by {date}",
+  "secondLife.verdict.already_matched": "Already matched to another returned item"
 }

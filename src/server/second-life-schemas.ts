@@ -37,3 +37,61 @@ export const assessmentResponseSchema = z.object({
   ),
 });
 export type AssessmentResponse = z.infer<typeof assessmentResponseSchema>;
+
+// ---------- the stored assessment (`ReturnAssessment.assessment_json`) ----------
+
+const condition = assetConditionSchema;
+const cents = centsSchema;
+const planSchema = z
+  .object({
+    steps: z.array(z.object({ id: z.string(), costCents: cents }).loose()),
+    totalCents: cents,
+    usageAfter: z.object({ unit: z.string(), value: z.number().int().nonnegative() }),
+  })
+  .loose();
+const optionSchema = z
+  .object({
+    condition,
+    upgrade: z.boolean(),
+    plan: planSchema,
+    marketValue: z.object({ valueCents: cents, ageMonths: z.number().int() }).loose(),
+    secondLifeFinancedCents: cents,
+    rents: z.array(
+      z.object({ termMonths: z.number().int(), monthlyNetCents: cents.nullable() }).loose()
+    ),
+  })
+  .loose();
+
+/**
+ * What the page and the route read from a stored assessment, parsed before use: a row written by
+ * an older build or edited by hand is reported as unreadable instead of crashing the page.
+ */
+export const storedAssessmentSchema = z.object({
+  input: z
+    .object({
+      assetId: z.string(),
+      usage: z.object({ unit: z.string(), value: z.number().int().nonnegative() }),
+      newPriceCents: cents,
+    })
+    .loose(),
+  assessment: z
+    .object({
+      assetId: z.string(),
+      isoDate: isoDateSchema,
+      ageMonths: z.number().int().nonnegative(),
+      returnedCondition: condition,
+      options: z.array(optionSchema).min(1),
+    })
+    .loose(),
+  match: z
+    .object({
+      verdicts: z.array(z.object({ demandId: z.string(), outcome: outcomeSchema }).loose()),
+      ranking: z.array(
+        z.object({ demandId: z.string(), rank: z.number().int().positive() }).loose()
+      ),
+      winner: z.object({ demandId: z.string() }).loose().nullable(),
+      decision: outcomeSchema,
+      relist: optionSchema,
+    })
+    .loose(),
+});

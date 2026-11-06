@@ -660,5 +660,7 @@
   "secondLife.refusal.unknown": "Midagi läks valesti. Proovi uuesti.",
   "secondLife.passportLink": "Vaata passi",
   "secondLife.priceLink": "Koosta pakkumine teise elu hinnaga",
-  "secondLife.priceNote": "Hinnastatud teise elu summaga {price} hinnangu {date} põhjal (D12) hinnakirja hinna asemel. Pakkumine näitab kehtivat hinnakirja; summa on hinnangu oma."
+  "secondLife.priceNote": "Hinnastatud teise elu summaga {price} hinnangu {date} põhjal (D12) hinnakirja hinna asemel. Pakkumine näitab kehtivat hinnakirja; summa on hinnangu oma.",
+  "secondLife.verdict.expired": "Ei oota enam: oli vaja hiljemalt {date}",
+  "secondLife.verdict.already_matched": "Juba sobitatud teise tagastatud esemega"
 }

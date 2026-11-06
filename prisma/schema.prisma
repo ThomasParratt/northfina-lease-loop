@@ -179,7 +179,7 @@ model Invoice {
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 
-  contract Contract? @relation(fields: [contract_id], references: [id])
+  contract Contract @relation(fields: [contract_id], references: [id])
 
   @@unique([contract_id, sequence])
   @@index([contract_id, due_date])
