@@ -118,10 +118,10 @@ describe('eligibilityInputFromAnswers: the record country (review finding 12)', 
   const company: FlowContext = {
     customerType: 'company',
     category: 'e_bike',
-    financedCents: 2_196_000,
+    financedCents: 549_000,
     termMonths: 36,
   };
-  const base = { context: company, startDate: '2026-11-05', grossMonthlyRentCents: 74_036 };
+  const base = { context: company, startDate: '2026-11-05', grossMonthlyRentCents: 19_006 };
 
   it('a company is not asked its country: the record country is checked (DE is out)', () => {
     const input = eligibilityInputFromAnswers({ ...base, answers: {}, recordCountry: 'DE' });
