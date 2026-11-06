@@ -1,4 +1,4 @@
-// The anchor file (docs/features/audit-chain.md, D80): after every committed audit row, the
+// The anchor file (docs/features/audit-chain.md, D81): after every committed audit row, the
 // head (length, hash) is appended as one JSON line to a file outside the database. The file is
 // beside the SQLite file by default (`dev.db.anchors.jsonl`); AUDIT_ANCHOR_FILE moves it to
 // another disk or a synced folder, which is where it protects most. A full rewrite of the

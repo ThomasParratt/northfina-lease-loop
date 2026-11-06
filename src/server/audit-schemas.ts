@@ -1,5 +1,5 @@
 // Zod schemas of the audit chain route (contract first, docs/features/audit-chain.md): the
-// verdict of walking the hash chain, its signatures and its anchors (D36, D80). The row that
+// verdict of walking the hash chain, its signatures and its anchors (D36, D81). The row that
 // uses it is in routes.ts.
 import { z } from 'zod';
 
@@ -14,7 +14,7 @@ const publicKeySchema = z
 /**
  * Why the log breaks: a row's prevHash or hash, no hash, a head that differs (D36); a missing
  * or wrong signature, an anchor outside the database that disagrees, or a damaged anchor line
- * (D80).
+ * (D81).
  */
 export const auditChainBreakSchema = z.enum([
   'prev_hash_mismatch',

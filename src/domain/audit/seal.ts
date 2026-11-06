@@ -1,4 +1,4 @@
-// The sealed audit chain (docs/features/audit-chain.md, D80): two checks on top of the D36
+// The sealed audit chain (docs/features/audit-chain.md, D81): two checks on top of the D36
 // hash chain, each answering an attack the chain alone cannot see.
 //
 // 1. Signatures. Every row's hash and the stored head are signed with an Ed25519 key that is

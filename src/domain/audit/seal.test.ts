@@ -1,4 +1,4 @@
-// The sealed audit chain (docs/features/audit-chain.md, D80): every row's hash and the stored
+// The sealed audit chain (docs/features/audit-chain.md, D81): every row's hash and the stored
 // head are signed with a key kept outside the database, and the head is copied to an anchor
 // file outside it. These tests prove the attack D36 could not catch, a rewrite of both tables
 // with fresh hashes, now breaks the verdict. The signature check is a fake passed in, so the

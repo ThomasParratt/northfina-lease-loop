@@ -26,7 +26,7 @@ describe('ensureEnvFile', () => {
   });
 });
 
-describe('ensureSigningKey (D80)', () => {
+describe('ensureSigningKey (D81)', () => {
   const env = () => readFileSync(path.join(root, '.env'), 'utf8');
   const fixedKey = () => 'KEY123';
 

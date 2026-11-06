@@ -1,5 +1,5 @@
 // Creates .env from .env.example when .env is missing, then makes sure it holds the audit
-// log's signing key (D80): a fresh Ed25519 key, generated here and written only to .env, which
+// log's signing key (D81): a fresh Ed25519 key, generated here and written only to .env, which
 // git ignores. Never overwrites an existing .env value.
 // Usage: node scripts/ensure-env.mjs
 import { generateKeyPairSync } from 'node:crypto';

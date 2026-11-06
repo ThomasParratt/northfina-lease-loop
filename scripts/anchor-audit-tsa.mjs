@@ -1,4 +1,4 @@
-// The outside anchor (docs/features/audit-chain.md, D80): `npm run audit:anchor` has a public
+// The outside anchor (docs/features/audit-chain.md, D81): `npm run audit:anchor` has a public
 // RFC 3161 timestamp authority sign the audit log's current head, so a rewrite of the database
 // and the anchor file together still disagrees with a receipt held by someone else.
 //

@@ -30,6 +30,6 @@ npm-debug.log*
 .claude/worktrees/
 .claude/settings.local.json
 
-# The audit anchors and timestamp receipts beside the local database (D80)
+# The audit anchors and timestamp receipts beside the local database (D81)
 *.anchors.jsonl
 audit-tsa/

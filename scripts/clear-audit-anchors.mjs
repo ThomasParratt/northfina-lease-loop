@@ -1,4 +1,4 @@
-// `npm run db:reset` starts the database over, so it starts the anchor file over too (D80):
+// `npm run db:reset` starts the database over, so it starts the anchor file over too (D81):
 // anchors of rows that no longer exist would read as a rewritten log. Only this explicit
 // reset removes it; the app never does. The timestamp receipts in audit-tsa/ are kept.
 import { existsSync, rmSync } from 'node:fs';

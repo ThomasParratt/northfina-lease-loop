@@ -2,7 +2,7 @@
 
 ## What it does
 
-Every `AuditLog` row carries the hash of the row before it and its own SHA-256 hash over that plus its canonical content, signed with an Ed25519 key kept outside the database, and every new head is copied to an anchor file outside it (the seal, D80). A pure verifier checks the chain, the signatures and the anchors and names the first broken row; the audit page shows "Chain intact · N entries · head ab12…ef", "Signed", "Anchored … up to entry N" and the public key, or "Chain broken at entry #n (reason)", and `GET /api/audit-log/verify` returns the same verdict.
+Every `AuditLog` row carries the hash of the row before it and its own SHA-256 hash over that plus its canonical content, signed with an Ed25519 key kept outside the database, and every new head is copied to an anchor file outside it (the seal, D81). A pure verifier checks the chain, the signatures and the anchors and names the first broken row; the audit page shows "Chain intact · N entries · head ab12…ef", "Signed", "Anchored … up to entry N" and the public key, or "Chain broken at entry #n (reason)", and `GET /api/audit-log/verify` returns the same verdict.
 
 Tamper-evident, not tamper-proof: someone with write access to the database can still edit a row, but the edit shows. Someone who rewrites both audit tables with fresh hashes (the hole D36 left) now also needs the signing key, and still disagrees with the anchor file and with any receipt `npm run audit:anchor` got from an outside timestamp authority. What is left is someone who holds the key _and_ the anchor file _and_ has never been stamped (see "Open questions").
 
@@ -26,7 +26,7 @@ hash = SHA-256 hex( prevHash + "\n" + canonicalJson({ actor, action, entityType,
 
 Head hash: `53a1ed1503f5ee6d6c874237774939b025193a0bb8badbc9df98b9682ffa06d0`.
 
-### The seal (D80)
+### The seal (D81)
 
 ```
 row signature  = Ed25519( key, "lease-loop/audit-row\n" + hash )                      base64, AuditLog.signature
@@ -58,8 +58,8 @@ anchor line    = {"length":n,"hash":"<hash of row n>","at":"<its instant>"}     
 | Every `hash` and `prev_hash` set to null               | broken at 1, `unhashed_in_chain`                                                                      |
 | A second row written with row 1's `prev_hash` (a fork) | refused by the database: `prev_hash` is `@unique`                                                     |
 | The newest row deleted (review finding 11)             | broken at the deleted id, `head_mismatch`: the `AuditHead` row (count, newest hash) no longer matches |
-| Both tables rewritten with fresh hashes (D80)          | broken at the first rewritten row, `signature_mismatch`; with no key set, `anchor_mismatch`           |
-| A row's or the head's signature removed (D80)          | broken at that row (the last row for the head), `unsigned_in_chain`                                   |
+| Both tables rewritten with fresh hashes (D81)          | broken at the first rewritten row, `signature_mismatch`; with no key set, `anchor_mismatch`           |
+| A row's or the head's signature removed (D81)          | broken at that row (the last row for the head), `unsigned_in_chain`                                   |
 | The newest row deleted and a shorter head written      | broken at the new last row, `signature_mismatch` (the head is signed); else `anchor_mismatch`         |
 | The anchor file cut back                               | not a break: "Anchored up to entry n of N" (amber); the TSA receipt still holds the later head        |
 | A line of the anchor file damaged                      | broken, `anchor_unreadable` ("the anchor file outside the database has a damaged line")               |
@@ -76,7 +76,7 @@ Every row must be hashed. The columns are nullable only so the migration applies
 1. Make a few changes in the app (sign a quote, pay an invoice), open `/en/audit`: the badge says "Chain intact" with the head hash.
 2. In a terminal: `npm run demo:tamper` (or `npm run demo:tamper -- --id 3`). It rewrites `details_json` of the newest row (or row 3) straight in the SQLite file with raw SQL, the way someone with database access could, and prints the row and the verdict before and after.
 3. Reload `/en/audit`: "Chain broken at entry #3 (its content changed after it was written)". `GET /api/audit-log/verify` says the same.
-4. `npm run demo:tamper -- --rewrite` is the stronger attack (D80): after the edit it recomputes every hash after it and the head, so the D36 walk alone would pass. The badge says "its signature does not match: it was rewritten without the key".
+4. `npm run demo:tamper -- --rewrite` is the stronger attack (D81): after the edit it recomputes every hash after it and the head, so the D36 walk alone would pass. The badge says "its signature does not match: it was rewritten without the key".
 5. Optional, with network: `npm run audit:anchor` before step 2 and `npm run audit:anchor -- --verify audit-tsa/head-<n>.txt` after it: the receipt is valid and the log no longer has the stamped head.
 6. `npm run db:reset` gives a clean chain again (and a fresh anchor file).
 
@@ -91,7 +91,7 @@ The script is a terminal tool, never a route, so the app's own write rule holds.
   - **Hashing in the server instead of the domain:** the hash is deterministic, so it lives in `src/domain/audit/` with the verifier; the domain may import only `createHash` from `node:crypto` (`eslint.config.mjs` with `allowImportNames`, and the same check in `tests/meta-rules.test.ts`), so `randomUUID` and `randomBytes` stay out.
   - **A legacy prefix of unhashed rows** (rows from before the migration allowed at the start): dropped after review, because nulling every hash would then show as intact.
 - RULES.md section 7 (the change and its audit row in one transaction) is kept: the hash is computed in that same transaction.
-- **D80 (`docs/decisions.md`): the seal.** The two next steps D36 left (sign each row; anchor the head outside the database) are built: Ed25519 signatures over every row hash and the head, a local anchor file appended after each commit, and an RFC 3161 receipt on demand. Reason: a rewrite of both tables was the one attack the chain could not see. RULES.md §10 says the challenge needs no secrets; the signing key is the one exception and is kept where §10 asks (`.env`, git-ignored, an empty line in `.env.example`), generated per machine. Chosen against:
+- **D81 (`docs/decisions.md`): the seal.** The two next steps D36 left (sign each row; anchor the head outside the database) are built: Ed25519 signatures over every row hash and the head, a local anchor file appended after each commit, and an RFC 3161 receipt on demand. Reason: a rewrite of both tables was the one attack the chain could not see. RULES.md §10 says the challenge needs no secrets; the signing key is the one exception and is kept where §10 asks (`.env`, git-ignored, an empty line in `.env.example`), generated per machine. Chosen against:
   - **HMAC** instead of Ed25519: whoever can verify could also forge; with Ed25519 the page publishes the public key.
   - **Calling the authority from the app** on every write: an outside call in the request, a flaky live demo, and a test that must mock it. The script stamps when a person asks.
   - **A public ledger** instead of a timestamp authority: a cost and an account, for no more than a receipt gives.
@@ -107,7 +107,7 @@ The script is a terminal tool, never a route, so the app's own write rule holds.
 - `hashAuditEntry(prevHash: string, entry: AuditChainEntry): string`: 64 hex characters. `AuditChainEntry = { actor, action, entityType, entityId, details: unknown, createdAt: string }`.
 - `verifyAuditChain(rows: AuditChainRow[], storedHead?: { length, hash } | null): AuditChainVerdict`: `storedHead` (the `AuditHead` row `withAudit` writes in the same transaction) must match the walked chain, else `head_mismatch` (null with rows: the head row was deleted). `rows` in id order, each `{ id, prevHash, hash, ...entry }` (the columns are nullable; a null hash is a break); returns `{ ok: true, length, headHash }` or `{ ok: false, brokenAt: id, reason: 'prev_hash_mismatch' | 'hash_mismatch' | 'unhashed_in_chain' }` for the first broken row.
 
-`src/domain/audit/seal.ts` (D80):
+`src/domain/audit/seal.ts` (D81):
 
 - `rowSigningMessage(hash): string` and `headSigningMessage({ length, hash }): string`: what the signatures cover.
 - `verifySealedChain(rows: SealedRow[], storedHead: SealedHead | null, { checkSignature: ((message, signature) => boolean) | null, anchors: (AuditAnchor | null)[] }): AuditSealVerdict`: `{ ok: true, length, headHash, signaturesChecked, anchoredLength }` or `{ ok: false, brokenAt, reason }` with the D36 reasons plus `unsigned_in_chain`, `signature_mismatch`, `anchor_mismatch`, `anchor_unreadable` (`brokenAt` 0).
@@ -124,7 +124,7 @@ Server reads in `src/server/audit.ts`: `verifyAuditChain(db)` (all rows in id or
 - `src/components/audit-chain-badge.tsx`, `src/app/[locale]/audit/page.tsx`, the `audit.chain.*` keys in the four message files.
 - `scripts/tamper-audit.mjs` (+ test), the `demo:tamper` script in `package.json`.
 - `tests/meta-rules.test.ts` (the append-only rule; only `createHash` from `node:crypto` in the domain), `eslint.config.mjs` (the same exception); D36 in `docs/decisions.md`.
-- D80: `src/domain/audit/seal.ts` (+ test); `src/server/audit-signing.ts` (the key, + test), `src/server/audit-anchors.ts` (the file, + test), `src/server/prisma-client.ts` (which file a client opened); `AuditLog.signature`, `AuditHead.signature` (`prisma/migrations/20261106074835_audit_seal/`); `scripts/ensure-env.mjs` (the key), `scripts/clear-audit-anchors.mjs`, `scripts/anchor-audit-tsa.mjs` (+ test), `scripts/tamper-audit.mjs` (`--rewrite`); `vitest.config.ts` (a key per run), `tests/helpers/reset-db.ts` (clears the anchor file); `.env.example`, `.gitignore`; the `audit.chain.*` keys in the four message files.
+- D81: `src/domain/audit/seal.ts` (+ test); `src/server/audit-signing.ts` (the key, + test), `src/server/audit-anchors.ts` (the file, + test), `src/server/prisma-client.ts` (which file a client opened); `AuditLog.signature`, `AuditHead.signature` (`prisma/migrations/20261106074835_audit_seal/`); `scripts/ensure-env.mjs` (the key), `scripts/clear-audit-anchors.mjs`, `scripts/anchor-audit-tsa.mjs` (+ test), `scripts/tamper-audit.mjs` (`--rewrite`); `vitest.config.ts` (a key per run), `tests/helpers/reset-db.ts` (clears the anchor file); `.env.example`, `.gitignore`; the `audit.chain.*` keys in the four message files.
 
 ## Tests that pin the numbers
 
@@ -134,7 +134,7 @@ Server reads in `src/server/audit.ts`: `verifyAuditChain(db)` (all rows in id or
 - `src/app/api/audit-log/verify/route.test.ts`: the empty, intact and broken verdicts through `ok()`, parsed by the contract schema.
 - `tests/meta-rules.test.ts`: "no app code updates or deletes audit rows" (checked against a planted `tx.auditLog.deleteMany()` in `src/server/`, then removed); a domain import of anything but `createHash` from `node:crypto` fails the purity rule (checked against a planted `randomUUID` import, then removed).
 - `scripts/tamper-audit.test.mjs`: the argument parsing, the rewritten details, and `rewriteChain` leaving a chain the D36 walk alone accepts.
-- `src/domain/audit/seal.test.ts` (D80, a fake signature check): intact, signed and anchored; the rewrite with fresh hashes is `signature_mismatch` at row 2, and `anchor_mismatch` at row 2 with no key; an unsigned row or head; a forged shorter head; an anchor longer than the log; a lagging file in any order; a damaged line.
+- `src/domain/audit/seal.test.ts` (D81, a fake signature check): intact, signed and anchored; the rewrite with fresh hashes is `signature_mismatch` at row 2, and `anchor_mismatch` at row 2 with no key; an unsigned row or head; a forged shorter head; an anchor longer than the log; a lagging file in any order; a damaged line.
 - `src/server/audit-signing.test.ts`: sign and check, deterministic, another key's signature and garbage refused, the public key's form, an unreadable or RSA key named without the key, read once per key.
 - `src/server/audit-anchors.test.ts`: beside the database or `AUDIT_ANCHOR_FILE`, append and read back, a damaged line as null.
 - `src/server/audit.test.ts` "the seal" (real SQLite, the real key): every row and the head verify; one anchor per committed row and none for a failed change; the rewrite caught by the signature and, with no key, by the anchor file; a lagging and a damaged file; no write without a key.

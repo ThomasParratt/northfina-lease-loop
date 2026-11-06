@@ -7,7 +7,7 @@
 // deletion or a reordering made outside the app shows up in verifyAuditChain. Tamper-evident,
 // not tamper-proof: the head hash is the anchor a person copies out of the database.
 //
-// The seal (D80) closes the two holes D36 left: every row's hash and the head are signed with
+// The seal (D81) closes the two holes D36 left: every row's hash and the head are signed with
 // the Ed25519 key in .env (audit-signing.ts), so a rewrite with fresh hashes needs the key, and
 // after the commit the head is appended to an anchor file outside the database (audit-anchors.ts).
 import {
@@ -159,10 +159,13 @@ export type AuditVerification = AuditSealVerdict & { publicKey: string | null };
  * signatures and the anchors outside the database (see domain/audit).
  */
 export async function verifyAuditChain(db: PrismaClient): Promise<AuditVerification> {
-  const [rows, head, anchors] = await Promise.all([
+  // The anchors first (review of #69): withAudit appends an anchor after its commit, so a file
+  // read before the rows can only lag behind them. Read together, a change committed between
+  // the reads would leave an anchor longer than the rows read: a rewrite that never happened.
+  const anchors = await readAuditAnchors(db);
+  const [rows, head] = await Promise.all([
     db.auditLog.findMany({ orderBy: { id: 'asc' } }),
     db.auditHead.findUnique({ where: { id: AUDIT_HEAD_ID } }),
-    readAuditAnchors(db),
   ]);
   const signer = auditSigner();
   const verdict = verifySealedChain(

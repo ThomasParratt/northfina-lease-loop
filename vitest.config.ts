@@ -5,7 +5,7 @@ import { configDefaults, defineConfig } from 'vitest/config';
 // docs/features/test-isolation.md (D37).
 const domainTests = ['src/domain/**/*.test.ts'];
 
-// The audit log's signing key for this run (D80): fresh every run, so no key is ever written in
+// The audit log's signing key for this run (D81): fresh every run, so no key is ever written in
 // the repository. withAudit refuses to write without one.
 const testSigningKey = generateKeyPairSync('ed25519')
   .privateKey.export({ format: 'der', type: 'pkcs8' })

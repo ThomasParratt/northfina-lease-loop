@@ -35,7 +35,7 @@ describe('tamperedDetails', () => {
   });
 });
 
-describe('rewriteChain (D80: the attack the hash chain alone cannot see)', () => {
+describe('rewriteChain (D81: the attack the hash chain alone cannot see)', () => {
   /** Three stored rows as Prisma returns them, chained the way withAudit writes them. */
   function storedRows() {
     let prev = GENESIS_HASH;

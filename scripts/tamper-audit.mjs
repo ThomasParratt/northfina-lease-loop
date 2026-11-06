@@ -5,7 +5,7 @@
 // A script a person runs in a terminal, never a route: the app itself never edits audit rows
 // (tests/meta-rules.test.ts). `npm run db:reset` gives a clean chain again.
 //
-// `--rewrite` is the attack the hash chain alone cannot see (D80): after the edit it recomputes
+// `--rewrite` is the attack the hash chain alone cannot see (D81): after the edit it recomputes
 // every hash from that row on and the stored head, so the chain is consistent again. It cannot
 // re-sign them, because the key is not in the database, and the anchor file outside the
 // database still holds the old hashes: the verdict is signature_mismatch at the edited row.

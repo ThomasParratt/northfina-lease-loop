@@ -1,4 +1,4 @@
-// The audit log's signing key (docs/features/audit-chain.md, D80): Ed25519 from AUDIT_SIGNING_KEY,
+// The audit log's signing key (docs/features/audit-chain.md, D81): Ed25519 from AUDIT_SIGNING_KEY,
 // a base64 PKCS#8 key that lives in .env and never in the database. Keys are generated here, so
 // no key is written in the repository.
 import { generateKeyPairSync } from 'node:crypto';

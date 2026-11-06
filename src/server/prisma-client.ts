@@ -5,7 +5,7 @@ import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '@/generated/prisma/client';
 
 /**
- * The SQLite file a client opened, so the audit anchors can sit beside it (D80). Kept on the
+ * The SQLite file a client opened, so the audit anchors can sit beside it (D81). Kept on the
  * client under a global symbol, not in a module-level map: Next.js loads this module once per
  * bundle while src/server/db.ts shares one client through globalThis, so a map in one bundle
  * would not know the client another bundle made.

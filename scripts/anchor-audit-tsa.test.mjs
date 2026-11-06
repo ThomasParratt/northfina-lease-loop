@@ -1,4 +1,4 @@
-// The outside anchor script (D80): the pure pieces. The outside call itself is never made in a
+// The outside anchor script (D81): the pure pieces. The outside call itself is never made in a
 // test; docs/features/audit-chain.md has the run against freetsa.org.
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';

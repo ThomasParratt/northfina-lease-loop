@@ -1,7 +1,7 @@
 // Empties a test database between tests (docs/features/test-isolation.md, D37). Every table,
 // children before parents, in one transaction: a test starts from an empty database and seeds
 // what it needs, so no test reads another test's rows. The only `deleteMany` in the repo.
-// The audit log's anchor file beside the database goes too (D80): anchors of rows that no
+// The audit log's anchor file beside the database goes too (D81): anchors of rows that no
 // longer exist would read as a rewritten log.
 import { rm } from 'node:fs/promises';
 import { anchorFileFor } from '@/server/audit-anchors';

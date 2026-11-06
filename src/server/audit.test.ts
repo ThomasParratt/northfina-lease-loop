@@ -310,7 +310,7 @@ describe('the audit chain', () => {
   });
 });
 
-// D80: the seal. The attack D36 could not see is a rewrite of both tables with fresh hashes;
+// D81: the seal. The attack D36 could not see is a rewrite of both tables with fresh hashes;
 // the forger here has database access but not the key in the environment.
 describe('the seal: signatures and anchors', () => {
   const at = (minute: number) => `2026-11-05T11:${String(minute).padStart(2, '0')}:00.000Z`;
@@ -404,6 +404,35 @@ describe('the seal: signatures and anchors', () => {
     expect(await verifyAuditChain(db)).toMatchObject({ ok: true, length: 3, anchoredLength: 1 });
     await writeFile(file, `${lines[0]}\n{oops\n`);
     expect(await verifyAuditChain(db)).toMatchObject({ ok: false, reason: 'anchor_unreadable' });
+  });
+
+  // Review of #69, finding 2: another request commits between the verifier's reads. The rows
+  // come back with n entries, then row n+1 and its anchor land. The anchors were read first,
+  // so they lag; read after the rows, anchor n+1 would read as a rewrite of an untouched log.
+  it('reads an untouched log as intact when a change commits between its reads', async () => {
+    await writeThree();
+    const findMany = db.auditLog.findMany.bind(db.auditLog);
+    const auditLog = new Proxy(db.auditLog, {
+      get: (target, prop, receiver) =>
+        prop === 'findMany'
+          ? async (args: Parameters<typeof findMany>[0]) => {
+              const rows = await findMany(args);
+              await withAudit(db, { ...entry, details: { minute: 9 } }, reserve, at(9));
+              return rows;
+            }
+          : Reflect.get(target, prop, receiver),
+    });
+    const racing = new Proxy(db, {
+      get: (target, prop, receiver) =>
+        prop === 'auditLog' ? auditLog : Reflect.get(target, prop, receiver),
+    });
+
+    expect(await verifyAuditChain(racing)).toMatchObject({
+      ok: true,
+      length: 3,
+      anchoredLength: 3,
+    });
+    expect(await verifyAuditChain(db)).toMatchObject({ ok: true, length: 4, anchoredLength: 4 });
   });
 
   it('refuses to write without a key, before the change runs', async () => {

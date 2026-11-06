@@ -243,7 +243,7 @@ model AuditLog {
   // canonical row. A unique prev_hash means two rows can never chain to the same row (a fork).
   prev_hash    String?  @unique
   hash         String?  @unique
-  // The seal (D80): base64 Ed25519 signature over "lease-loop/audit-row\n" + hash, made with the
+  // The seal (D81): base64 Ed25519 signature over "lease-loop/audit-row\n" + hash, made with the
   // key in .env (AUDIT_SIGNING_KEY), never stored here. Nullable only for the migration.
   signature    String?
 
@@ -258,7 +258,7 @@ model AuditHead {
   id        Int     @id
   length    Int
   hash      String
-  // The seal (D80): base64 Ed25519 signature over "lease-loop/audit-head\n" + length + "\n" + hash,
+  // The seal (D81): base64 Ed25519 signature over "lease-loop/audit-head\n" + length + "\n" + hash,
   // so a shorter head written after deleting the newest rows needs the key.
   signature String?
 }

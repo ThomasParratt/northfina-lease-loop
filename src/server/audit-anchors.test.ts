@@ -1,4 +1,4 @@
-// The anchor file outside the database (docs/features/audit-chain.md, D80): one JSON line per
+// The anchor file outside the database (docs/features/audit-chain.md, D81): one JSON line per
 // committed audit row, beside the SQLite file unless AUDIT_ANCHOR_FILE names another place.
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -30,9 +30,11 @@ afterAll(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
+// Expected paths go through path.resolve, as the code does: on Windows '/data/dev.db' resolves
+// to 'C:\data\dev.db' (review of #69, finding 3).
 describe('sqliteFileOf', () => {
   it('resolves a file URL, drops the query, and is null for memory or other URLs', () => {
-    expect(sqliteFileOf('file:/data/dev.db?mode=rwc')).toBe('/data/dev.db');
+    expect(sqliteFileOf('file:/data/dev.db?mode=rwc')).toBe(path.resolve('/data/dev.db'));
     expect(sqliteFileOf('file:./dev.db')).toBe(path.resolve('dev.db'));
     expect(sqliteFileOf('file::memory:')).toBeNull();
     expect(sqliteFileOf('postgres://x')).toBeNull();
@@ -51,7 +53,7 @@ describe('databaseFileOf', () => {
 
   it('falls back to DATABASE_URL for a client it did not make', () => {
     const stranger = {} as PrismaClient;
-    expect(databaseFileOf(stranger, 'file:/data/dev.db')).toBe('/data/dev.db');
+    expect(databaseFileOf(stranger, 'file:/data/dev.db')).toBe(path.resolve('/data/dev.db'));
     expect(databaseFileOf(stranger, '')).toBeNull();
   });
 });
@@ -60,7 +62,7 @@ describe('anchorFileFor', () => {
   it('sits beside the database file, or where AUDIT_ANCHOR_FILE says', () => {
     expect(anchorFileFor(db, {})).toBe(path.join(dir, 'x.db.anchors.jsonl'));
     expect(anchorFileFor(db, { [ANCHOR_FILE_ENV]: '/mnt/other/anchors.jsonl' })).toBe(
-      '/mnt/other/anchors.jsonl'
+      path.resolve('/mnt/other/anchors.jsonl')
     );
   });
 });
