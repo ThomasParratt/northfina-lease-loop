@@ -30,6 +30,25 @@ const QUOTE_REFUSALS = [
   'no_vat_rate_on_date',
 ];
 
+/** Every reason code the rules may give, the plausibility holds included. */
+const KNOWN_REASONS = [
+  'too_young',
+  'residency_not_allowed',
+  'unaffordable',
+  'invalid_business_id',
+  'financed_out_of_range',
+  'missing_answer',
+  'pep',
+  'answer_differs_from_record',
+  'quantity_over_consumer_cap',
+  'category_needs_review',
+  'income_implausible',
+  'revenue_below_financed',
+  'owners_implausible',
+  'signatory_needed',
+  'all_checks_passed',
+];
+
 const dictionaries = { en, fi, sv, et } as Record<string, Record<string, string>>;
 const keyInEveryLanguage = (key: string) =>
   Object.values(dictionaries).every((dictionary) => typeof dictionary[key] === 'string');
@@ -75,6 +94,7 @@ describe('the question flow on random deals (property)', () => {
           expect(keyInEveryLanguage(`decision.status.${app.result.decision}`)).toBe(true);
           expect(app.result.reasons.length).toBeGreaterThan(0);
           for (const reason of app.result.reasons) {
+            expect(KNOWN_REASONS).toContain(reason.code);
             expect(keyInEveryLanguage(`decision.reason.${reason.code}`), reason.code).toBe(true);
             for (const value of Object.values(reason.params)) {
               expect(['string', 'number']).toContain(typeof value);
@@ -90,6 +110,13 @@ describe('the question flow on random deals (property)', () => {
     },
     TIMEOUT_MS
   );
+
+  it('the generator reaches a plausibility hold: a consumer with three e-bikes (quantity 1–5 > cap 2)', () => {
+    const consumer = pack.customers.find((c) => c.type === 'consumer' && c.id === 'cust-aino')!;
+    const bike = pack.assets.find((a) => a.category === 'e_bike')!.id;
+    const app = applyFor(consumer, { assetId: bike, quantity: 3, termMonths: 48, isoDate: DAY });
+    expect(app.ok && app.result.reasons.map((r) => r.code)).toContain('quantity_over_consumer_cap');
+  });
 
   it('the four down payments cover the price edge: 0, 1, price − 1 and the price itself', () => {
     expect([0, 1, 2, 3].map((k) => downPaymentFor(389_000, k as 0 | 1 | 2 | 3))).toEqual([
