@@ -21,13 +21,13 @@ A card is **data**, its inputs only, in one table (`CARD_INPUTS` in `src/server/
 | 9 Second life      | `afterReturn` (writes nothing today)    | `ebike-007`                                      | 2026-11-05 | admin   | `/assets/ebike-007`                                          |
 | 10 Third life      | `afterReturn` (writes nothing today)    | `ebike-008`                                      | 2026-11-05 | admin   | `/assets/ebike-008/passport`                                 |
 
-Worked example, card 8 on a fresh database: the run answers five steps, `quote_created { monthlyNetCents: 10730, priceListVersion: 1 }`, `application_decided { decision: approved }`, `contract_signed`, `rents_paid { count: 7, grossCents: 94532 }` (2 × 13 466 + 5 × 13 520) and `exit_previewed { monthsPaid: 7, buyTotalCents: 330675, returnTotalCents: 75945 }`, sets the clock to 5 June 2027 and the actor to Aino, and lands on `/contracts/<id>`. Clicked after card 1, it reuses card 1's contract (`contract_reused`). Clicked again, it is refused (D70).
+Worked example, card 8 on a fresh database: the run answers six steps, `quote_created { monthlyNetCents: 10730, priceListVersion: 1 }`, `application_decided { decision: approved }`, `application_reason { reason: all_checks_passed }`, `contract_signed`, `rents_paid { count: 7, grossCents: 94532 }` (2 × 13 466 + 5 × 13 520) and `exit_previewed { monthsPaid: 7, buyTotalCents: 330675, returnTotalCents: 75945 }`, sets the clock to 5 June 2027 and the actor to Aino, and lands on `/contracts/<id>`. Clicked after card 1, it reuses card 1's contract (`contract_reused`). Clicked again, it pays nothing and only shows the preview again; once the contract has ended it is refused (D70).
 
-Steps and refusals are codes with params; the page writes them from `demo.step.<code>` and `demo.run.<code>` in the visitor's language, with `…Cents` as euros and days as dates (`src/app/[locale]/demo/card-steps.ts`).
+Steps and refusals are codes with params; a decision reason is one `application_reason` step with the reason's own params, written with `decision.reason.<code>`, and a refused step is written with the slice's own refusal sentence; the page writes them from `demo.step.<code>` and `demo.run.<code>` in the visitor's language, with `…Cents` as euros and days as dates (`src/app/[locale]/demo/card-steps.ts`).
 
 ## Decisions
 
-- **D70** a second click is refused with `card_already_run` and links the earlier records; card 8 builds on card 1.
+- **D70** a second click is refused with `card_already_run` and links the earlier records; a run stopped before signing is picked up and signed; card 8 builds on card 1 and only previews again.
 - **D71** the run sets the demo clock to the card's look day and the actor to the card's customer, on a run and on a refusal.
 - **D72** card 2 signs on the second day and lands on the contract.
 - Uses D17 (the actor cookie), D44 (tests own their `beforeEach`), and the demo clock of `docs/features/catalogue.md`.
@@ -53,10 +53,10 @@ None: this slice has no domain logic (it only drives the services). The server f
 
 ## Tests that pin the numbers
 
-- `src/server/demo-cards.test.ts`: one test per card on a test database (the records match the numbers `src/server/scenarios/` pins, and the landing page), card 8 after card 1, the repeat-run refusal writing nothing, all ten cards in one database with the audit chain intact, and a refused step.
+- `src/server/demo-cards.test.ts`: one test per card on a test database (the records match the numbers `src/server/scenarios/` pins, and the landing page), card 8 after card 1, the repeat-run refusal writing nothing, card 8 again only previewing, a stopped run signed, another deal on the same item not mistaken for the card, card 8 refused after its contract ended, all ten cards in one database with the audit chain intact, and a refused step.
 - `src/app/api/demo/cards/[id]/run/route.test.ts`: the route sets both cookies, answers 409 `CARD_ALREADY_RUN` with the earlier page, and 400 for a card that does not exist.
-- `src/app/[locale]/demo/card-steps.test.ts`: every step and refusal and every card's inputs line written in all four languages with no placeholder left.
-- `src/server/demo-clock.test.ts`: the cookie header.
+- `src/app/[locale]/demo/card-steps.test.ts`: every step and refusal and every card's inputs line written (decision reasons and refused steps with the app's own sentences, never the code) in all four languages with no placeholder left.
+- `src/server/demo-clock.test.ts` and `src/app/api/demo/clock/route.test.ts`: the cookie header, and the clock route setting, clearing and refusing.
 
 ## Open questions
 
