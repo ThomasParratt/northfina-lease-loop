@@ -73,6 +73,7 @@ const STEPS: CodedLine[] = [
     params: { demandId: 'wait-02', condition: 'fair', termMonths: 12, monthlyNetCents: 8_710 },
   },
   { code: 'relisted_without_match', params: { condition: 'fair' } },
+  { code: 'leased_from_catalogue', params: { demandId: 'wait-05', customer: 'cust-olavi' } },
 ];
 const REFUSALS: CodedLine[] = [
   { code: 'card_already_run', params: { cardId: 1 } },
@@ -135,7 +136,7 @@ describe('cardInputs', () => {
   it('says who, what and which days for card 8', () => {
     const line = cardInputs(DEMO_CARDS[7]!, names, getT('en'), 'en');
     expect(line).toBe(
-      'Aino Virtanen · ebike-003 × 1 · 36 months · €0.00 down · quoted on 5 November 2026 · signed on 5 November 2026 · 7 rents paid · exit preview: Buy it, reported Good, 1800 km · clock to 5 June 2027'
+      'Aino Virtanen · ebike-003 × 1 · 36 months · €0.00 down · quoted on 5 November 2026 · signed on 5 November 2026 · run card 1 first · 7 rents paid · exit preview: Buy it, reported Good, 1800 km · clock to 5 June 2027'
     );
   });
 

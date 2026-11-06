@@ -60,6 +60,6 @@ None: this slice has no domain logic (it only drives the services). The server f
 
 ## Open questions
 
-- **Cards 9 and 10 run from the demo page** (wave 3 hardening): `afterReturn` calls `assessAsset`. Card 10's customer is `cust-olavi`, as in `src/server/scenarios/card-10.test.ts`; the card names none. The assessment takes the condition and usage the pack records for the item, so the card table carries no assessment inputs.
+- **Cards 9 and 10 run from the demo page** (wave 3 hardening): `afterReturn` calls `assessAsset`. The match's winner is a waiting-list entry (`wait-05` for card 10), not a customer record that can sign; card 10 says so in a `leased_from_catalogue` step, and Olavi leases the item from the catalogue at the same second-life price. Card 8's inputs line says to run card 1 first, since it builds on card 1's contract. Card 10's customer is `cust-olavi`, as in `src/server/scenarios/card-10.test.ts`; the card names none. The assessment takes the condition and usage the pack records for the item, so the card table carries no assessment inputs.
 - The landing pages have no anchors (the exit block, the invoice table), since those components belong to other slices; the judge scrolls.
 - A run of card 3 or 4 dated before card 1 (Sep 2026, Jan 2026) writes audit rows whose `created_at` is the real time; the audit log orders by row, not by the card's day.

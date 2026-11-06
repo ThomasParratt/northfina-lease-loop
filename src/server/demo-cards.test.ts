@@ -19,7 +19,7 @@ import { DEMO_CARDS, runDemoCard, type RunDemoCardResult } from './demo-cards';
 import { exitContract } from './exits';
 import { listInvoices } from './invoices';
 import type { PrismaClient } from './prisma-client';
-import { latestAssessment } from './second-life';
+import { assessAsset, latestAssessment } from './second-life';
 
 let db: PrismaClient;
 let cleanup: () => Promise<void>;
@@ -171,6 +171,7 @@ describe('runDemoCard', () => {
     expect(run.steps[0]?.params).toMatchObject({
       assetId: 'ebike-007',
       condition: 'fair',
+      refurbishmentCents: 39_500,
       secondLifeFinancedCents: 155_476,
     });
     expect(run.steps[1]?.params).toEqual({
@@ -194,6 +195,7 @@ describe('runDemoCard', () => {
     expect(codes(run)).toEqual([
       'asset_assessed',
       'relisted_for_winner',
+      'leased_from_catalogue',
       'quote_created',
       'application_decided',
       'application_reason',
@@ -201,12 +203,19 @@ describe('runDemoCard', () => {
     ]);
     // The numbers src/server/scenarios/card-10.test.ts pins.
     expect(run.steps[0]?.params).toMatchObject({ secondLifeFinancedCents: 37_101 });
+    expect(run.steps[1]?.params).toMatchObject({ demandId: 'wait-05', condition: 'good' });
+    // wait-05 is a waiting-list entry with no customer record: Olavi leases it from the catalogue.
+    expect(run.steps[2]).toEqual({
+      code: 'leased_from_catalogue',
+      params: { demandId: 'wait-05', customer: 'cust-olavi' },
+    });
     const signed = run.steps.at(-1)!;
     expect(signed.params).toMatchObject({ monthlyNetCents: 1_359 });
     const contract = await getContract(db, idOf(signed.href!));
     expect([contract?.financedCents, contract?.monthlyNetCents]).toEqual([37_101, 1_359]);
     const read = await readPassport(db, 'ebike-008', contract!.endDate);
     expect(read?.passport.lives).toHaveLength(3);
+    expect(read?.co2.perLifeKg).toEqual([0, 29, 29]);
     expect(read?.co2.totalKg).toBe(58);
     expect(await verifyAuditChain(db)).toMatchObject({ ok: true });
   });
@@ -252,6 +261,19 @@ describe('a second click (D70)', () => {
       landing,
     });
     expect(await db.auditLog.count()).toBe(before);
+  });
+
+  it('card 10 picks up a run stopped after the assessment: no second assessment, it signs', async () => {
+    const assessed = await assessAsset(db, {
+      assetId: 'ebike-008',
+      actor: 'admin',
+      today: '2026-11-06',
+    });
+    expect(assessed.ok).toBe(true);
+    const run = ran(await runDemoCard(db, 10));
+    expect(codes(run)).not.toContain('asset_assessed');
+    expect(codes(run).at(-1)).toBe('contract_signed');
+    expect(run.steps.at(-1)?.params).toMatchObject({ monthlyNetCents: 1_359 });
   });
 
   it('signs an approved application an earlier run left unsigned, instead of refusing', async () => {

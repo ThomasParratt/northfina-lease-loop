@@ -374,6 +374,14 @@ export async function afterReturn(
   if (!card.lease) return { alreadyRun: !assessed.ok };
   const earlier = await earlierRun(db, card.lease.trip);
   if (earlier?.contractId) return { alreadyRun: true };
+  // The winner is a waiting-list entry, not a customer who can sign: the card's customer leases
+  // the item from the catalogue at the same second-life price.
+  const winner = (assessed.ok ? assessed.view : await latestAssessment(db, card.assetId))?.match
+    .winner;
+  steps.push({
+    code: 'leased_from_catalogue',
+    params: { demandId: winner?.demandId ?? '—', customer: card.lease.trip.customerId },
+  });
   const contractId = await contractFor(db, card.lease, earlier, steps);
   return { alreadyRun: contractId === null };
 }

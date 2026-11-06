@@ -45,7 +45,7 @@ describe('drill: a price list v3 after 6 Nov that moves items across bands', () 
   it('a price cut on v3 moves an item down a band: ebike-003 from B to A', () => {
     const before = quoteOn(data, 'ebike-003', '2026-11-30');
     const after = quoteOn(data, 'ebike-003', '2026-12-01');
-    expect(before.ok && before.quote.band).not.toBe('A');
+    expect(before).toMatchObject({ ok: true, quote: { band: 'B' } });
     expect(after.ok && [after.quote.band, after.quote.financedCents]).toEqual(['A', 150_000]);
   });
 
