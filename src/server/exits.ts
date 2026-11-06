@@ -17,7 +17,7 @@ import {
 } from '@/domain/exits';
 import { allowedTermsOf, type PricingData, type QuoteRefusal } from '@/domain/pricing';
 import type { AuthzRefusal } from '@/domain/authz/policy';
-import { withAudit } from './audit';
+import { latestAuditDetails, withAudit } from './audit';
 import { relistReturnedAsset } from './assets';
 import { AssetNotLeasedError } from './catalogue-handlers';
 import { authorize } from './authorize';
@@ -250,6 +250,17 @@ export async function exitContract(
     }
     throw error;
   }
+}
+
+/** D90: the quote a pass-on started for the next customer, read from its audit entry; or null. */
+export async function nextQuoteIdOf(db: PrismaClient, contractId: string): Promise<string | null> {
+  const details = await latestAuditDetails(db, {
+    action: 'contract.passed_on',
+    entityType: 'contract',
+    entityId: contractId,
+  });
+  const id = (details as { nextQuoteId?: unknown } | null)?.nextQuoteId;
+  return typeof id === 'string' ? id : null;
 }
 
 /**

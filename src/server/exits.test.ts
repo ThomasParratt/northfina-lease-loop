@@ -13,7 +13,7 @@ import { listAssetEvents } from './asset-events';
 import { getAsset } from './assets';
 import { getContract, signContract } from './contracts';
 import { onEvent } from './events';
-import { exitContract, previewExit } from './exits';
+import { exitContract, nextQuoteIdOf, previewExit } from './exits';
 import { listInvoices, payInvoice } from './invoices';
 import type { PrismaClient } from './prisma-client';
 import { createQuote, getQuote, loadPricingData } from './quotes';
@@ -189,6 +189,8 @@ describe('exitContract, card 8: Aino leaves card 1 in month 7', () => {
     expect(invoices.filter((i) => i.status === 'cancelled')).toHaveLength(29);
     expect(result.plan.passOn.lines.map((l) => l.code)).not.toContain('refurb_fixed');
     expect(result.nextQuoteId).toBeTruthy();
+    expect(await nextQuoteIdOf(db, contractId)).toBe(result.nextQuoteId);
+    expect((await getAsset(db, 'ebike-003'))?.status).toBe('available');
     const quote = await getQuote(db, result.nextQuoteId!);
     expect(quote).toMatchObject({ quoteDate: MONTH_7 });
     expect(quote?.breakdown).toMatchObject({

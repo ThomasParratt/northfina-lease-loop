@@ -13,7 +13,7 @@ import type { Locale } from '@/i18n/locales';
 import type { ContractView } from '@/server/contracts';
 import { listCustomers } from '@/server/customers';
 import { db } from '@/server/db';
-import { previewExit } from '@/server/exits';
+import { nextQuoteIdOf, previewExit } from '@/server/exits';
 import { ExitForm } from './exit-form';
 import { exitRefusalValues } from './exit-refusal';
 import { Card, Notice } from './ui';
@@ -38,12 +38,25 @@ export async function ContractExit({
   isAdmin,
 }: ContractExitProps) {
   if (contract.endedOn) {
+    // D90: a pass-on started the next customer's quote; linked so it can be applied for.
+    const nextQuoteId = await nextQuoteIdOf(db, contract.id);
     return (
       <Notice tone="info" title={t('exit.ended.title')}>
         {t('exit.ended.body', {
           status: t(`contract.status.${contract.status}`),
           date: formatIsoDate(contract.endedOn, locale),
         })}
+        {nextQuoteId ? (
+          <span className="mt-2 block">
+            {t('exit.nextQuote')}{' '}
+            <Link
+              href={`/${locale}/apply/${encodeURIComponent(nextQuoteId)}`}
+              className="font-bold text-brand-text underline decoration-2 underline-offset-4"
+            >
+              {t('exit.nextQuoteLink')}
+            </Link>
+          </span>
+        ) : null}
         {isAdmin && asset?.status === 'returned' ? (
           <Link
             href={`/${locale}/assets/${encodeURIComponent(asset.id)}/second-life`}
