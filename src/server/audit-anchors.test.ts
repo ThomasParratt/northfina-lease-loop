@@ -3,14 +3,19 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   ANCHOR_FILE_ENV,
   anchorFileFor,
   appendAuditAnchor,
   readAuditAnchors,
 } from './audit-anchors';
-import { createPrismaClient, sqliteFileOf, type PrismaClient } from './prisma-client';
+import {
+  createPrismaClient,
+  databaseFileOf,
+  sqliteFileOf,
+  type PrismaClient,
+} from './prisma-client';
 
 const hash = (c: string) => c.repeat(64);
 let dir: string;
@@ -31,6 +36,23 @@ describe('sqliteFileOf', () => {
     expect(sqliteFileOf('file:./dev.db')).toBe(path.resolve('dev.db'));
     expect(sqliteFileOf('file::memory:')).toBeNull();
     expect(sqliteFileOf('postgres://x')).toBeNull();
+  });
+});
+
+// The bug the demo found: under Next.js this module is loaded once per bundle, and db.ts shares
+// one client through globalThis, so the file must travel with the client, not sit in a map.
+describe('databaseFileOf', () => {
+  it('finds the file from a second copy of the module, as another Next.js bundle would', async () => {
+    vi.resetModules();
+    const fresh = await import('./prisma-client');
+    expect(fresh.databaseFileOf).not.toBe(databaseFileOf);
+    expect(fresh.databaseFileOf(db)).toBe(path.join(dir, 'x.db'));
+  });
+
+  it('falls back to DATABASE_URL for a client it did not make', () => {
+    const stranger = {} as PrismaClient;
+    expect(databaseFileOf(stranger, 'file:/data/dev.db')).toBe('/data/dev.db');
+    expect(databaseFileOf(stranger, '')).toBeNull();
   });
 });
 
