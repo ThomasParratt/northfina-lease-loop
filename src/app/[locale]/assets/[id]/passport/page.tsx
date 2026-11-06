@@ -149,14 +149,14 @@ export default async function PassportPage({
             <p>
               {t('passport.method', {
                 footprint: kg(factors.manufacturing_new_kg[asset.category]),
+                share: formatNumber(Math.round(factors.refurbishment_share_of_new * 100), locale),
                 designLife: DESIGN_LIFE_MONTHS[asset.category],
-                mandatory: euro(mandatoryRefurbishmentCents(costs, asset.category)),
               })}
             </p>
             <p>
               {t('passport.moneyMethod', {
-                share: formatNumber(Math.round(factors.refurbishment_share_of_new * 100), locale),
                 designLife: DESIGN_LIFE_MONTHS[asset.category],
+                mandatory: euro(mandatoryRefurbishmentCents(costs, asset.category)),
               })}
             </p>
           </InfoPopover>
