@@ -8,11 +8,11 @@ Title: `Team LeaseMasters: Lease Loop`
 
 ## Team
 
-| Name     | GitHub          | Main focus                                                                                                 |
-| -------- | --------------- | ---------------------------------------------------------------------------------------------------------- |
-| Johannes | `Tonttu84`      | coordination and decisions; pricing, invoicing, contracts, exits, second life, signatories, the demo cards |
-| Thomas   | `ThomasParratt` | the asset statuses, the row schemas, the decision race, the question-flow validation, the Sign button      |
-| Panu     | `panu-kangas`   | the look, the landing and catalogue pages, the price page, the passport popup, My leases                   |
+| Name     | GitHub          | Main focus                                                                                                                                                                                                    |
+| -------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Johannes | `Tonttu84`      | coordination and decisions; pricing, invoicing, contracts, exits, second life, signatories, the demo cards                                                                                                    |
+| Thomas   | `ThomasParratt` | the asset statuses, the row schemas, the decision race, the question-flow validation, the Sign button, the signed and anchored audit chain (D81), reviewing the pull requests                                 |
+| Panu     | `panu-kangas`   | the look, the landing and catalogue pages, the price page, the passport card and popup, My leases and its review, the catalogue sort (D84), stepping back from an application and who signs a lease (D87–D89) |
 
 ## What we built
 
