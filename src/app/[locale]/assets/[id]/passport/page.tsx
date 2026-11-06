@@ -2,6 +2,7 @@
 // event log), what happened between them, and the CO2 and money each later life saved (decisions
 // D15, D80).
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { ItemArt } from '@/components/item-art';
@@ -110,6 +111,14 @@ export default async function PassportPage({
             {t('passport.serial')}: {asset.serial_number}
           </Badge>
         </div>
+        {asset.status === 'returned' ? (
+          <Link
+            href={`/${locale}/assets/${encodeURIComponent(asset.id)}/second-life`}
+            className="mt-3 inline-block rounded font-bold text-brand-text underline decoration-2 underline-offset-4"
+          >
+            {t('secondLife.link')}
+          </Link>
+        ) : null}
       </PageHeader>
 
       <div className="mb-10 grid items-center gap-6 sm:grid-cols-[1fr_1fr]">
