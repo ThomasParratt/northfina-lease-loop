@@ -34,6 +34,7 @@ import { withAudit, type TransactionClient } from './audit';
 import type { PrismaClient } from './prisma-client';
 import { loadPricingData } from './quotes';
 import { parseRow } from './row-rules';
+import type { AssessmentResponse } from './second-life-schemas';
 
 export type SecondLifeData = AssessData & { demand: readonly SecondLifeRequest[] };
 
@@ -302,5 +303,32 @@ export async function latestAssessment(
     id: row.id,
     assessedOn: row.assessed_on,
     createdAt: row.created_at.toISOString(),
+  };
+}
+
+/** The route's answer (`assessmentResponseSchema`): the decision, its numbers and its steps. */
+export function toAssessmentResponse(view: AssessmentView): AssessmentResponse {
+  const { relist, decision, winner, verdicts, ranking } = view.match;
+  return {
+    id: view.id,
+    assetId: view.assessment.assetId,
+    contractId: view.contractId,
+    assessedOn: view.assessedOn,
+    returnedCondition: view.assessment.returnedCondition,
+    newCondition: relist.condition,
+    refurbish: relist.upgrade,
+    marketValueCents: relist.marketValue.valueCents,
+    refurbishmentCents: relist.plan.totalCents,
+    secondLifeFinancedCents: relist.secondLifeFinancedCents,
+    matchedDemandId: winner?.demandId ?? null,
+    decision,
+    verdicts: verdicts.map((v) => ({ demandId: v.demandId, outcome: v.outcome })),
+    ranking: ranking.map((r) => ({
+      demandId: r.demandId,
+      rank: r.rank,
+      decidedBy: r.decidedBy,
+      monthlyNetCents: r.monthlyNetCents,
+      termMonths: r.termMonths,
+    })),
   };
 }

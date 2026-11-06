@@ -11,7 +11,13 @@ import { getAsset } from '../assets';
 import { verifyAuditChain } from '../audit';
 import type { PrismaClient } from '../prisma-client';
 import { createQuote } from '../quotes';
-import { assessAsset, latestAssessment, previewAssessment } from '../second-life';
+import {
+  assessAsset,
+  latestAssessment,
+  previewAssessment,
+  toAssessmentResponse,
+} from '../second-life';
+import { assessmentResponseSchema } from '../second-life-schemas';
 
 let db: PrismaClient;
 let cleanup: () => Promise<void>;
@@ -72,6 +78,13 @@ describe('card 9: ebike-007 assessed, matched and relisted', () => {
       'repriced',
     ]);
     expect((await latestAssessment(db, 'ebike-007'))?.match.winner?.demandId).toBe('wait-02');
+    // The route's answer holds to its contract.
+    const answer = assessmentResponseSchema.parse(toAssessmentResponse(result.view));
+    expect(answer).toMatchObject({
+      newCondition: 'fair',
+      refurbish: false,
+      matchedDemandId: 'wait-02',
+    });
     expect(await verifyAuditChain(db)).toMatchObject({ ok: true });
   });
 
