@@ -545,8 +545,7 @@
   "exit.unit.engine_hours": "motortimmar",
   "exit.next": "Vem tar över den",
   "exit.nextHint": "Personen får en ny offert till dagens marknadsvärde och ansöker på vanligt sätt.",
-  "exit.nextQuote": "En ny offert gjordes för nästa person:",
-  "exit.nextQuoteLink": "öppna offerten",
+  "exit.nextQuote": "En ny offert gjordes för nästa person. Den är reserverad för hen och väntar på hens sida Mina leasingavtal.",
   "exit.nextChoose": "Välj en person",
   "exit.option.buy": "Om du köper den",
   "exit.option.return": "Om du lämnar tillbaka den",
@@ -815,5 +814,11 @@
   "withdraw.intro": "Du kan återkalla ansökan så länge den inte är undertecknad. Inget debiteras.",
   "decision.status.withdrawn": "Ansökan återkallad",
   "decision.reason.withdrawn": "Ansökan återkallades {on}.",
-  "leases.decision.withdrawn": "Återkallad"
+  "leases.decision.withdrawn": "Återkallad",
+  "apply.quoteReserved": "Det här leasingavtalet lämnades vidare till en annan kund. Erbjudandet är reserverat endast för hen.",
+  "contract.refusal.quote_reserved_for_another_customer": "Den här offerten är reserverad för en annan kund.",
+  "exit.refusal.pass_on_below_leasable": "Varan är i sämre än gott skick och kan inte gå direkt till nästa person utan renovering. Lämna tillbaka den i stället.",
+  "portal.passedOn.title": "Lämnat vidare till dig",
+  "portal.passedOn.body": "Ett leasingavtal på {item} lämnades vidare till dig. Varan är reserverad för dig till {date}.",
+  "portal.passedOn.link": "Öppna erbjudandet"
 }

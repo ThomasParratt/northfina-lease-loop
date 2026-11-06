@@ -545,8 +545,7 @@
   "exit.unit.engine_hours": "engine hours",
   "exit.next": "Who takes it next",
   "exit.nextHint": "They get a new quote at today's market value and apply for it in the normal way.",
-  "exit.nextQuote": "A new quote was made for the next person:",
-  "exit.nextQuoteLink": "open the quote",
+  "exit.nextQuote": "A new quote was made for the next person. It is held for them and waits on their My leases page.",
   "exit.nextChoose": "Choose a person",
   "exit.option.buy": "If you buy it",
   "exit.option.return": "If you give it back",
@@ -815,5 +814,11 @@
   "withdraw.intro": "You can cancel this application as long as it is not signed. Nothing is charged.",
   "decision.status.withdrawn": "Application cancelled",
   "decision.reason.withdrawn": "The application was cancelled on {on}.",
-  "leases.decision.withdrawn": "Cancelled"
+  "leases.decision.withdrawn": "Cancelled",
+  "apply.quoteReserved": "This lease was passed on to another customer. The offer is held for them only.",
+  "contract.refusal.quote_reserved_for_another_customer": "This quote is held for another customer.",
+  "exit.refusal.pass_on_below_leasable": "The item is in worse than good condition, so it cannot go straight to the next person without refurbishment. Return it instead.",
+  "portal.passedOn.title": "Passed on to you",
+  "portal.passedOn.body": "A lease on {item} was passed on to you. The item is held for you until {date}.",
+  "portal.passedOn.link": "Open the offer"
 }

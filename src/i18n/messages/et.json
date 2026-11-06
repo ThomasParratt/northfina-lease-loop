@@ -545,8 +545,7 @@
   "exit.unit.engine_hours": "mootoritundi",
   "exit.next": "Kes selle järgmisena saab",
   "exit.nextHint": "Ta saab uue pakkumise tänase turuväärtusega ja taotleb seda tavalisel viisil.",
-  "exit.nextQuote": "Järgmisele tehti uus pakkumine:",
-  "exit.nextQuoteLink": "ava pakkumine",
+  "exit.nextQuote": "Järgmisele tehti uus pakkumine. See on talle broneeritud ja ootab tema lehel Minu liisingud.",
   "exit.nextChoose": "Vali inimene",
   "exit.option.buy": "Kui ostad selle välja",
   "exit.option.return": "Kui tagastad selle",
@@ -815,5 +814,11 @@
   "withdraw.intro": "Saad taotluse tühistada seni, kuni see pole allkirjastatud. Selle eest tasu ei võeta.",
   "decision.status.withdrawn": "Taotlus tühistatud",
   "decision.reason.withdrawn": "Taotlus tühistati {on}.",
-  "leases.decision.withdrawn": "Tühistatud"
+  "leases.decision.withdrawn": "Tühistatud",
+  "apply.quoteReserved": "See liising anti edasi teisele kliendile. Pakkumine on broneeritud ainult talle.",
+  "contract.refusal.quote_reserved_for_another_customer": "See pakkumine on broneeritud teisele kliendile.",
+  "exit.refusal.pass_on_below_leasable": "Ese on halvemas kui heas seisukorras, seega ei saa seda ilma korrastamiseta otse järgmisele anda. Tagasta see selle asemel.",
+  "portal.passedOn.title": "Sulle edasi antud",
+  "portal.passedOn.body": "Liising esemele {item} anti sulle edasi. Ese on sulle broneeritud kuni {date}.",
+  "portal.passedOn.link": "Ava pakkumine"
 }

@@ -38,7 +38,8 @@ export async function ContractExit({
   isAdmin,
 }: ContractExitProps) {
   if (contract.endedOn) {
-    // D90: a pass-on started the next customer's quote; linked so it can be applied for.
+    // D90: a pass-on started the next customer's quote. Information only: the quote is held for
+    // the named customer and reached from their My leases page, not from this contract.
     const nextQuoteId = await nextQuoteIdOf(db, contract.id);
     return (
       <Notice tone="info" title={t('exit.ended.title')}>
@@ -46,17 +47,7 @@ export async function ContractExit({
           status: t(`contract.status.${contract.status}`),
           date: formatIsoDate(contract.endedOn, locale),
         })}
-        {nextQuoteId ? (
-          <span className="mt-2 block">
-            {t('exit.nextQuote')}{' '}
-            <Link
-              href={`/${locale}/apply/${encodeURIComponent(nextQuoteId)}`}
-              className="font-bold text-brand-text underline decoration-2 underline-offset-4"
-            >
-              {t('exit.nextQuoteLink')}
-            </Link>
-          </span>
-        ) : null}
+        {nextQuoteId ? <span className="mt-2 block">{t('exit.nextQuote')}</span> : null}
         {isAdmin && asset?.status === 'returned' ? (
           <Link
             href={`/${locale}/assets/${encodeURIComponent(asset.id)}/second-life`}
