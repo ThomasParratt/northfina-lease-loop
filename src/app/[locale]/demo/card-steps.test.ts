@@ -58,7 +58,21 @@ const STEPS: CodedLine[] = [
     code: 'exit_previewed',
     params: { monthsPaid: 7, buyTotalCents: 330_675, returnTotalCents: 75_945, date: '2027-06-05' },
   },
-  { code: 'asset_status', params: { assetId: 'ebike-007', status: 'returned', condition: 'fair' } },
+  {
+    code: 'asset_assessed',
+    params: {
+      assetId: 'ebike-007',
+      condition: 'fair',
+      refurbishmentCents: 39_500,
+      secondLifeFinancedCents: 155_476,
+      date: '2026-11-06',
+    },
+  },
+  {
+    code: 'relisted_for_winner',
+    params: { demandId: 'wait-02', condition: 'fair', termMonths: 12, monthlyNetCents: 8_710 },
+  },
+  { code: 'relisted_without_match', params: { condition: 'fair' } },
 ];
 const REFUSALS: CodedLine[] = [
   { code: 'card_already_run', params: { cardId: 1 } },
