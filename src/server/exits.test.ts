@@ -16,7 +16,7 @@ import { onEvent } from './events';
 import { exitContract, previewExit } from './exits';
 import { listInvoices, payInvoice } from './invoices';
 import type { PrismaClient } from './prisma-client';
-import { createQuote, loadPricingData } from './quotes';
+import { createQuote, getQuote, loadPricingData } from './quotes';
 
 let db: PrismaClient;
 let cleanup: () => Promise<void>;
@@ -165,7 +165,90 @@ describe('exitContract, card 8: Aino leaves card 1 in month 7', () => {
     expect(result.contract.status).toBe('ended_early');
     const passport = await listAssetEvents(db, 'ebike-003');
     expect(passport.at(-1)).toMatchObject({ kind: 'passed_on' });
-    expect((await getAsset(db, 'ebike-003'))?.status).toBe('returned');
+    // D90: relisted as it is, so the next customer's quote can be applied for and signed.
+    expect((await getAsset(db, 'ebike-003'))?.status).toBe('available');
+  });
+
+  it('D90, card 8 passed on early: 71 445 billed, no refurbishment, 29 rents cancelled, the next quote at the market value 259 230', async () => {
+    const contractId = await card1(7);
+    const result = await exitContract(
+      db,
+      {
+        contractId,
+        mode: 'pass_on',
+        reported: AINO_REPORTS,
+        nextCustomerId: 'cust-mikko',
+        actor: 'cust-aino',
+      },
+      MONTH_7
+    );
+    if (!result.ok) throw new Error(result.reason.code);
+    const invoices = await listInvoices(db, contractId);
+    const exit = invoices.find((i) => i.kind === 'early_exit')!;
+    expect(exit).toMatchObject({ netCents: 71_445 });
+    expect(invoices.filter((i) => i.status === 'cancelled')).toHaveLength(29);
+    expect(result.plan.passOn.lines.map((l) => l.code)).not.toContain('refurb_fixed');
+    expect(result.nextQuoteId).toBeTruthy();
+    const quote = await getQuote(db, result.nextQuoteId!);
+    expect(quote).toMatchObject({ quoteDate: MONTH_7 });
+    expect(quote?.breakdown).toMatchObject({
+      assetId: 'ebike-003',
+      unitListPriceCents: 259_230,
+      termMonths: 36,
+      downPaymentCents: 0,
+    });
+  });
+
+  it('D90: a pass-on that fails rolls the next quote back with it', async () => {
+    const contractId = await card1(7);
+    const before = await writesSoFar(contractId);
+    const quotesBefore = await db.quote.count();
+    const off = onEvent('UNIT_PASSED_ON', async () => {
+      throw new Error('boom');
+    });
+    try {
+      await expect(
+        exitContract(
+          db,
+          {
+            contractId,
+            mode: 'pass_on',
+            reported: AINO_REPORTS,
+            nextCustomerId: 'cust-mikko',
+            actor: 'cust-aino',
+          },
+          MONTH_7
+        )
+      ).rejects.toThrow('boom');
+    } finally {
+      off();
+    }
+    expect(await writesSoFar(contractId)).toEqual(before);
+    expect(await db.quote.count()).toBe(quotesBefore);
+  });
+
+  it('D90: a next quote that cannot be priced refuses the whole pass-on, the relisting rolled back', async () => {
+    const contractId = await card1(7);
+    const before = await writesSoFar(contractId);
+    const quotesBefore = await db.quote.count();
+    const unpriced = { ...data, priceLists: [] };
+    const result = await exitContract(
+      db,
+      {
+        contractId,
+        mode: 'pass_on',
+        reported: AINO_REPORTS,
+        nextCustomerId: 'cust-mikko',
+        actor: 'cust-aino',
+      },
+      MONTH_7,
+      undefined,
+      unpriced
+    );
+    expect(result).toMatchObject({ ok: false, reason: { code: 'next_quote_refused' } });
+    expect(await writesSoFar(contractId)).toEqual(before);
+    expect(before.asset).toBe('leased');
+    expect(await db.quote.count()).toBe(quotesBefore);
   });
 
   it('previewExit returns the same lines without writing', async () => {
