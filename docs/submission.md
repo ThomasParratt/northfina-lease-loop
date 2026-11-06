@@ -39,7 +39,7 @@ Lease Loop takes one e-bike, laptop or farm machine through three lives: a live 
   - **The tamper-evident, sealed audit chain.** Each audit row carries the hash of the one before and an Ed25519 signature made with a key outside the database, and every new head is copied to an anchor file outside it; the audit page shows the head hash and the public key and names the first broken row. `npm run demo:tamper -- --rewrite` recomputes every hash and is still caught, and `npm run audit:anchor` has a public RFC 3161 timestamp authority sign the head (D81, [audit-chain.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/audit-chain.md)).
   - **The signatory link.** A company's signatory list and a one-time signing link for the named person: only the holder of the link signs card 6, and the demo outbox stands in for the e-mail ([signatories.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/signatories.md)).
 
-**What's smart about our solution?** One rounding rule, half up, in one function on integer cents and a factor in millionths; the quote freezes the list version and the net rent while each invoice takes the VAT of its own day; the early exit is the outstanding balance by amortisation, shown line by line; the second-life price is market value plus refurbishment and the waiting list is ranked by four named steps, each place with the step that decided it. Every outcome is a code with params, written in English, Finnish, Swedish or Estonian.
+**What's smart about our solution?** One rounding rule, half up, in one function on integer cents and a factor in millionths; the quote freezes the list version and the net rent while each invoice takes the VAT of its own day; the early exit is the outstanding balance by amortisation, shown line by line; the second-life price is the market value after the refurbishment (the work is our cost, weighed as value gain against extra cost, D86) and the waiting list is ranked by four named steps, each place with the step that decided it. Every outcome is a code with params, written in English, Finnish, Swedish or Estonian.
 
 ## Scenario cards that work
 
@@ -63,13 +63,13 @@ Then open `http://localhost:3000/en/demo`: one **Run** button per scenario card,
 
 - [ ] `npm run check:all` passes locally
 - [ ] CI is green on our last commit (Actions enabled in our fork)
-- [ ] Review finding 1 fixed: the signing link is shown only to admin ([docs/reviews/wave-3.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/reviews/wave-3.md))
+- [x] Review finding 1 fixed: authorization before the action, so the decision page and its signing link are shown only to the applicant and admin (#61, [docs/features/authorization.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/authorization.md); the finding is in [docs/reviews/wave-3.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/reviews/wave-3.md))
 - [x] No `--no-verify` was used
 - [x] No AI, ML or LLM features inside the app (`npm run check:no-ai`, and `tests/meta-rules.test.ts`)
 
 ## Anything else the judges should know?
 
-**Decisions and mentor questions.** Every reading we took is a numbered decision with its reason and what we chose against: [docs/decisions.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/decisions.md) (D1 to D72). Three readings of the brief are open with the mentors ([docs/mentor-questions.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/mentor-questions.md)): the fleet quantity of card 6 (D8, issue #13), passing on to a named person (D16, issue #54) and the price and age a returned seeded item is valued from (D60). Card 8's curve age (D31) is an assumption stated in the README "Status" section.
+**Decisions and mentor questions.** Every reading we took is a numbered decision with its reason and what we chose against: [docs/decisions.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/decisions.md) (D1 to D84). Every question we put to the mentors is answered and the code follows the answer ([docs/mentor-questions.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/mentor-questions.md)): the fleet quantity of card 6 (D8, issue #13), passing on to a named person (D16, issue #54) and the age, price and battery reset a returned item is valued with (D60 and D83). Card 8's curve age (D31) is an assumption stated in the README "Status" section.
 
 **Docs.** One page per feature, each with its rule worked on the scenario-card numbers, its decisions, its pure functions and the tests that pin the numbers:
 
@@ -82,7 +82,9 @@ Then open `http://localhost:3000/en/demo`: one **Run** button per scenario card,
 - [docs/features/second-life.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/second-life.md)
 - [docs/features/circular-impact.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/circular-impact.md)
 - [docs/features/signatories.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/signatories.md)
+- [docs/features/authorization.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/authorization.md)
 - [docs/features/my-leases.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/my-leases.md)
+- [docs/features/user-portal.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/user-portal.md)
 - [docs/features/demo-cards.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/demo-cards.md)
 - [docs/features/audit-chain.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/audit-chain.md)
 - [docs/features/row-schemas.md](https://github.com/ThomasParratt/northfina-lease-loop/blob/main/docs/features/row-schemas.md)
