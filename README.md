@@ -106,6 +106,7 @@ One page per slice under `docs/features/` ([template](docs/features/README.md));
 - [Company signatories and the signing link](docs/features/signatories.md)
 - [Test isolation](docs/features/test-isolation.md)
 - [My leases](docs/features/my-leases.md)
+- [Demo cards: one button per scenario card](docs/features/demo-cards.md)
 
 ## Team notes
 
