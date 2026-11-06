@@ -6,7 +6,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
-import { ModelCard } from '@/components/model-card';
+import type { ReactNode } from 'react';
+import { ModelCard, UnavailableCard } from '@/components/model-card';
 import { Notice, cx } from '@/components/ui';
 import { assetCategorySchema } from '@/data/schemas';
 import {
@@ -16,6 +17,7 @@ import {
   conditionFilters,
   parseCatalogueFilters,
   type CatalogueEntry,
+  unavailableUnits,
   type CatalogueFilters,
 } from '@/domain/catalogue/catalogue';
 import { financeOffer, termsOf, type FinanceOffer } from '@/domain/pricing';
@@ -80,6 +82,9 @@ export default async function CataloguePage({
 
   const filters = parseCatalogueFilters(await searchParams);
   const groups = buildCatalogue(entries, filters);
+  // Returned and leased units come last, one by one and greyed out, so their pages and
+  // passports stay one click away (D42, revised).
+  const unavailable = unavailableUnits(entries, filters);
   const categories = [
     { key: null, label: t('catalogue.filter.all') },
     ...assetCategorySchema.options.map((category) => ({
@@ -88,7 +93,9 @@ export default async function CataloguePage({
     })),
   ].map((c) => ({
     ...c,
-    count: buildCatalogue(entries, { ...NO_FILTERS, category: c.key }).length,
+    count:
+      buildCatalogue(entries, { ...NO_FILTERS, category: c.key }).length +
+      unavailableUnits(entries, { ...NO_FILTERS, category: c.key }).length,
   }));
   const brands = filters.category ? brandsIn(entries, filters.category) : [];
   const refined = filters.condition !== null || filters.make !== null || filters.sort !== 'default';
@@ -135,7 +142,7 @@ export default async function CataloguePage({
 
       <nav
         aria-label={t('catalogue.filter.refine')}
-        className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-line bg-raised px-4 py-3"
+        className="mt-4 divide-y divide-line rounded-xl border border-line bg-raised px-4"
       >
         <ChipGroup
           label={t('catalogue.filter.condition')}
@@ -145,6 +152,17 @@ export default async function CataloguePage({
             href: catalogueHref(locale, { ...filters, condition }),
             active: filters.condition === condition,
           }))}
+          // "Clear filters" sits at the end of the first row, not on a row of its own.
+          aside={
+            refined ? (
+              <Link
+                href={catalogueHref(locale, { ...NO_FILTERS, category: filters.category })}
+                className="text-sm font-bold whitespace-nowrap text-brand-text underline decoration-2 underline-offset-4"
+              >
+                {t('catalogue.filter.clear')}
+              </Link>
+            ) : null
+          }
         />
         {brands.length > 1 ? (
           <ChipGroup
@@ -166,17 +184,9 @@ export default async function CataloguePage({
             active: filters.sort === sort,
           }))}
         />
-        {refined ? (
-          <Link
-            href={catalogueHref(locale, { ...NO_FILTERS, category: filters.category })}
-            className="text-sm font-bold text-brand-text underline decoration-2 underline-offset-4"
-          >
-            {t('catalogue.filter.clear')}
-          </Link>
-        ) : null}
       </nav>
 
-      {groups.length === 0 ? (
+      {groups.length === 0 && unavailable.length === 0 ? (
         <Notice tone="info" className="mt-8">
           {assets.length === 0 ? t('catalogue.empty') : t('catalogue.noMatch')}
         </Notice>
@@ -193,6 +203,11 @@ export default async function CataloguePage({
               />
             </li>
           ))}
+          {unavailable.map((asset) => (
+            <li key={asset.id}>
+              <UnavailableCard asset={asset} locale={locale} t={t} />
+            </li>
+          ))}
         </ul>
       )}
     </div>
@@ -201,12 +216,23 @@ export default async function CataloguePage({
 
 type Chip = { key: string; label: string; href: string; active: boolean };
 
-/** One secondary filter: its name and a row of small links, the current one filled. */
-function ChipGroup({ label, chips }: { label: string; chips: Chip[] }) {
+/**
+ * One secondary filter on a row of its own: its name in a fixed column, then its small links,
+ * the current one filled. A row per filter keeps one filter's last chip from running into the
+ * next filter's name.
+ */
+function ChipGroup({ label, chips, aside }: { label: string; chips: Chip[]; aside?: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-bold text-ink-muted">{label}</span>
-      <ul className="flex flex-wrap gap-1.5">
+    <div className="grid gap-2 py-3 sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:items-center">
+      {/* On a phone the label and the aside share the first line; from sm they are the
+          first and last columns, with the chips between them. */}
+      <div className="flex items-center justify-between gap-3 sm:contents">
+        <span className="text-sm font-bold text-ink-muted sm:col-start-1 sm:row-start-1">
+          {label}
+        </span>
+        {aside ? <span className="sm:col-start-3 sm:row-start-1">{aside}</span> : null}
+      </div>
+      <ul className="flex flex-wrap gap-1.5 sm:col-start-2 sm:row-start-1">
         {chips.map((chip) => (
           <li key={chip.key}>
             <Link
