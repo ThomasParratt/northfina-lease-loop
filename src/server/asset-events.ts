@@ -2,8 +2,8 @@
 // slice owns `AssetEvent`). Writes take the `tx` of the caller's `withAudit`, so an event is
 // logged with the change that caused it or not at all. The order of the log is the id.
 import { z } from 'zod';
-import { loadCo2Factors, loadPriceLists } from '@/data/load';
-import { isoDateSchema, type Asset } from '@/data/schemas';
+import { loadCo2Factors, loadPriceLists, loadRefurbishmentCosts } from '@/data/load';
+import { isoDateSchema, type Asset, type RefurbishmentCosts } from '@/data/schemas';
 import { passportFor, type Passport, type PassportEvent } from '@/domain/passport';
 import { listPriceOn } from '@/domain/price-list';
 import {
@@ -15,7 +15,9 @@ import {
 } from '@/domain/second-life/co2';
 import {
   fleetMoneySaved,
+  mandatoryRefurbishmentCents,
   moneySavedForAsset,
+  refurbishmentByLife,
   type AssetMoney,
   type FleetMoney,
 } from '@/domain/second-life/money-saved';
@@ -105,14 +107,15 @@ export async function readPassport(
 ): Promise<AssetPassport | null> {
   const asset = (await listAssets(db)).find((candidate) => candidate.id === assetId);
   if (!asset) return null;
-  const [events, factors, priceLists] = await Promise.all([
+  const [events, factors, priceLists, costs] = await Promise.all([
     listAssetEvents(db, assetId),
     loadCo2Factors(),
     loadPriceLists(),
+    loadRefurbishmentCosts(),
   ]);
   const passport = passportFor(asset, events, asOf);
   const method = co2Method(factors);
-  const lives = passport.lives.map((life) => ({ months: life.months ?? 0 }));
+  const lives = livesWithCosts(passport, costs, asset.category);
   const co2 = co2SavedForAsset(method, { category: asset.category, lives });
   const money = moneySavedForAsset(method, {
     category: asset.category,
@@ -120,6 +123,19 @@ export async function readPassport(
     lives,
   });
   return { asset, passport, co2, money };
+}
+
+/** Each life's months and what getting the item ready for it cost (D80). */
+function livesWithCosts(
+  passport: Passport,
+  costs: RefurbishmentCosts,
+  category: Asset['category']
+): { months: number; refurbishmentCents: number }[] {
+  const spent = refurbishmentByLife(passport.lives, mandatoryRefurbishmentCents(costs, category));
+  return passport.lives.map((life, index) => ({
+    months: life.months ?? 0,
+    refurbishmentCents: spent[index]!,
+  }));
 }
 
 export type FleetImpactRead = {
@@ -132,11 +148,12 @@ export type FleetImpactRead = {
 
 /** The whole fleet's CO2 and money saved as on `asOf`, from the past lives and the event log. */
 export async function readFleetImpact(db: PrismaClient, asOf: string): Promise<FleetImpactRead> {
-  const [assets, rows, factors, priceLists] = await Promise.all([
+  const [assets, rows, factors, priceLists, costs] = await Promise.all([
     listAssets(db),
     db.assetEvent.findMany({ orderBy: { id: 'asc' } }),
     loadCo2Factors(),
     loadPriceLists(),
+    loadRefurbishmentCosts(),
   ]);
   const byAsset = new Map<string, PassportEvent[]>();
   for (const row of rows) {
@@ -147,9 +164,11 @@ export async function readFleetImpact(db: PrismaClient, asOf: string): Promise<F
     asset,
     category: asset.category,
     newPriceCents: newPriceOn(priceLists, asset.id, asOf),
-    lives: passportFor(asset, byAsset.get(asset.id) ?? [], asOf).lives.map((life) => ({
-      months: life.months ?? 0,
-    })),
+    lives: livesWithCosts(
+      passportFor(asset, byAsset.get(asset.id) ?? [], asOf),
+      costs,
+      asset.category
+    ),
   }));
   return {
     fleet: fleetImpact(method, lived),

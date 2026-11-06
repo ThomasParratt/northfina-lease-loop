@@ -1,30 +1,36 @@
-// The money a second or third life saves (smart problem 7, decision D80), by the method of the
-// CO2 (D15, co2.ts): a later life stands in for a new item, so it is credited with
-//   new net list price × (1 − refurbishment share) × counted months ÷ design life months,
-// the price of a new item net of refurbishing it, spread over the months the item is built to
-// last and counted for the months that life used. The first life earns nothing, and once the
-// lives add up to the design life a further life earns nothing: an almost worn-out item saves
-// little, the same answer the CO2 gives.
+// The money a second or third life saves (smart problem 7, decision D80). A later life stands in
+// for a new item, so it is credited with the share of a new item's price it used and charged
+// with the money actually spent getting it ready:
+//   new net list price × counted months ÷ design life months − refurbishment cost of that life,
+// never below zero. The months counted are the CO2's (D15, co2.ts): none for the first life (the
+// item was bought new for it) and at most what is left of the design life, so an almost worn-out
+// item saves little and a worn-out one nothing, while its refurbishment still costs what it
+// costs. Every figure is money from the data pack: the price lists and refurbishment-costs.json.
 //
 // The new price is the item's net list price on the day asked about (the price list in force,
-// the same one the catalogue shows), so the saving is in today's money. The refurbishment
-// share is the data pack's `refurbishment_share_of_new`: it is the only refurbishment figure
-// that applies to every life, past ones included; the real plan costs exist only for the
-// returns assessed in the app.
+// the same one the catalogue shows), so the saving is in today's money and moves when a new list
+// starts. The refurbishment cost of a life is what the return assessment spent before it (the
+// `refurbished` event's `costCents`); a life with no such record (the data pack's past lives)
+// is charged the steps refurbishment-costs.json does every time (`when: "always"`), the least
+// any relisting costs.
 //
-// Rounding (D1): integer arithmetic on cents and the share in millionths, then one division,
-// half up to the cent. An item's total is rounded once from the exact sum of its lives, and a
-// category's row once from the exact sum of its items; the fleet total is the sum of the rows,
+// Rounding (D1): integer arithmetic on cents, then one division, half up to the cent. A life's
+// exact saving is floored at zero before anything is added, so a life that saved nothing never
+// takes away from another; an item's total is rounded once from the exact sum of its lives, and
+// a category's row once from the exact sum of its items; the fleet total is the sum of the rows,
 // so the breakdown on a page always adds up.
-import type { AssetCategory } from '@/data/schemas';
-import { factorToMillionths, roundHalfUpDivBig } from '../money-math';
+import { z } from 'zod';
+import type { AssetCategory, RefurbishmentCosts } from '@/data/schemas';
+import type { PassportEvent } from '../passport';
+import { roundHalfUpDivBig } from '../money-math';
+import { parseWhenRule } from '../refurbishment/plan';
 import { countedMonths, type Co2Method, type LifeInput } from './co2';
-
-const MILLION = 1_000_000n;
 
 export type MoneyLifeInput = LifeInput & {
   /** The item's net list price as new on the day, in cents. */
   newPriceCents: number;
+  /** What getting the item ready for this life cost, in cents; 0 for the first life. */
+  refurbishmentCents: number;
 };
 
 const assertWholeNonNegative = (name: string, value: number) => {
@@ -33,19 +39,52 @@ const assertWholeNonNegative = (name: string, value: number) => {
   }
 };
 
-/** The exact saving of one life in cent-millionths × months, over `denominator`. */
+/** The steps every relisting of the category pays (`when: "always"`), in cents. */
+export function mandatoryRefurbishmentCents(
+  costs: RefurbishmentCosts,
+  category: AssetCategory
+): number {
+  return costs[category].fixed
+    .filter((step) => parseWhenRule(step.when).kind === 'always')
+    .reduce((sum, step) => sum + step.cost_cents, 0);
+}
+
+const refurbishedDetailsSchema = z.object({ costCents: z.number().int().nonnegative() });
+
+/**
+ * What each life's refurbishment cost, in passport order: 0 for the first life; for a later one,
+ * the `costCents` of the `refurbished` events in the gap before it, or `fallbackCents` (the
+ * category's mandatory steps) when that gap holds none, as for the data pack's past lives.
+ */
+export function refurbishmentByLife(
+  lives: readonly { between: readonly PassportEvent[] }[],
+  fallbackCents: number
+): number[] {
+  return lives.map((_, index) => {
+    if (index === 0) return 0;
+    const spent = lives[index - 1]!.between.filter((event) => event.kind === 'refurbished').map(
+      (event) => refurbishedDetailsSchema.parse(event.details).costCents
+    );
+    return spent.length === 0 ? fallbackCents : spent.reduce((sum, cents) => sum + cents, 0);
+  });
+}
+
+/** One life's exact saving in cents × design life months, floored at zero. */
 function savedNumerator(method: Co2Method, life: MoneyLifeInput): bigint {
   assertWholeNonNegative('newPriceCents', life.newPriceCents);
+  assertWholeNonNegative('refurbishmentCents', life.refurbishmentCents);
   const counted = countedMonths(method, life);
-  const keptMillionths =
-    MILLION - BigInt(factorToMillionths(method.factors.refurbishment_share_of_new));
-  return BigInt(life.newPriceCents) * keptMillionths * BigInt(counted);
+  if (counted === 0) return 0n;
+  const designLife = BigInt(method.designLifeMonths[life.category]);
+  const numerator =
+    BigInt(life.newPriceCents) * BigInt(counted) - BigInt(life.refurbishmentCents) * designLife;
+  return numerator > 0n ? numerator : 0n;
 }
 
 const denominator = (method: Co2Method, category: AssetCategory) =>
-  MILLION * BigInt(method.designLifeMonths[category]);
+  BigInt(method.designLifeMonths[category]);
 
-/** Cents one life saved, rounded half up. 0 for the first life and past the design life. */
+/** Cents one life saved, rounded half up; 0 for the first life, past the design life, or at a loss. */
 export function moneySavedByLife(method: Co2Method, life: MoneyLifeInput): number {
   return Number(
     roundHalfUpDivBig(savedNumerator(method, life), denominator(method, life.category))
@@ -56,7 +95,7 @@ export function moneySavedByLife(method: Co2Method, life: MoneyLifeInput): numbe
 export type AssetMoneyLives = {
   category: AssetCategory;
   newPriceCents: number | null;
-  lives: readonly { months: number }[];
+  lives: readonly { months: number; refurbishmentCents: number }[];
 };
 
 export type AssetMoney = {
@@ -78,6 +117,7 @@ function assetNumerators(method: Co2Method, asset: AssetMoneyLives): bigint[] {
             months: life.months,
             monthsUsedBefore,
             newPriceCents: asset.newPriceCents,
+            refurbishmentCents: life.refurbishmentCents,
           });
     monthsUsedBefore += life.months;
     return numerator;
