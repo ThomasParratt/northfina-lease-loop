@@ -14,6 +14,8 @@ A database seeded or assessed before D86 still quotes the old D12 second-life pr
 
 Open `http://localhost:3000/en/demo` in a window about 1 280 px wide, with a second tab on `/en/audit`. Nobody is picked in "Continue as"; each Run button sets the actor and the demo clock itself (D71).
 
+Run the cards in a fresh database. The manual clock form never goes before the latest day something was recorded (D90: no payment before its contract); the Run buttons are exempt. To go back further, `npm run db:reset`.
+
 ## 0:00 to 1:00, what it is
 
 The landing page (`/en`): one e-bike, laptop or farm machine, three lives. Click into the catalogue: today's price per model, from the price list live on the demo clock's day. Then open the demo page from the teal strip.

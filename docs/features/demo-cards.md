@@ -31,6 +31,7 @@ Steps and refusals are codes with params; a decision reason is one `application_
 
 - **D70** a second click is refused with `card_already_run` and links the earlier records; a run stopped before signing is picked up and signed; card 8 builds on card 1 and only previews again.
 - **D71** the run sets the demo clock to the card's look day and the actor to the card's customer, on a run and on a refusal.
+- **D90** exempts the cards: the card route sets the clock cookie itself through `demoClockCookieHeader`, never through `POST /api/demo/clock`, so a card runs on its scripted days (card 4 on 31 Jan 2026, card 3 on 15 Sep 2026, card 1 on 5 Nov 2026) even after later records exist. Only the manual clock form stops at the latest recorded day; run the cards in a fresh database, `npm run db:reset` to go back.
 - **D72** card 2 signs on the second day and lands on the contract.
 - Uses D17 (the actor cookie), D44 (tests own their `beforeEach`), and the demo clock of `docs/features/catalogue.md`.
 
@@ -58,7 +59,7 @@ None: this slice has no domain logic (it only drives the services). The server f
 - `src/server/demo-cards.test.ts`: one test per card on a test database (the records match the numbers `src/server/scenarios/` pins, and the landing page), card 8 after card 1, the repeat-run refusal writing nothing, card 8 again only previewing, a stopped run signed, another deal on the same item not mistaken for the card, card 8 refused after its contract ended, all ten cards in one database with the audit chain intact, and a refused step.
 - `src/app/api/demo/cards/[id]/run/route.test.ts`: the route sets both cookies, answers 409 `CARD_ALREADY_RUN` with the earlier page, and 400 for a card that does not exist.
 - `src/app/[locale]/demo/card-steps.test.ts`: every step and refusal and every card's inputs line written (decision reasons and refused steps with the app's own sentences, never the code) in all four languages with no placeholder left.
-- `src/server/demo-clock.test.ts` and `src/app/api/demo/clock/route.test.ts`: the cookie header, and the clock route setting, clearing and refusing.
+- `src/server/demo-clock.test.ts` and `src/app/api/demo/clock/route.test.ts`: the cookie header, and the clock route setting, clearing and refusing; after card 1 the route refuses an earlier day with 409 `CLOCK_BEFORE_RECORDS` and card 4 still runs on 31 Jan 2026 (D90).
 
 ## Open questions
 
