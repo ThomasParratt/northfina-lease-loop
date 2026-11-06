@@ -130,7 +130,13 @@ export function exitBilling(input: ExitBillingInput): ExitBilling {
         .map((invoice) => invoice.id);
 
   const billed = mode === 'buy' || !cost.atOrAfterEnd;
-  const netCents = mode === 'buy' ? cost.buy.totalCents : cost.return.totalCents;
+  // D90: a pass-on bills the return without the refurbishment.
+  const netCents =
+    mode === 'buy'
+      ? cost.buy.totalCents
+      : mode === 'pass_on'
+        ? cost.passOn.totalCents
+        : cost.return.totalCents;
   if (!billed || netCents === 0) return { ok: true, invoice: null, cancelInvoiceIds };
 
   const rate = vatRateOn(input.vatRates, today);
