@@ -8,10 +8,11 @@ Branch `feat/user-portal` from `main` at `b7817d1`, slot `vigorous-pare-5aac81`.
 - 06:27 to 06:30 the page: rows moved to `rows.tsx`, `portal.tsx` and `portal-data.ts`, `/customers/[id]`, the message keys in four files, `id="exit"` on the exit card. Typecheck and lint clean.
 - 06:31 checked on the dev server: admin, Aino, Olavi on Aino's page, an unknown id, 375 px.
 - 06:33 to 06:40 D75 (kept to the table's widths), `docs/features/user-portal.md`, the old page's pointer, the README Features line.
-- 06:41 `npm run check:all`, push, PR.
+- 06:41 to 06:50 `npm run check:all` green (133 files, 1 516 tests, build).
+- 06:51 coordinator's notes: wave 3 review finding 8 fixed ("Applied on" relabelled "Decided on" in the four files, it prints the decision day); `listCustomerInvoices` moved to the end of `invoices.ts` for a clean merge with `fix/authz`. Push, PR.
 
 ## Left undone
 
 - The Pay link opens the contract page, not one invoice (no anchor per invoice in the invoice table, which is not this slice's).
 - `docs/features/STATUS.md` and the README Status section are the hardening agent's; the portal is not in them yet.
-- The `fix/authz` session can swap the page's D26 check for `src/server/authorize.ts`; the "Applied on" line now lives in `src/app/[locale]/leases/rows.tsx` (moved unchanged from the page).
+- The `fix/authz` session can swap the page's D26 check for `src/server/authorize.ts`; the "Decided on" line (key `leases.applied`) now lives in `src/app/[locale]/leases/rows.tsx` (moved unchanged from the page).

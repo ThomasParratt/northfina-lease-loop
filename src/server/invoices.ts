@@ -98,24 +98,6 @@ export async function listInvoices(
 }
 
 /**
- * Every invoice of one customer across their contracts, newest due day first (then the later
- * contract and sequence first), for the portal (D75). The contracts are the contract slice's
- * `listContracts` (team rule 3); only the Invoice table is queried here.
- */
-export async function listCustomerInvoices(
-  db: PrismaClient,
-  filter: { customerId: string }
-): Promise<InvoiceView[]> {
-  const contracts = await listContracts(db, { customerId: filter.customerId });
-  if (contracts.length === 0) return [];
-  const rows = await db.invoice.findMany({
-    where: { contract_id: { in: contracts.map((c) => c.id) } },
-    orderBy: [{ due_date: 'desc' }, { sequence: 'desc' }],
-  });
-  return rows.map(toInvoiceView);
-}
-
-/**
  * The customer an invoice bills, for the access check. Null for an unknown invoice. The
  * invoice row is ours; its contract is read through the contract slice's `contractCustomerId`
  * (team rule 3), never with a query on the Contract table.
@@ -190,4 +172,22 @@ export async function payInvoice(
     throw error;
   }
   return { ok: true, invoice: toInvoiceView(row) };
+}
+
+/**
+ * Every invoice of one customer across their contracts, newest due day first (then the higher
+ * sequence first), for the portal (D75). The contracts are the contract slice's
+ * `listContracts` (team rule 3); only the Invoice table is queried here.
+ */
+export async function listCustomerInvoices(
+  db: PrismaClient,
+  filter: { customerId: string }
+): Promise<InvoiceView[]> {
+  const contracts = await listContracts(db, { customerId: filter.customerId });
+  if (contracts.length === 0) return [];
+  const rows = await db.invoice.findMany({
+    where: { contract_id: { in: contracts.map((c) => c.id) } },
+    orderBy: [{ due_date: 'desc' }, { sequence: 'desc' }],
+  });
+  return rows.map(toInvoiceView);
 }

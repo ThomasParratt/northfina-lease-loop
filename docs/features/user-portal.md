@@ -31,7 +31,7 @@ Server reads (each table through its owner, team rule 3):
 
 ## Files
 
-`src/app/[locale]/leases/page.tsx` (the customer's portal or All leases), `portal.tsx` (the portal sections), `portal-data.ts` (the reads), `rows.tsx` (the contract and application rows, moved from the page), `src/app/[locale]/customers/[id]/page.tsx` (the admin's view of one customer), `src/domain/portal/`, `listCustomerInvoices` in `src/server/invoices.ts`, `id="exit"` on the exit card in `src/components/contract-exit.tsx`, the `portal.*` keys and `leases.intro` in the four message files.
+`src/app/[locale]/leases/page.tsx` (the customer's portal or All leases), `portal.tsx` (the portal sections), `portal-data.ts` (the reads), `rows.tsx` (the contract and application rows, moved from the page), `src/app/[locale]/customers/[id]/page.tsx` (the admin's view of one customer), `src/domain/portal/`, `listCustomerInvoices` in `src/server/invoices.ts`, `id="exit"` on the exit card in `src/components/contract-exit.tsx`, the `portal.*` keys, `leases.intro` and `leases.applied` (now "Decided on {date}": it prints the decision day, wave 3 review finding 8) in the four message files.
 
 ## Tests that pin the numbers
 

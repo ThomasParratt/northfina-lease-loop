@@ -618,7 +618,7 @@
   "leases.monthly": "{amount} kuus ilma käibemaksuta",
   "leases.number": "Leping {number}",
   "leases.customer": "Klient: {name}",
-  "leases.applied": "Taotletud {date}",
+  "leases.applied": "Otsustatud {date}",
   "leases.open": "Ava leping",
   "leases.openApplication": "Ava taotlus",
   "leases.readyToSign": "Valmis allkirjastamiseks",

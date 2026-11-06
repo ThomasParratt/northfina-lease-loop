@@ -618,7 +618,7 @@
   "leases.monthly": "{amount} kuukaudessa ilman ALV:tä",
   "leases.number": "Sopimus {number}",
   "leases.customer": "Asiakas: {name}",
-  "leases.applied": "Haettu {date}",
+  "leases.applied": "Päätetty {date}",
   "leases.open": "Avaa sopimus",
   "leases.openApplication": "Avaa hakemus",
   "leases.readyToSign": "Valmis allekirjoitettavaksi",

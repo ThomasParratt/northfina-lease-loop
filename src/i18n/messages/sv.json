@@ -618,7 +618,7 @@
   "leases.monthly": "{amount} per månad utan moms",
   "leases.number": "Avtal {number}",
   "leases.customer": "Kund: {name}",
-  "leases.applied": "Ansökt {date}",
+  "leases.applied": "Beslutad {date}",
   "leases.open": "Öppna avtalet",
   "leases.openApplication": "Öppna ansökan",
   "leases.readyToSign": "Klar att skriva under",

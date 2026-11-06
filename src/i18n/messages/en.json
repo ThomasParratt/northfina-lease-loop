@@ -618,7 +618,7 @@
   "leases.monthly": "{amount} a month without VAT",
   "leases.number": "Contract {number}",
   "leases.customer": "Customer: {name}",
-  "leases.applied": "Applied on {date}",
+  "leases.applied": "Decided on {date}",
   "leases.open": "Open the contract",
   "leases.openApplication": "Open the application",
   "leases.readyToSign": "Ready to sign",
