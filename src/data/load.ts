@@ -8,6 +8,7 @@ import {
   assetsFileSchema,
   co2FactorsSchema,
   coefficientTableSchema,
+  consumerLimitsSchema,
   customersFileSchema,
   priceListsFileSchema,
   questionsFileSchema,
@@ -48,3 +49,5 @@ export const loadSecondLifeDemand = () =>
 export const loadRefurbishmentCosts = () =>
   loadDataFile('refurbishment-costs.json', refurbishmentCostsSchema);
 export const loadCo2Factors = () => loadDataFile('co2-factors.json', co2FactorsSchema);
+/** The team's consumer limits (not the organiser's pack). */
+export const loadConsumerLimits = () => loadDataFile('consumer-limits.json', consumerLimitsSchema);
