@@ -547,7 +547,7 @@
   "audit.chain.reason.anchor_mismatch": "se ei vastaa tietokannan ulkopuolella säilytettyä kopiota",
   "audit.chain.brokenAnchorFile": "Ketju katkeaa: tietokannan ulkopuolisessa ankkuritiedostossa on vioittunut rivi",
   "audit.chain.signed": "Allekirjoitettu · jokainen merkintä ja kärki",
-  "audit.chain.unsigned": "Allekirjoituksia ei tarkistettu: allekirjoitusavainta ei ole asetettu",
+  "audit.chain.unsigned": "Allekirjoituksia ei tarkistettu: kelvollista allekirjoitusavainta ei ole asetettu",
   "audit.chain.publicKeyLabel": "Julkinen avain: sillä tarkistetaan allekirjoitukset, mutta sillä ei voi tehdä niitä",
   "audit.chain.anchored": "Ankkuroitu tietokannan ulkopuolelle · merkintään {count} asti",
   "audit.chain.anchorLag": "Ankkuroitu tietokannan ulkopuolelle merkintään {anchored} asti, merkintöjä {count}",

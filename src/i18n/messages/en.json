@@ -547,7 +547,7 @@
   "audit.chain.reason.anchor_mismatch": "it does not match the copy kept outside the database",
   "audit.chain.brokenAnchorFile": "Chain broken: the anchor file outside the database has a damaged line",
   "audit.chain.signed": "Signed · every entry and the head",
-  "audit.chain.unsigned": "Signatures not checked: no signing key is set",
+  "audit.chain.unsigned": "Signatures not checked: no valid signing key is set",
   "audit.chain.publicKeyLabel": "Public key: it checks the signatures but cannot make them",
   "audit.chain.anchored": "Anchored outside the database · up to entry {count}",
   "audit.chain.anchorLag": "Anchored outside the database up to entry {anchored} of {count}",

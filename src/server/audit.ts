@@ -167,7 +167,7 @@ export async function verifyAuditChain(db: PrismaClient): Promise<AuditVerificat
     db.auditLog.findMany({ orderBy: { id: 'asc' } }),
     db.auditHead.findUnique({ where: { id: AUDIT_HEAD_ID } }),
   ]);
-  const signer = auditSigner();
+  const signer = signerForVerifying();
   const verdict = verifySealedChain(
     rows.map((row) => ({
       id: row.id,
@@ -199,5 +199,19 @@ function parseStoredJson(text: string): unknown {
     return JSON.parse(text);
   } catch {
     return text;
+  }
+}
+
+/**
+ * The signer for the verifier, or null when the key in .env cannot be read (review of #69,
+ * finding 7): the page then says the signatures were not checked instead of failing with a
+ * 500. The reason goes to the server log only. Writes still refuse a bad key (withAudit).
+ */
+function signerForVerifying() {
+  try {
+    return auditSigner();
+  } catch (error) {
+    console.error('audit signatures not checked:', error instanceof Error ? error.message : error);
+    return null;
   }
 }

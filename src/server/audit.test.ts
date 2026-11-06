@@ -435,6 +435,31 @@ describe('the seal: signatures and anchors', () => {
     expect(await verifyAuditChain(db)).toMatchObject({ ok: true, length: 4, anchoredLength: 4 });
   });
 
+  // Review of #69, finding 7: a key in .env that cannot be read must not take the audit page down.
+  it('verifies with the signatures unchecked when the key cannot be read, and still refuses writes', async () => {
+    await writeThree();
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.stubEnv(SIGNING_KEY_ENV, 'bm90IGEga2V5');
+    try {
+      expect(await verifyAuditChain(db)).toMatchObject({
+        ok: true,
+        length: 3,
+        signaturesChecked: false,
+        publicKey: null,
+      });
+      expect(log).toHaveBeenCalledWith(
+        'audit signatures not checked:',
+        expect.stringMatching(/AUDIT_SIGNING_KEY is not a base64/)
+      );
+      await expect(withAudit(db, entry, reserve)).rejects.toThrow(
+        /AUDIT_SIGNING_KEY is not a base64/
+      );
+    } finally {
+      vi.unstubAllEnvs();
+      log.mockRestore();
+    }
+  });
+
   it('refuses to write without a key, before the change runs', async () => {
     vi.stubEnv(SIGNING_KEY_ENV, '');
     let ran = false;

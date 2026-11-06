@@ -547,7 +547,7 @@
   "audit.chain.reason.anchor_mismatch": "see ei vasta väljaspool andmebaasi hoitavale koopiale",
   "audit.chain.brokenAnchorFile": "Ahel katkeb: andmebaasist väljaspool olevas ankrufailis on rikutud rida",
   "audit.chain.signed": "Allkirjastatud · iga kirje ja tipp",
-  "audit.chain.unsigned": "Allkirju ei kontrollitud: allkirjavõtit pole määratud",
+  "audit.chain.unsigned": "Allkirju ei kontrollitud: kehtivat allkirjavõtit pole määratud",
   "audit.chain.publicKeyLabel": "Avalik võti: sellega kontrollitakse allkirju, kuid sellega ei saa neid teha",
   "audit.chain.anchored": "Ankurdatud väljaspool andmebaasi · kuni kirjeni {count}",
   "audit.chain.anchorLag": "Ankurdatud väljaspool andmebaasi kuni kirjeni {anchored}, kirjeid {count}",

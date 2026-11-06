@@ -547,7 +547,7 @@
   "audit.chain.reason.anchor_mismatch": "den stämmer inte med kopian som förvaras utanför databasen",
   "audit.chain.brokenAnchorFile": "Kedjan bruten: ankarfilen utanför databasen har en skadad rad",
   "audit.chain.signed": "Signerad · varje post och toppen",
-  "audit.chain.unsigned": "Signaturerna kontrollerades inte: ingen signeringsnyckel är angiven",
+  "audit.chain.unsigned": "Signaturerna kontrollerades inte: ingen giltig signeringsnyckel är angiven",
   "audit.chain.publicKeyLabel": "Publik nyckel: den kontrollerar signaturerna men kan inte skapa dem",
   "audit.chain.anchored": "Förankrad utanför databasen · till och med post {count}",
   "audit.chain.anchorLag": "Förankrad utanför databasen till och med post {anchored} av {count}",

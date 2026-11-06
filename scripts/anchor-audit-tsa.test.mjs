@@ -10,9 +10,11 @@ import {
   postArgs,
   queryArgs,
   stampFiles,
+  stampName,
   statementText,
   timeOfReply,
   verifyArgs,
+  verifyConclusion,
 } from './anchor-audit-tsa.mjs';
 
 const hash = 'c'.repeat(64);
@@ -48,14 +50,16 @@ describe('the statement', () => {
 });
 
 describe('the files and the commands', () => {
-  const files = stampFiles('/x/audit-tsa', 3);
+  const files = stampFiles('/x/audit-tsa', 3, '20261106T084002Z');
 
-  it('keeps the statement, the request and the reply side by side', () => {
+  it('keeps the statement, the request and the reply side by side, named by length and instant', () => {
+    expect(stampName('2026-11-06T08:40:02.123Z')).toBe('20261106T084002Z');
     expect(files).toEqual({
-      statement: path.join('/x/audit-tsa', 'head-3.txt'),
-      query: path.join('/x/audit-tsa', 'head-3.tsq'),
-      reply: path.join('/x/audit-tsa', 'head-3.tsr'),
+      statement: path.join('/x/audit-tsa', 'head-3-20261106T084002Z.txt'),
+      query: path.join('/x/audit-tsa', 'head-3-20261106T084002Z.tsq'),
+      reply: path.join('/x/audit-tsa', 'head-3-20261106T084002Z.tsr'),
     });
+    expect(stampFiles('/x/audit-tsa', 3, '20261106T090000Z').reply).not.toBe(files.reply);
     expect(filesOfStatement(files.statement)).toEqual(files);
   });
 
@@ -107,5 +111,31 @@ describe('logStillHas', () => {
   it('is false for a rewritten row or a log cut below the stamp', () => {
     expect(logStillHas(['a', 'b'], { length: 2, hash })).toBe(false);
     expect(logStillHas(['a'], { length: 2, hash })).toBe(false);
+  });
+});
+
+// Review of #69, finding 5: rows edited without recomputing their hashes leave the stamped
+// row's hash as it was, so the head check alone would say all is well.
+describe('verifyConclusion', () => {
+  const head = { length: 2, hash };
+  const intact = { ok: true, length: 3, headHash: hash };
+
+  it('is good only when the log has the head and passes the sealed verifier', () => {
+    expect(verifyConclusion(true, intact, head)).toEqual({
+      ok: true,
+      message: 'the log still has that head at #2, and it is intact',
+    });
+  });
+
+  it('fails a log that has the head but is broken before it', () => {
+    const broken = { ok: false, brokenAt: 1, reason: 'hash_mismatch' };
+    expect(verifyConclusion(true, broken, head)).toEqual({
+      ok: false,
+      message: 'the log still has that head at #2, but it is broken now: hash_mismatch at #1',
+    });
+  });
+
+  it('fails a log that no longer has the head, first', () => {
+    expect(verifyConclusion(false, intact, head).message).toMatch(/no longer has that head at #2/);
   });
 });

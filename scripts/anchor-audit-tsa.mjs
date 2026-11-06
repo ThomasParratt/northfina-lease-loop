@@ -6,7 +6,7 @@
 //   npm run audit:anchor -- --verify <file>    check a receipt and that the log still has that head
 //
 // A terminal tool a person runs, never the app: the app makes no outside call. It writes a
-// statement (`head-<n>.txt`: the length, the head hash and the public key), asks the authority
+// statement (`head-<n>-<instant>.txt`: the length, the head hash and the public key), asks the authority
 // (AUDIT_TSA_URL, default https://freetsa.org/tsr) through openssl and curl, and keeps the
 // request and the signed reply beside it in AUDIT_TSA_DIR (default `audit-tsa/` beside the
 // database). Verifying uses the authority's certificates (AUDIT_TSA_CA_FILE and
@@ -55,9 +55,17 @@ export function parseStatement(text) {
   return { length, hash };
 }
 
-/** The statement, request and reply of one stamp, named after the head's length. */
-export function stampFiles(dir, length) {
-  const base = path.join(dir, `head-${length}`);
+/** `20261106T084002Z` from an ISO instant: the stamp's part of the file names. */
+export function stampName(iso) {
+  return iso.replace(/[-:]/g, '').replace(/\.\d+/, '');
+}
+
+/**
+ * The statement, request and reply of one stamp, named after the head's length and the
+ * instant, so stamping the same length again (after `db:reset`, say) never replaces a receipt.
+ */
+export function stampFiles(dir, length, stamp) {
+  const base = path.join(dir, `head-${length}-${stamp}`);
   return { statement: `${base}.txt`, query: `${base}.tsq`, reply: `${base}.tsr` };
 }
 
@@ -97,6 +105,27 @@ export function verifyArgs(files, caFile, certFile) {
 /** "Time stamp: Nov  6 07:59:30 2026 GMT" from `openssl ts -reply -text`; null when missing. */
 export function timeOfReply(replyText) {
   return /^Time stamp: (.+)$/m.exec(replyText)?.[1]?.trim() ?? null;
+}
+
+/**
+ * What `--verify` concludes once the receipt itself is valid (review of #69, finding 5): the log
+ * must still have the stamped head at its length *and* pass the sealed verifier, since rows
+ * edited without recomputing their hashes leave row n's hash as it was.
+ */
+export function verifyConclusion(stillHasHead, verdict, head) {
+  if (!stillHasHead) {
+    return {
+      ok: false,
+      message: `the log no longer has that head at #${head.length}: it was rewritten or cut after the stamp`,
+    };
+  }
+  if (!verdict.ok) {
+    return {
+      ok: false,
+      message: `the log still has that head at #${head.length}, but it is broken now: ${verdict.reason} at #${verdict.brokenAt}`,
+    };
+  }
+  return { ok: true, message: `the log still has that head at #${head.length}, and it is intact` };
 }
 
 /** Whether the log, as rows in id order, still has `head` at that length. */
@@ -139,7 +168,7 @@ async function main() {
           `the log is broken (${verdict.reason} at #${verdict.brokenAt}); not stamping it`
         );
       if (verdict.length === 0) throw new Error('the audit log is empty; nothing to stamp');
-      const files = stampFiles(dir, verdict.length);
+      const files = stampFiles(dir, verdict.length, stampName(new Date().toISOString()));
       writeFileSync(
         files.statement,
         statementText({
@@ -172,17 +201,13 @@ async function main() {
     const time = timeOfReply(run('openssl', ['ts', '-reply', '-in', files.reply, '-text']));
     say(`receipt valid: the authority saw head #${head.length} ${head.hash} at ${time ?? '?'}`);
     const rows = await db.auditLog.findMany({ orderBy: { id: 'asc' }, select: { hash: true } });
-    if (
-      !logStillHas(
-        rows.map((row) => row.hash),
-        head
-      )
-    ) {
-      throw new Error(
-        `the log no longer has that head at #${head.length}: it was rewritten or cut after the stamp`
-      );
-    }
-    say(`the log still has that head at #${head.length}`);
+    const stillHas = logStillHas(
+      rows.map((row) => row.hash),
+      head
+    );
+    const conclusion = verifyConclusion(stillHas, await verifyAuditChain(db), head);
+    if (!conclusion.ok) throw new Error(conclusion.message);
+    say(conclusion.message);
   } finally {
     await db.$disconnect();
   }

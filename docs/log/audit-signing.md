@@ -17,9 +17,11 @@ Branch `feat/audit-signing` from `main` at `9d16dd5`, in the main checkout (one 
 - 10:41 the demo run found no anchor file: under Next.js the client's file sat in a per-bundle map. Fixed (the file travels on the client, `DATABASE_URL` as the fallback). Commit `a93e1d1`.
 - 10:50 to 10:56 the blocking findings of Tonttu84's review: D80 renamed D81 (#73 has D80, #74 D82); the verifier reads the anchors before the rows (a change committed between the reads read as a rewrite), with a test that writes between them; the Windows paths in `audit-anchors.test.ts`. Findings 4 to 8 left for later, by the user's choice.
 
+- 11:05 to 11:14 the review findings worth doing before the merge: 4 (the threat model of the default setup on the feature page and in D81, the old D36 line corrected), 5 (`--verify` runs the sealed verifier; receipts named by length and instant), 6 (`AUDIT_ANCHOR_FILE` emptied for tests), 7 (an unreadable key verifies as "not checked", no 500).
+
 ## Left undone
 
-- Review findings 4 to 8 (the threat model on the feature page and the D81 row, a pinned freetsa CA, `--verify` running the sealed verifier, receipts not overwritten, `AUDIT_ANCHOR_FILE` emptied for tests, two missing tests, two doc gaps). The rows-and-head read is not one transaction either (a race older than this branch).
+- From the review: the pinned freetsa CA fingerprint (4), the test that a failed anchor append keeps the change (7), and the two doc gaps (8): `db:migrate` resetting the database leaves a stale anchor file; the README does not say `npm start` needs the key. The rows-and-head read is not one transaction either (a race older than this branch).
 
 - Not merged: the PR is for the team (D81 is "proposed").
 - Existing local databases have unsigned rows: the audit page reads `unsigned_in_chain` until `npm run db:reset`. Each teammate's `.env` gets its key from `npm run dev` (predev) or `db:setup`.
