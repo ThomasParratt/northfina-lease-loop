@@ -199,18 +199,22 @@ describe('answerProblem', () => {
     expect(answerProblem(signatory, 'signatory@norvi.example.com', { today })).toBeNull();
   });
 
-  it('review finding 3: the record e-mail is the applicant too, though another was typed', () => {
+  it('the trap: nor the applicant’s record e-mail, whatever e-mail they answered', () => {
     const signatory = q('q_signatory_email');
     const flow = {
       today,
-      answers: { q_email: 'coordinator@norvi.example.com' },
-      recordEmail: 'fleet@norvi.example.com',
+      answers: { q_email: 'coordinator.private@example.net' },
+      applicantEmail: 'fleet@norvi.example.com',
     };
     expect(answerProblem(signatory, 'FLEET@norvi.example.com ', flow)).toEqual({
       code: 'signatory_is_applicant',
       params: {},
     });
-    expect(answerProblem(signatory, 'signatory@norvi.example.com', flow)).toBeNull();
+    expect(answerProblem(signatory, 'coordinator.private@example.net', flow)).toEqual({
+      code: 'signatory_is_applicant',
+      params: {},
+    });
+    expect(answerProblem(signatory, 'ceo@norvi.example.com', flow)).toBeNull();
   });
 
   it('every persona answer has no problem on the demo day', () => {

@@ -67,7 +67,7 @@ type QuestionFlowProps = {
   /** The acting customer's details from the data pack, for a quick demo. */
   prefill?: Record<string, Answer>;
   /** The e-mail on the customer record: the applicant cannot name it as the signatory (D39). */
-  recordEmail?: string;
+  applicantEmail?: string;
 };
 
 type FailureBody = {
@@ -209,7 +209,7 @@ export function QuestionFlow(props: QuestionFlowProps) {
           options={props.options}
           initial={answers[question.id]}
           answers={answers}
-          recordEmail={props.recordEmail}
+          applicantEmail={props.applicantEmail}
           today={props.today}
           locale={props.locale}
           labels={labels}
@@ -289,7 +289,7 @@ type StepProps = {
   initial: Answer | undefined;
   /** The other answers so far, for the checks across answers (D39). */
   answers: Record<string, Answer>;
-  recordEmail?: string;
+  applicantEmail?: string;
   today: string;
   locale: Locale;
   labels: QuestionFlowLabels;
@@ -333,7 +333,7 @@ function QuestionStep(props: StepProps) {
     const problem = answerProblem(question, value, {
       today: props.today,
       answers: props.answers,
-      recordEmail: props.recordEmail,
+      applicantEmail: props.applicantEmail,
     });
     if (problem) return setError(problemText(problem, labels, props.locale));
     onSave(value);

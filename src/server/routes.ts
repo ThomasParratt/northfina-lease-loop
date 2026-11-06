@@ -144,14 +144,15 @@ export { answerSchema, answersSchema };
 
 /** Body of `POST /api/applications`. The server prunes, validates and evaluates. */
 export const createApplicationBodySchema = z.strictObject({
-  quoteId: z.string().min(1).max(100),
-  customerId: z.string().min(1).max(100),
+  // Spaces around an id are not part of it; the trimmed customer id must be the actor (D40).
+  quoteId: z.string().trim().min(1).max(100),
+  customerId: z.string().trim().min(1).max(100),
   answers: answersSchema,
   /** The admin applying for a customer names them here (D45); equal to `customerId`. */
   onBehalfOf: z.string().min(1).max(100).optional(),
 });
 
-export const applicationIdParamsSchema = z.object({ id: z.string().min(1) });
+export const applicationIdParamsSchema = z.object({ id: z.string().min(1).max(100) });
 
 /** Body of `POST /api/applications/[id]/decision` (D10): the admin's review only (D44). */
 export const decideApplicationBodySchema = z.strictObject({

@@ -168,7 +168,7 @@ export async function createApplication(
         : answerProblem(question, answer, {
             today: input.today,
             answers,
-            recordEmail: found.customer.email,
+            applicantEmail: found.customer.email,
           });
     if (problem) return { ok: false, reason: 'invalid_answer', questionId: question.id, problem };
   }

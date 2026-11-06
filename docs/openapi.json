@@ -272,6 +272,7 @@
                     "type": "object",
                     "propertyNames": {
                       "type": "string",
+                      "maxLength": 64,
                       "pattern": "^q_[a-z0-9_]+$"
                     },
                     "additionalProperties": {
@@ -331,6 +332,7 @@
                           "type": "object",
                           "propertyNames": {
                             "type": "string",
+                            "maxLength": 64,
                             "pattern": "^q_[a-z0-9_]+$"
                           },
                           "additionalProperties": {
@@ -480,7 +482,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 100
             }
           }
         ],
@@ -512,6 +515,7 @@
                           "type": "object",
                           "propertyNames": {
                             "type": "string",
+                            "maxLength": 64,
                             "pattern": "^q_[a-z0-9_]+$"
                           },
                           "additionalProperties": {
@@ -661,7 +665,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 100
             }
           }
         ],
@@ -716,6 +721,7 @@
                           "type": "object",
                           "propertyNames": {
                             "type": "string",
+                            "maxLength": 64,
                             "pattern": "^q_[a-z0-9_]+$"
                           },
                           "additionalProperties": {
@@ -5679,6 +5685,7 @@
                           "type": "object",
                           "propertyNames": {
                             "type": "string",
+                            "maxLength": 64,
                             "pattern": "^q_[a-z0-9_]+$"
                           },
                           "additionalProperties": {

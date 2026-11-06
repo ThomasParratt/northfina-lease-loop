@@ -103,7 +103,7 @@ export default async function ApplyPage({ params }: PageProps<'/[locale]/apply/[
         texts={texts}
         options={options}
         prefill={answersFromCustomer(customer)}
-        recordEmail={customer.email}
+        applicantEmail={customer.email}
         labels={{
           progress: raw('apply.progress'),
           why: t('apply.why'),
