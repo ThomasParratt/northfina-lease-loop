@@ -35,7 +35,7 @@ const cfo = {
   today: TODAY,
 };
 
-describe('seedSignatories (D43)', () => {
+describe('seedSignatories (D44)', () => {
   it('every company whose applicant can sign has its own e-mail as signatory; Norvi has none', async () => {
     expect(await listSignatories(db, 'cust-kettukoodi', TODAY)).toMatchObject([
       {

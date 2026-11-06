@@ -1,4 +1,4 @@
-// The envelopes of the signatory and signing-link routes (D43): every refusal of
+// The envelopes of the signatory and signing-link routes (D44): every refusal of
 // src/server/signatories.ts as one `fail()` with its status and code, never a raw message.
 import { fail } from './api-response';
 import type { AddSignatoryResult, RevokeSignatoryResult, SignByTokenResult } from './signatories';

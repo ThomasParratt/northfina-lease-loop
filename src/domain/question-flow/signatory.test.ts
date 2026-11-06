@@ -10,7 +10,7 @@ describe('sameEmail', () => {
   });
 });
 
-describe('whoDecides (D10, D39, D43)', () => {
+describe('whoDecides (D10, D39, D44)', () => {
   it('a manual review is the admin’s', () => {
     expect(whoDecides('manual_review')).toBe('admin');
   });

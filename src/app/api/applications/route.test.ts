@@ -337,7 +337,7 @@ describe('POST /api/applications/[id]/decision', () => {
     );
   });
 
-  it('awaiting the signatory: nobody signs on the decision page, 403 NOT_SIGNATORY; the link signs (D43)', async () => {
+  it('awaiting the signatory: nobody signs on the decision page, 403 NOT_SIGNATORY; the link signs (D44)', async () => {
     const id = await pending('cust-norvi', {
       ...answersOf('cust-norvi'),
       q_customer_type: 'company',

@@ -30,7 +30,7 @@ describe('normaliseEmail', () => {
   });
 });
 
-describe('activeSignatories (D43)', () => {
+describe('activeSignatories (D44)', () => {
   it('valid_from is the first day the right holds, inclusive', () => {
     expect(activeSignatories([cfo], '2026-05-31')).toEqual([]);
     expect(activeSignatories([cfo], '2026-06-01')).toEqual([cfo]);
@@ -134,7 +134,7 @@ describe('requestOutcome', () => {
   });
 });
 
-describe('signingCheck (D43)', () => {
+describe('signingCheck (D44)', () => {
   const waiting: Mandate = {
     id: 'sig-9',
     email: 'signatory@norvi.example.com',

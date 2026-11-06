@@ -93,7 +93,7 @@ const sign = (
   decision: 'approved' | 'rejected' = 'approved'
 ) => decideApplication(db, { id, decision, reviewedBy, today: TODAY, actor });
 
-/** The signatory answers through the link sent for the case (D43): the only way to sign. */
+/** The signatory answers through the link sent for the case (D44): the only way to sign. */
 async function byLink(applicationId: string, action: 'sign' | 'decline' = 'sign') {
   const request = await db.signatureRequest.findFirstOrThrow({
     where: { application_id: applicationId },
@@ -108,7 +108,7 @@ const nothingWritten = async () => {
 };
 
 describe('who applies (D40)', () => {
-  it('the admin applying as "admin" without onBehalfOf is not the applicant, and writes nothing (D44)', async () => {
+  it('the admin applying as "admin" without onBehalfOf is not the applicant, and writes nothing (D45)', async () => {
     expect(await apply(await card1(), 'admin', answersOf('cust-aino'), { actor: 'admin' })).toEqual(
       {
         ok: false,
@@ -158,7 +158,7 @@ describe('who applies (D40)', () => {
   );
 });
 
-describe('the signatory (D39, D43)', () => {
+describe('the signatory (D39, D44)', () => {
   const SIGNATORY = 'signatory@norvi.example.com';
 
   it('declining is final: the signatory cannot sign afterwards, nor decline again', async () => {

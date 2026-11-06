@@ -1,6 +1,6 @@
 // GET  /api/sign/:token   the signing link's state on the request's day
 // POST /api/sign/:token   body: { action: "sign" | "decline" }
-// D43: the token stands in for the signatory's identification (Suomi.fi in production) and
+// D44: the token stands in for the signatory's identification (Suomi.fi in production) and
 // the e-mailed invitation: whoever holds it acts as the named signatory, recorded in the
 // audit as `signatory:<email>`. The actor cookie plays no part.
 import { fail, handleRoute, ok, readJsonBody } from '@/server/api-response';

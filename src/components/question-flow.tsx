@@ -41,7 +41,7 @@ export type QuestionFlowLabels = {
   signatoryIsApplicant: string;
   /** 403 NOT_APPLICANT: the actor is not the customer applying (D40). */
   notApplicant: string;
-  /** 403 NOT_SIGNATORY: only the signing link signs (D43). */
+  /** 403 NOT_SIGNATORY: only the signing link signs (D44). */
   notSignatory: string;
   /** Raw, with {question} and {problem}: the server refused one answer (400 with a `problem`). */
   answerRefused: string;

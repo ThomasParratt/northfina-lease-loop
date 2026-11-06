@@ -1,4 +1,4 @@
-// The company's signatories and the signing link (D43). Owns the `CompanySignatory` and
+// The company's signatories and the signing link (D44). Owns the `CompanySignatory` and
 // `SignatureRequest` tables. A case that waits for the company's signatory gets a signing link
 // inside the same transaction; the signatory opens it (in production: Suomi.fi identification
 // and an e-mailed invitation; here: the demo outbox on the decision page) and signs or
@@ -211,7 +211,7 @@ export type RevokeSignatoryResult =
   | { ok: true; signatory: SignatoryView }
   | { ok: false; reason: 'not_found' | 'not_allowed' | 'already_ended' | 'last_signatory' };
 
-/** Ends a signatory's right on `today` (D43); the last active one cannot be revoked. */
+/** Ends a signatory's right on `today` (D44); the last active one cannot be revoked. */
 export async function revokeSignatory(
   db: PrismaClient,
   input: { customerId: string; signatoryId: string; actor: string; today: string }
@@ -344,7 +344,7 @@ export type SignByTokenResult =
 class LostSigningRace extends Error {}
 
 /**
- * The signatory signs (approved) or declines (rejected) through the link on `today` (D43).
+ * The signatory signs (approved) or declines (rejected) through the link on `today` (D44).
  * Opening a link to an entry still waiting brings it into force from today. The link, the
  * entry and the case change in one transaction with one audit row whose actor is
  * `signatory:<email>`; a second use answers `already_used` and writes nothing.

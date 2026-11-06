@@ -13,5 +13,6 @@ One page per feature slice, shipped in the same pull request as its code (AGENTS
 - [look.md](look.md): the colour roles, the price tag, the life stamp, the drawings and the staff strip (D21).
 - [signatories.md](signatories.md): the company's signatory list, the signing link that alone signs card 6, and the admin applying on a customer's behalf (wave 2).
 - [audit-chain.md](audit-chain.md): the tamper-evident audit chain, its verifier, the badge with the head hash and the tamper demo (wave 2).
+- [my-leases.md](my-leases.md): "My leases" in the top navigation, a customer's contracts and unsigned applications (all of them for admin).
 
 The team's per-feature state (missing, in progress, done, verified) is [STATUS.md](STATUS.md); the README's "Status" table is the per-card view for the judges.

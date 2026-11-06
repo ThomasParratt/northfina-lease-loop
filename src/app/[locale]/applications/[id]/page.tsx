@@ -1,7 +1,7 @@
 // The decision on an application: a clear yes, no or "a person will check", and every reason
 // written from its code in the visitor's language (team rule 6). An admin decides a manual
 // review here (D10); an awaiting_signatory case shows the demo outbox: the signing link that
-// was sent to the signatory, who signs there, never here (D43). The applicant signs an
+// was sent to the signatory, who signs there, never here (D44). The applicant signs an
 // approved one into a contract (issue 39), or follows the link to the contract.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
