@@ -3,6 +3,7 @@
 // is replaced. Every refusal is a `fail()` envelope with a code; never a 500, never a stack.
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDb } from '../../../../tests/helpers/test-db';
+import { resetDb } from '../../../../tests/helpers/reset-db';
 import { loadAssets, loadCustomers } from '@/data/load';
 import type { Customer } from '@/data/schemas';
 import { answersFromCustomer } from '@/domain/question-flow/answers';
@@ -42,16 +43,14 @@ const TODAY = '2026-11-05';
 beforeAll(async () => {
   ({ db: holder.db, cleanup } = await createTestDb());
   customers = await loadCustomers();
-  await seedAssets(holder.db, await loadAssets());
-  await seedCustomers(holder.db, customers);
 });
 afterAll(async () => {
   await cleanup();
 });
 beforeEach(async () => {
-  await holder.db.auditLog.deleteMany();
-  await holder.db.application.deleteMany();
-  await holder.db.quote.deleteMany();
+  await resetDb(holder.db);
+  await seedAssets(holder.db, await loadAssets());
+  await seedCustomers(holder.db, customers);
   holder.cookies = new Map([[DEMO_CLOCK_COOKIE, TODAY]]);
 });
 
