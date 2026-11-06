@@ -110,6 +110,6 @@ Then open `http://localhost:3000/en/demo`: one **Run** button per scenario card,
 
 The wave reviews are in [docs/reviews/](https://github.com/ThomasParratt/northfina-lease-loop/tree/main/docs/reviews), the time logs of every task in [docs/log/](https://github.com/ThomasParratt/northfina-lease-loop/tree/main/docs/log).
 
-**How we used AI tools.** The product has none. The code was written with Claude Code: a coordinating session on Claude Fable planned the waves and merged the pull requests, and every agent or session that wrote code or tests ran on Claude Opus (`AGENTS.md`, "Which model does what"; decision D18). Each feature was built in its own worktree on its own branch, test first, then one hardening agent and one review agent after every wave; each pull request was squash-merged as one conventional commit.
+**How we used AI tools.** The product has none. The code was written with Claude Code: coordinating sessions on Claude Fable and Claude Opus planned the waves and merged the pull requests, and every agent or session that wrote code or tests ran on Claude Opus (`AGENTS.md`, "Which model does what"; decision D18). Each feature was built in its own worktree on its own branch, test first, then one hardening agent and one review agent after every wave; each pull request was squash-merged as one conventional commit.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
