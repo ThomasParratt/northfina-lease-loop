@@ -204,10 +204,14 @@ describe('the customer type and the record (D38)', () => {
     );
   });
 
-  it('the record says PEP and the answer says no: still a manual review (card 7)', () => {
+  it('the record says PEP and the answer says no: manual review, and the "no" is named (card 7)', () => {
     const farm = { assetId: 'farm-002', termMonths: 48, downPaymentCents: 2_000_000, isoDate: DAY };
     const app = applyFor(haapala, farm, { answers: { q_pep: 'no' } });
-    expect(outcome(app)).toBe('manual_review:pep');
+    expect(outcome(app)).toBe('manual_review:pep+answer_differs_from_record');
+    expect(app.ok && app.result.reasons[1]).toEqual({
+      code: 'answer_differs_from_record',
+      params: { question: 'q_pep' },
+    });
   });
 
   it('the record says no PEP and the answer says yes: a manual review, with details required', () => {
@@ -329,13 +333,17 @@ describe('precedence: a failed rule, a differing answer and a PEP at once', () =
     expect(outcome(app)).toBe('rejected:too_young+unaffordable');
   });
 
-  it('a differing answer and a PEP together: manual review with pep first, then the question', () => {
+  it('a differing answer and a PEP together: manual review with pep first, then the question, then the consumer cap (three bikes over two)', () => {
     const app = applyFor(olavi, threeBikes, { answers: { ...pep, q_birth_date: '1956-06-19' } });
     expect(app.ok && app.result).toEqual({
       decision: 'manual_review',
       reasons: [
         { code: 'pep', params: {} },
         { code: 'answer_differs_from_record', params: { question: 'q_birth_date' } },
+        {
+          code: 'quantity_over_consumer_cap',
+          params: { category: 'e_bike', quantity: 3, maxQuantity: 2 },
+        },
       ],
     });
   });

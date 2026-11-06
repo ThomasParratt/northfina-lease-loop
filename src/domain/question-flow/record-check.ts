@@ -13,7 +13,8 @@ const text = (answer: Answer | undefined): string | undefined =>
  * The question ids whose answer differs from the record, in the bank's order: the customer
  * type, the birth date, the country (a country outside FI, SE and EE is answered "other"),
  * the business id and, for a company, whether the applicant may sign (card 6: the coordinator
- * who may not sign on record answers "yes" and would otherwise be approved and sign). A
+ * who may not sign on record answers "yes" and would otherwise be approved and sign) and a PEP
+ * on record who answers "no" to the PEP question. A
  * question not answered, or a field the record does not have, is not compared.
  */
 export function recordMismatches(record: Customer, answers: Answers): string[] {
@@ -24,6 +25,8 @@ export function recordMismatches(record: Customer, answers: Answers): string[] {
     q_business_id: 'business_id' in record ? record.business_id : undefined,
     q_can_sign:
       'applicant_can_sign' in record ? (record.applicant_can_sign ? 'yes' : 'no') : undefined,
+    // a PEP on record who answers "no" is held; a "yes" the record lacks holds as `pep` anyway
+    q_pep: record.is_pep ? 'yes' : undefined,
   };
   return Object.entries(recorded)
     .filter(([id, value]) => {
