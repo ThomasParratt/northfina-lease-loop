@@ -28,6 +28,7 @@ const QUOTE_REFUSALS = [
   'below_minimum',
   'above_maximum',
   'no_vat_rate_on_date',
+  'term_over_category_max',
 ];
 
 /** Every reason code the rules may give, the plausibility holds included. */
