@@ -1,38 +1,33 @@
 'use client';
 
-// Sign or decline through the link: POST /api/sign/:token, then re-render (D46). A refusal (a
-// used or expired link, an ended right) is written from the server's code (review finding 5).
+// Sign or decline through the link: POST /api/sign/:token, then re-render (D46).
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { refusalText, type RefusalLabels } from '@/components/refusal-text';
 import { Button, Notice } from '@/components/ui';
 
 type SignFormProps = {
   token: string;
-  labels: { sign: string; decline: string; refusals: RefusalLabels };
+  labels: { sign: string; decline: string; error: string };
 };
 
 export function SignForm({ token, labels }: SignFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState<'sign' | 'decline' | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   async function act(action: 'sign' | 'decline') {
     setPending(action);
-    setFailed(null);
+    setFailed(false);
     try {
       const response = await fetch(`/api/sign/${token}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ action }),
       });
-      if (!response.ok) {
-        setFailed(refusalText(await response.json().catch(() => null), labels.refusals));
-        return;
-      }
+      if (!response.ok) throw new Error(`status ${response.status}`);
       router.refresh();
     } catch {
-      setFailed(labels.refusals.error);
+      setFailed(true);
     } finally {
       setPending(null);
     }
@@ -42,7 +37,7 @@ export function SignForm({ token, labels }: SignFormProps) {
     <div className="space-y-4">
       {failed ? (
         <Notice tone="error" live>
-          {failed}
+          {labels.error}
         </Notice>
       ) : null}
       <div className="flex flex-wrap gap-3">

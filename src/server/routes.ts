@@ -163,8 +163,8 @@ export const applicationIdParamsSchema = z.object({ id: z.string().min(1).max(10
 /** Body of `POST /api/applications/[id]/decision` (D10): the admin's review only (D46). */
 export const decideApplicationBodySchema = z.strictObject({
   decision: z.enum(['approved', 'rejected']),
-  /** Accepted for older clients and ignored: the reviewer is the cookie's actor (finding 13). */
-  reviewedBy: z.string().trim().min(1).max(200).optional(),
+  /** The reviewer. */
+  reviewedBy: z.string().trim().min(1).max(200),
 });
 
 export const applicationReasonSchema = z.object({

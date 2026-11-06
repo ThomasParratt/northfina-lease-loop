@@ -1,20 +1,19 @@
 'use client';
 
 // The admin approves or rejects a manual review: POST /api/applications/:id/decision, then
-// re-render. A case waiting for the signatory is signed through the signing link (D46). A
-// refusal is written from the code the server sends (review finding 5).
+// re-render. A case waiting for the signatory is signed through the signing link (D46).
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { refusalText, type RefusalLabels } from '@/components/refusal-text';
 import { Button, Notice } from '@/components/ui';
 
 type DecisionFormProps = {
   applicationId: string;
-  /** The buttons, and each refusal code's sentence (`refusalText`). */
-  labels: { approve: string; reject: string; refusals: RefusalLabels };
+  /** Who decides: the admin. */
+  reviewer: string;
+  labels: { approve: string; reject: string; error: string };
 };
 
-export function DecisionForm({ applicationId, labels }: DecisionFormProps) {
+export function DecisionForm({ applicationId, reviewer, labels }: DecisionFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState<'approved' | 'rejected' | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
@@ -26,15 +25,12 @@ export function DecisionForm({ applicationId, labels }: DecisionFormProps) {
       const response = await fetch(`/api/applications/${applicationId}/decision`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ decision }),
+        body: JSON.stringify({ decision, reviewedBy: reviewer }),
       });
-      if (!response.ok) {
-        setFailed(refusalText(await response.json().catch(() => null), labels.refusals));
-        return;
-      }
+      if (!response.ok) throw new Error(`status ${response.status}`);
       router.refresh();
     } catch {
-      setFailed(labels.refusals.error);
+      setFailed(labels.error);
     } finally {
       setPending(null);
     }
