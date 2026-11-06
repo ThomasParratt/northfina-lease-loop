@@ -345,7 +345,10 @@ function Decision({ match, ctx }: { match: MatchResult; ctx: Ctx }) {
   );
   const condition = conditionText(t, decision.params.condition);
   return (
-    <Notice tone="success" title={t('secondLife.decision.title')}>
+    <Notice
+      tone={decision.code === 'relist_unpriced' ? 'warning' : 'success'}
+      title={t('secondLife.decision.title')}
+    >
       <p>
         {decision.code === 'relist_for_winner'
           ? t('secondLife.decision.relist_for_winner', {
@@ -353,7 +356,7 @@ function Decision({ match, ctx }: { match: MatchResult; ctx: Ctx }) {
               demandId: decision.params.demandId,
               refurbish,
             })
-          : t('secondLife.decision.relist_without_match', { condition, refurbish })}
+          : t(`secondLife.decision.${decision.code}`, { condition, refurbish })}
       </p>
       {winner ? (
         <p className="mt-1">
