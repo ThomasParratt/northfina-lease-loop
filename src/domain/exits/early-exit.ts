@@ -44,6 +44,7 @@ export type ExitLine = {
     | 'value_exceeds_balance'
     | 'refurb_fixed'
     | 'refurb_upgrade'
+    | 'refurb_waived'
     | 'total';
   effect: ExitLineEffect;
   params: Record<string, string | number>;
@@ -120,6 +121,9 @@ function refurbishmentLines(plan: RefurbishmentPlan, quantity: number): ExitLine
   );
 }
 
+/** D90: a pass-on shows the refurbishment at 0, so the difference from a return is visible. */
+const refurbWaived: ExitLine = { code: 'refurb_waived', effect: 'add', params: { amountCents: 0 } };
+
 const total = (amountCents: number): ExitLine => ({
   code: 'total',
   effect: 'total',
@@ -181,7 +185,7 @@ export function earlyExitCost(input: EarlyExitInput): EarlyExitCost {
         ],
       },
       return: { totalCents: refurbCents, lines: [...refurbLines, total(refurbCents)] },
-      passOn: { totalCents: 0, lines: [total(0)] },
+      passOn: { totalCents: 0, lines: [refurbWaived, total(0)] },
     };
   }
 
@@ -235,7 +239,7 @@ export function earlyExitCost(input: EarlyExitInput): EarlyExitCost {
       params: { amountCents: valueCents - balanceCents },
     });
   }
-  const passOnLines: ExitLine[] = [...returnLines, total(afterValue)];
+  const passOnLines: ExitLine[] = [...returnLines, refurbWaived, total(afterValue)];
   returnLines.push(...refurbLines, total(afterValue + refurbCents));
 
   return {

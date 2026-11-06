@@ -70,6 +70,11 @@ describe('earlyExitCost, card 8 (card 1 ended in month 7)', () => {
     expect(cost.passOn.totalCents).toBe(71_445);
     expect(cost.passOn.lines.map((l) => l.code)).not.toContain('refurb_fixed');
     expect(cost.passOn.lines.map((l) => l.code)).not.toContain('refurb_upgrade');
+    expect(cost.passOn.lines.at(-2)).toEqual({
+      code: 'refurb_waived',
+      effect: 'add',
+      params: { amountCents: 0 },
+    });
     expect(cost.return.lines.map((l) => l.code)).toContain('refurb_fixed');
     expect(cost.return.totalCents - cost.passOn.totalCents).toBe(4_500);
   });
