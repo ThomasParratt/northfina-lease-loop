@@ -8,7 +8,7 @@ import {
   residualCurvesSchema,
   type SecondLifeRequest,
 } from '@/data/schemas';
-import { pack, pricing } from '../scenarios/fixtures';
+import { assessPackItem, pack, pricing } from '../scenarios/fixtures';
 import { assessReturn, type AssessData, type AssessInput } from './assess';
 import { matchDemand } from './match';
 
@@ -175,6 +175,16 @@ describe('matchDemand on other data', () => {
     const match = matchDemand(flat, []);
     // Good (−12 000) loses the least of the conditions the catalogue may lease; fair is out.
     expect(match.decision.params).toEqual({ condition: 'good', upgrade: true });
+  });
+
+  it('no winner: an option no term can price is skipped (laptop-006 good, 27 577 < 30 000)', () => {
+    const laptop = assessPackItem('laptop-006', '2026-11-06');
+    expect(laptop.options[0]!.rents.every((r) => r.monthlyNetCents === null)).toBe(true);
+    // Like new loses 1 756 (3 244 of value for 5 000 more), but it is the one that can be leased.
+    expect(matchDemand(laptop, []).relist).toMatchObject({
+      condition: 'like_new',
+      secondLifeFinancedCents: 30_821,
+    });
   });
 
   it('a budget one cent short is out, by one cent', () => {

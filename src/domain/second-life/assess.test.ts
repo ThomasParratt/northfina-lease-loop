@@ -188,17 +188,12 @@ describe('assessReturn on other data', () => {
     expect(result.options[0]!.marketValue.usageSteps).toBe(1);
   });
 
-  it('an item worth too little to finance gets no rent, with the refusal code', () => {
-    const result = assessReturn(
-      { ...ebike007, newPriceCents: 1_000 },
-      { ...data, costs: data.costs }
-    );
-    const tiny = assessReturn(
-      { ...ebike007, assetId: 'ebike-010', newPriceCents: 1_000, usage: { unit: 'km', value: 0 } },
-      { ...data, costs: { ...data.costs, e_bike: { ...data.costs.e_bike, fixed: [] } } }
-    );
-    expect(result.options[0]!.rents[0]!.monthlyNetCents).not.toBeNull();
-    expect(tiny.options[0]!.rents[0]).toMatchObject({
+  it('an item worth too little to finance gets no rent, however much work it had (D86)', () => {
+    // 39 500 of work no longer lifts a 211-cent item over band A's 30 000 minimum: the price is
+    // the value alone.
+    const result = assessReturn({ ...ebike007, newPriceCents: 1_000 }, data);
+    expect(result.options[0]!.plan.totalCents).toBe(39_500);
+    expect(result.options[0]!.rents[0]).toMatchObject({
       monthlyNetCents: null,
       refusal: 'below_minimum',
     });
