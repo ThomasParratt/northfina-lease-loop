@@ -32,6 +32,19 @@ export function allowedTerms(
   return termsOf(table).filter((term) => term <= cap);
 }
 
+/**
+ * The longest term the table offers under the category's cap, or the cap itself when no term
+ * of the table fits under it (then nothing can be leased and the refusal says so).
+ */
+export function longestAllowedTerm(
+  category: AssetCategory,
+  table: CoefficientTable,
+  limits: TermLimits
+): number {
+  const allowed = allowedTerms(category, table, limits);
+  return allowed.length > 0 ? allowed[allowed.length - 1]! : limits.max_term_months[category];
+}
+
 /** True when the table offers `termMonths` and the category's cap allows it. */
 export function termAllowed(
   category: AssetCategory,
@@ -42,11 +55,11 @@ export function termAllowed(
   return allowedTerms(category, table, limits).includes(termMonths);
 }
 
-/** What the cap needs beside the table: the limits and the assets' categories, when given. */
+/** What the cap needs beside the table: the limits and the assets' categories. */
 export type TermLimitSources = {
   table: CoefficientTable;
-  termLimits?: TermLimits;
-  assets?: readonly { id: string; category: AssetCategory }[];
+  termLimits: TermLimits;
+  assets: readonly { id: string; category: AssetCategory }[];
 };
 
 /** The category of an asset in the data, or null when the data does not list it. */
@@ -54,16 +67,14 @@ export function categoryOf(
   assets: TermLimitSources['assets'],
   assetId: string
 ): AssetCategory | null {
-  return assets?.find((asset) => asset.id === assetId)?.category ?? null;
+  return assets.find((asset) => asset.id === assetId)?.category ?? null;
 }
 
 /**
- * The terms an asset may be offered: every term of the table when the data carries no limits
- * (older callers, the scenario harness); under the cap of its category when it does; none when
- * limits apply but the data does not know the asset's category, so the cap cannot be checked.
+ * The terms an asset may be offered: the table's under the cap of its category; none when the
+ * data does not know the asset's category, so the cap cannot be checked.
  */
 export function allowedTermsOf(data: TermLimitSources, assetId: string): number[] {
-  if (!data.termLimits) return termsOf(data.table);
   const category = categoryOf(data.assets, assetId);
   return category ? allowedTerms(category, data.table, data.termLimits) : [];
 }

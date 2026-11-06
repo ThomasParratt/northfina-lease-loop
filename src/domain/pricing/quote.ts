@@ -23,7 +23,7 @@ import {
 } from '../money-math';
 import { listPriceOn } from '../price-list';
 import { vatRateOn } from '../vat';
-import { categoryOf, termAllowed, termsOf } from './terms';
+import { categoryOf, longestAllowedTerm, termAllowed, termsOf } from './terms';
 
 export { termsOf };
 
@@ -31,14 +31,10 @@ export type PricingData = {
   priceLists: readonly PriceList[];
   table: CoefficientTable;
   vatRates: VatRates;
-  /**
-   * The team's longest term per category (D43). Optional: data built without it (the scenario
-   * harness, older tests) prices every term of the table; `loadPricingData()` always passes it,
-   * with `assets` for the categories, so the app always applies the cap.
-   */
-  termLimits?: TermLimits;
-  /** The assets' categories, for the cap; only read when `termLimits` is given. */
-  assets?: readonly Pick<Asset, 'id' | 'category'>[];
+  /** The team's longest term per category (D43); `loadPricingData()` reads it beside the pack. */
+  termLimits: TermLimits;
+  /** The assets' categories, for the cap (the quote has only an asset id). */
+  assets: readonly Pick<Asset, 'id' | 'category'>[];
 };
 
 export type QuoteInput = {
@@ -159,17 +155,16 @@ export function priceQuote(data: PricingData, input: QuoteInput): QuoteResult {
   }
 
   // D43: the category's cap, before any money is looked at. An asset whose category the data
-  // does not know cannot be checked against the cap, so it is not in the catalogue.
-  if (data.termLimits) {
-    const category = categoryOf(data.assets, assetId);
-    if (!category) return refuse({ code: 'unknown_asset', params: { assetId } });
-    if (!termAllowed(category, termMonths, data.table, data.termLimits)) {
-      const maxTermMonths = data.termLimits.max_term_months[category];
-      return refuse({
-        code: 'term_over_category_max',
-        params: { category, termMonths, maxTermMonths },
-      });
-    }
+  // does not know cannot be checked against the cap, so it is not in the catalogue. The refusal
+  // names the longest term the table offers under the cap (a cap of 40 says "at most 36").
+  const category = categoryOf(data.assets, assetId);
+  if (!category) return refuse({ code: 'unknown_asset', params: { assetId } });
+  if (!termAllowed(category, termMonths, data.table, data.termLimits)) {
+    const maxTermMonths = longestAllowedTerm(category, data.table, data.termLimits);
+    return refuse({
+      code: 'term_over_category_max',
+      params: { category, termMonths, maxTermMonths },
+    });
   }
 
   // D8: the fleet is financed as one amount, so the band is decided on the total.

@@ -149,6 +149,7 @@
   "pricing.refusal.below_minimum": "Rahoitettava summa {financedCents} on pienempi kuin pienin vuokrattava summa ({minimumCents}).",
   "pricing.refusal.above_maximum": "Rahoitettava summa {financedCents} ylittää suurimman vuokrattavan summan ({maximumCents}). Suurempi käsiraha laskee sitä.",
   "pricing.refusal.unknown_term": "{termMonths} kuukauden vuokraa ei tarjota tälle summalle. Valitse {terms} kuukautta.",
+  "pricing.noTermsForCategory": "{category} ei voi tällä hetkellä vuokrata millään vuokra-ajallamme.",
   "pricing.refusal.term_over_category_max": "{category} vuokrataan enintään {maxTermMonths} kuukaudeksi; {termMonths} kuukautta on sen yli.",
   "pricing.refusal.unknown_asset": "Tällä tuotteella ei ole hintaa.",
   "pricing.refusal.no_price_list_on_date": "Päivälle {isoDate} ei ole hinnastoa.",

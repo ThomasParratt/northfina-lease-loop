@@ -149,6 +149,7 @@
   "pricing.refusal.below_minimum": "The amount to finance, {financedCents}, is below the smallest we lease ({minimumCents}).",
   "pricing.refusal.above_maximum": "The amount to finance, {financedCents}, is above the largest we lease ({maximumCents}). A bigger down payment brings it down.",
   "pricing.refusal.unknown_term": "A {termMonths}-month lease is not offered for this amount. Choose {terms} months.",
+  "pricing.noTermsForCategory": "{category} cannot be leased for any of our terms right now.",
   "pricing.refusal.term_over_category_max": "{category} are leased for at most {maxTermMonths} months; {termMonths} months is over that.",
   "pricing.refusal.unknown_asset": "This item has no price.",
   "pricing.refusal.no_price_list_on_date": "There is no price list for {isoDate}.",

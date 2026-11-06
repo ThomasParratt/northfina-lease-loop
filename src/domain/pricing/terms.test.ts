@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadCoefficientTable, loadTermLimits } from '@/data/load';
 import type { CoefficientTable, TermLimits } from '@/data/schemas';
-import { allowedTerms, allowedTermsOf, categoryOf, termAllowed } from './terms';
+import { allowedTerms, allowedTermsOf, categoryOf, longestAllowedTerm, termAllowed } from './terms';
 
 // Against the real files, so a changed cap or table fails here first.
 let table: CoefficientTable;
@@ -46,6 +46,18 @@ describe("allowedTerms (D43: the table's terms up to the category's cap)", () =>
   });
 });
 
+describe('longestAllowedTerm (what the refusal names)', () => {
+  it('is the last term of the table under the cap: 36 for a laptop, and still 36 for a cap of 40', () => {
+    expect(longestAllowedTerm('laptop', table, limits)).toBe(36);
+    expect(longestAllowedTerm('laptop', table, withCap('laptop', 40))).toBe(36);
+    expect(longestAllowedTerm('e_bike', table, limits)).toBe(48);
+  });
+
+  it('is the cap itself when no term of the table fits under it', () => {
+    expect(longestAllowedTerm('laptop', table, withCap('laptop', 6))).toBe(6);
+  });
+});
+
 describe('termAllowed', () => {
   it('allows 36 and refuses 48 for a laptop, allows 48 for an e-bike', () => {
     expect(termAllowed('laptop', 36, table, limits)).toBe(true);
@@ -67,20 +79,15 @@ describe('categoryOf and allowedTermsOf (the cap by asset id, when the data carr
   it('finds the category of a listed asset and null for one that is not listed', () => {
     expect(categoryOf(assets, 'a')).toBe('laptop');
     expect(categoryOf(assets, 'zzz')).toBeNull();
-    expect(categoryOf(undefined, 'a')).toBeNull();
   });
 
-  it("caps by the asset's category when limits and assets are given", () => {
+  it("caps by the asset's category", () => {
     const data = { table, termLimits: limits, assets };
     expect(allowedTermsOf(data, 'a')).toEqual([12, 24, 36]);
     expect(allowedTermsOf(data, 'b')).toEqual([12, 24, 36, 48]);
   });
 
-  it('offers every term of the table when the data carries no limits', () => {
-    expect(allowedTermsOf({ table, assets }, 'a')).toEqual([12, 24, 36, 48]);
-  });
-
-  it('offers no term for an asset whose category the data does not know while limits apply', () => {
+  it('offers no term for an asset whose category the data does not know', () => {
     expect(allowedTermsOf({ table, termLimits: limits, assets }, 'zzz')).toEqual([]);
   });
 });

@@ -149,6 +149,7 @@
   "pricing.refusal.below_minimum": "Rahastatav summa {financedCents} on väiksem kui väikseim liisitav summa ({minimumCents}).",
   "pricing.refusal.above_maximum": "Rahastatav summa {financedCents} ületab suurima liisitava summa ({maximumCents}). Suurem sissemakse vähendab seda.",
   "pricing.refusal.unknown_term": "{termMonths}-kuulist liisingut selle summa jaoks ei pakuta. Vali {terms} kuud.",
+  "pricing.noTermsForCategory": "{category} ei saa praegu ühegi meie liisinguperioodiga liisida.",
   "pricing.refusal.term_over_category_max": "{category} liisitakse kuni {maxTermMonths} kuuks; {termMonths} kuud on sellest üle.",
   "pricing.refusal.unknown_asset": "Sellel esemel pole hinda.",
   "pricing.refusal.no_price_list_on_date": "Kuupäevaks {isoDate} pole hinnakirja.",

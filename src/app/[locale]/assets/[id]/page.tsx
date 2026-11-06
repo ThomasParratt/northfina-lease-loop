@@ -19,6 +19,7 @@ import {
 } from '@/components/ui';
 import { modelVersions } from '@/domain/catalogue/catalogue';
 import { formatEuro } from '@/domain/money';
+import { termControl } from '@/components/quote-terms';
 import {
   allowedTermsOf,
   financeOffer,
@@ -75,12 +76,12 @@ export default async function PricePage({
   // default term is picked from them, so the offer and the versions never price over the cap.
   const terms = allowedTermsOf(data, asset.id);
   const termMonths = terms.includes(DEFAULT_TERM) ? DEFAULT_TERM : (terms[0] ?? DEFAULT_TERM);
-  const maxTermMonths = data.termLimits?.max_term_months[asset.category];
+  // The note names the longest term the item may be offered, as the refusal does.
   const termNote =
-    maxTermMonths !== undefined && terms.length > 0 && terms.length < termsOf(data.table).length
+    terms.length > 0 && terms.length < termsOf(data.table).length
       ? t('pricing.calculator.termCap', {
           category: t(`category.${asset.category}`),
-          months: maxTermMonths,
+          months: terms[terms.length - 1]!,
         })
       : undefined;
   // How the item can be financed at the default term: an item leased only several together
@@ -199,7 +200,7 @@ export default async function PricePage({
         </Notice>
       ) : null}
 
-      {price.ok && terms.length > 0 ? (
+      {price.ok && termControl(terms) !== 'none' ? (
         <QuoteCalculator
           assetId={asset.id}
           locale={locale}
@@ -216,7 +217,9 @@ export default async function PricePage({
         <>
           {item}
           <Notice tone="warning" className="mt-8">
-            {t('asset.noPrice')}
+            {price.ok
+              ? t('pricing.noTermsForCategory', { category: t(`category.${asset.category}`) })
+              : t('asset.noPrice')}
           </Notice>
         </>
       )}

@@ -149,6 +149,7 @@
   "pricing.refusal.below_minimum": "Beloppet att finansiera, {financedCents}, är under det minsta vi hyr ut ({minimumCents}).",
   "pricing.refusal.above_maximum": "Beloppet att finansiera, {financedCents}, är över det största vi hyr ut ({maximumCents}). En större kontantinsats sänker det.",
   "pricing.refusal.unknown_term": "Hyra i {termMonths} månader erbjuds inte för det här beloppet. Välj {terms} månader.",
+  "pricing.noTermsForCategory": "{category} kan just nu inte hyras på någon av våra hyrestider.",
   "pricing.refusal.term_over_category_max": "{category} hyrs ut i högst {maxTermMonths} månader; {termMonths} månader är över det.",
   "pricing.refusal.unknown_asset": "Den här varan har inget pris.",
   "pricing.refusal.no_price_list_on_date": "Det finns ingen prislista för {isoDate}.",

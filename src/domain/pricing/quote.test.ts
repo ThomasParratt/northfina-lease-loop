@@ -133,14 +133,23 @@ describe('priceQuote, the term cap per category (D43)', () => {
     expect(result.ok === false && result.reason.code).toBe('term_over_category_max');
   });
 
-  it('prices every term of the table when the data carries no limits (the scenario harness)', () => {
-    const { termLimits, assets, ...uncapped } = data;
-    void termLimits;
-    void assets;
-    expect(priceQuote(uncapped, { ...base, assetId: 'laptop-004', termMonths: 48 }).ok).toBe(true);
+  it('names the longest term the table offers under the cap: a cap of 40 says at most 36', () => {
+    const limits = {
+      ...data.termLimits,
+      max_term_months: { ...data.termLimits.max_term_months, laptop: 40 },
+    };
+    const result = priceQuote(
+      { ...data, termLimits: limits },
+      { ...base, assetId: 'laptop-004', termMonths: 48 }
+    );
+    expect(result.ok === false && result.reason.params).toEqual({
+      category: 'laptop',
+      termMonths: 48,
+      maxTermMonths: 36,
+    });
   });
 
-  it('refuses an asset the data has no category for while limits apply', () => {
+  it('refuses an asset the data has no category for', () => {
     const result = priceQuote(
       { ...data, assets: [] },
       { ...base, assetId: 'laptop-004', termMonths: 36 }
