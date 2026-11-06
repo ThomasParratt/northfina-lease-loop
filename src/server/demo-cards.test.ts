@@ -1,9 +1,11 @@
 // The demo page's card buttons on a real migrated database: each card's run leaves the records
 // the scenario tests pin (src/server/scenarios/, the same numbers, pinned once here because
 // those files export none), lands on the page the judges compare, and a second click is
-// refused and linked (D70). Steps are codes with params, never sentences.
+// refused and linked, picks up a run stopped before signing, or only previews card 8 again
+// (D70). Steps are codes with params, never sentences.
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { seedPack } from '../../tests/helpers/invoice-fixture';
+import { quoteAndApply } from '../../tests/helpers/journey';
 import { resetDb } from '../../tests/helpers/reset-db';
 import { createTestDb } from '../../tests/helpers/test-db';
 import { withProductionHandlers } from '../../tests/helpers/with-handlers';
@@ -12,6 +14,7 @@ import { verifyAuditChain } from './audit';
 import { getContract } from './contracts';
 import { DEMO_CARD_IDS, demoCardRunSchema } from './demo-cards-schemas';
 import { DEMO_CARDS, runDemoCard, type RunDemoCardResult } from './demo-cards';
+import { exitContract } from './exits';
 import { listInvoices } from './invoices';
 import type { PrismaClient } from './prisma-client';
 
@@ -54,7 +57,12 @@ describe('runDemoCard', () => {
   it('card 1: signed on 2026-11-05 as Aino, lands on the contract: 13 466 then 13 520', async () => {
     const run = ran(await runDemoCard(db, 1));
     expect(run).toMatchObject({ today: '2026-11-05', actor: 'cust-aino' });
-    expect(codes(run)).toEqual(['quote_created', 'application_decided', 'contract_signed']);
+    expect(codes(run)).toEqual([
+      'quote_created',
+      'application_decided',
+      'application_reason',
+      'contract_signed',
+    ]);
     expect(run.landing).toMatch(/^\/contracts\//);
     const contract = await getContract(db, idOf(run.landing));
     expect(contract).toMatchObject({ startDate: '2026-11-05', monthlyNetCents: 10_730 });
@@ -102,8 +110,8 @@ describe('runDemoCard', () => {
       landing: expect.stringMatching(/^\/applications\//),
     });
     expect(run.steps.at(-1)).toMatchObject({
-      code: 'application_decided',
-      params: { decision: 'rejected', reasons: 'too_young' },
+      code: 'application_reason',
+      params: { reason: 'too_young', birthDate: '2009-03-10', eighteenOn: '2027-03-10' },
     });
     expect((await getApplication(db, idOf(run.landing)))?.decision).toBe('rejected');
   });
@@ -127,6 +135,7 @@ describe('runDemoCard', () => {
     expect(codes(run)).toEqual([
       'quote_created',
       'application_decided',
+      'application_reason',
       'contract_signed',
       'rents_paid',
       'exit_previewed',
@@ -186,8 +195,54 @@ describe('a second click (D70)', () => {
     ran(await runDemoCard(db, 8));
     const afterEight = await db.auditLog.count();
     expect(afterEight).toBeGreaterThan(before);
-    expect(await runDemoCard(db, 8)).toMatchObject({ ok: false, landing: first.landing });
+    // Card 8 again only shows the preview again: nothing left to pay, nothing written.
+    const again = ran(await runDemoCard(db, 8));
+    expect(again.landing).toBe(first.landing);
+    expect(codes(again)).toEqual(['contract_reused', 'exit_previewed']);
     expect(await db.auditLog.count()).toBe(afterEight);
+  });
+
+  it('signs an approved application an earlier run left unsigned, instead of refusing', async () => {
+    const card = DEMO_CARDS[0]!;
+    if (card.run !== 'sign') throw new Error('card 1 signs');
+    const { application } = await quoteAndApply(db, card.trip);
+    const run = ran(await runDemoCard(db, 1));
+    expect(codes(run)).toEqual(['application_reused', 'contract_signed']);
+    expect(run.steps[0]?.href).toBe(`/applications/${application.id}`);
+    expect((await getContract(db, idOf(run.landing)))?.monthlyNetCents).toBe(10_730);
+  });
+
+  it('is not fooled by another deal on the same item and day (a 24-month quote by hand)', async () => {
+    await quoteAndApply(db, {
+      customerId: 'cust-aino',
+      assetId: 'ebike-003',
+      termMonths: 24,
+      quoteOn: '2026-11-05',
+    });
+    const run = ran(await runDemoCard(db, 1));
+    expect(codes(run)[0]).toBe('quote_created');
+    expect((await getContract(db, idOf(run.landing)))?.monthlyNetCents).toBe(10_730);
+  });
+
+  it('refuses card 8 once its contract has ended, linking it', async () => {
+    const first = ran(await runDemoCard(db, 8));
+    const contractId = idOf(first.landing);
+    const ended = await exitContract(
+      db,
+      {
+        contractId,
+        mode: 'buy',
+        reported: { condition: 'good', usage: { unit: 'km', value: 1_800 } },
+        actor: 'cust-aino',
+      },
+      '2027-06-05'
+    );
+    expect(ended.ok).toBe(true);
+    expect(await runDemoCard(db, 8)).toMatchObject({
+      ok: false,
+      reason: { code: 'card_already_run' },
+      landing: first.landing,
+    });
   });
 
   it('runs all ten cards one after another on one database, the chain intact', async () => {

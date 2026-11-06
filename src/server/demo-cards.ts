@@ -159,15 +159,53 @@ class StepRefused extends Error {
   }
 }
 
-/** The application an earlier run of `trip` left: same customer, item and quote day. */
+/**
+ * The application an earlier run of `trip` left (or one made by hand on the same deal): same
+ * customer, item, quantity, term, down payment and quote day. A signed one wins over an
+ * unsigned one, so a stray second application never hides the contract.
+ */
 async function earlierRun(db: PrismaClient, trip: Trip): Promise<Earlier | null> {
+  let unsigned: Earlier | null = null;
   for (const application of await listApplications(db, { customerId: trip.customerId })) {
     const quote = await getQuote(db, application.quoteId);
-    if (quote?.quoteDate === trip.quoteOn && quote.breakdown.assetId === trip.assetId) {
-      return { application, contractId: await contractIdOfApplication(db, application.id) };
-    }
+    const deal = quote?.breakdown;
+    const same =
+      quote?.quoteDate === trip.quoteOn &&
+      deal?.assetId === trip.assetId &&
+      deal.quantity === trip.quantity &&
+      deal.termMonths === trip.termMonths &&
+      deal.downPaymentCents === trip.downPaymentCents;
+    if (!same) continue;
+    const contractId = await contractIdOfApplication(db, application.id);
+    if (contractId) return { application, contractId };
+    unsigned ??= { application, contractId: null };
   }
-  return null;
+  return unsigned;
+}
+
+/**
+ * The contract a signing card works on: the earlier run's, an approved earlier application
+ * signed now (a run stopped before signing picks up where it stopped), or a new quote,
+ * application and signature. Null when an earlier application cannot be signed (not approved).
+ */
+async function contractFor(
+  db: PrismaClient,
+  card: Extract<DemoCard, { signOn: string }>,
+  earlier: Earlier | null,
+  steps: DemoStep[]
+): Promise<string | null> {
+  if (earlier?.contractId) return earlier.contractId;
+  if (earlier) {
+    if (earlier.application.decision !== 'approved') return null;
+    steps.push({
+      code: 'application_reused',
+      params: { decision: earlier.application.decision, date: earlier.application.decidedOn },
+      href: `/applications/${earlier.application.id}`,
+    });
+    return sign(db, earlier.application, card.signOn, steps);
+  }
+  const application = await quoteAndApply(db, card.trip, steps);
+  return sign(db, application, card.signOn, steps);
 }
 
 function landingOf(earlier: Earlier): string {
@@ -219,13 +257,12 @@ async function quoteAndApply(db: PrismaClient, trip: Trip, steps: DemoStep[]) {
   const { application } = applied;
   steps.push({
     code: 'application_decided',
-    params: {
-      decision: application.decision,
-      reasons: application.reasons.map((r) => r.code).join(', '),
-      date: application.decidedOn,
-    },
+    params: { decision: application.decision, date: application.decidedOn },
     href: `/applications/${application.id}`,
   });
+  for (const reason of application.reasons) {
+    steps.push({ code: 'application_reason', params: { ...reason.params, reason: reason.code } });
+  }
   return application;
 }
 
@@ -301,30 +338,26 @@ async function runSteps(db: PrismaClient, card: DemoCard): Promise<Ran> {
   }
 
   const earlier = await earlierRun(db, card.trip);
-  if (card.run !== 'exit_preview') {
+  if (card.run === 'apply') {
     if (earlier) return { alreadyRun: landingOf(earlier) };
     const application = await quoteAndApply(db, card.trip, steps);
-    if (card.run === 'apply') return { steps, landing: `/applications/${application.id}` };
-    const contractId = await sign(db, application, card.signOn, steps);
-    return { steps, landing: `/contracts/${contractId}` };
+    return { steps, landing: `/applications/${application.id}` };
   }
+  if (card.run === 'sign' && earlier?.contractId) return { alreadyRun: landingOf(earlier) };
 
-  // Card 8 builds on card 1: the contract an earlier run signed, or a new one.
-  let contractId = earlier?.contractId ?? null;
-  if (earlier && !contractId) return { alreadyRun: landingOf(earlier) };
-  if (contractId) {
-    steps.push({ code: 'contract_reused', params: {}, href: `/contracts/${contractId}` });
-  } else {
-    const application = await quoteAndApply(db, card.trip, steps);
-    contractId = await sign(db, application, card.signOn, steps);
-  }
+  const contractId = await contractFor(db, card, earlier, steps);
+  if (!contractId) return { alreadyRun: landingOf(earlier!) };
   const landing = `/contracts/${contractId}`;
+  if (card.run === 'sign') return { steps, landing };
+
+  // Card 8 builds on card 1's contract. Paying is idempotent and the preview writes nothing,
+  // so a repeat run only shows the preview again; an ended contract has no preview.
+  if (earlier?.contractId) steps.push({ code: 'contract_reused', params: {}, href: landing });
   const contract = await getContract(db, contractId);
   if (contract?.status !== 'active') return { alreadyRun: landing };
   const actor = card.trip.customerId;
   const { paidNow, grossCents } = await payRentsUpTo(db, contractId, card.rentsPaid, actor);
-  if (paidNow === 0 && earlier) return { alreadyRun: landing };
-  steps.push({ code: 'rents_paid', params: { count: paidNow, grossCents } });
+  if (paidNow > 0) steps.push({ code: 'rents_paid', params: { count: paidNow, grossCents } });
 
   const reported = { condition: card.exit.condition, usage: card.exit.usage };
   const preview = await previewExit(db, { contractId, mode: card.exit.mode, reported }, card.clock);
