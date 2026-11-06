@@ -262,6 +262,21 @@ export async function getApplication(
   return row ? toApplicationView(row) : null;
 }
 
+/**
+ * The applications of one customer (`{ customerId }`) or, without it, every application
+ * (admin), newest first. For the My leases page.
+ */
+export async function listApplications(
+  db: PrismaClient,
+  filter: { customerId?: string }
+): Promise<ApplicationView[]> {
+  const rows = await db.application.findMany({
+    where: filter.customerId ? { customer_id: filter.customerId } : {},
+    orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+  });
+  return rows.map(toApplicationView);
+}
+
 /** Who may read an application: the applicant customer and the admin, nobody else. */
 export function mayReadApplication(
   actor: string,

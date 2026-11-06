@@ -6,7 +6,7 @@
 import Link from 'next/link';
 import type { Translate } from '@/i18n/get-t';
 import type { Locale } from '@/i18n/locales';
-import { ADMIN_ACTOR } from '@/server/actor';
+import { ADMIN_ACTOR, ANONYMOUS_ACTOR } from '@/server/actor';
 import { ActorPicker } from './actor-picker';
 import { LanguageSwitcher } from './language-switcher';
 import { LoopMark } from './loop-mark';
@@ -28,6 +28,10 @@ export function SiteHeader({ locale, t, actor, customers }: SiteHeaderProps) {
   const mainLinks = [
     { href: `/${locale}/catalogue`, label: t('nav.catalogue') },
     { href: `/${locale}#how-it-works`, label: t('nav.howItWorks') },
+    // Once someone is chosen in "Continue as": their leases (every lease for admin).
+    ...(actor === ANONYMOUS_ACTOR
+      ? []
+      : [{ href: `/${locale}/leases`, label: t(isAdmin ? 'nav.leasesAdmin' : 'nav.leases') }]),
   ];
 
   return (
@@ -88,7 +92,7 @@ export function SiteHeader({ locale, t, actor, customers }: SiteHeaderProps) {
           </div>
 
           {/* On a phone the links fold into a menu; <details> needs no JavaScript. */}
-          <details className="group relative md:hidden">
+          <details data-nav-menu className="group relative md:hidden">
             <summary
               className={cx(
                 'flex size-11 cursor-pointer list-none items-center justify-center rounded-full',
