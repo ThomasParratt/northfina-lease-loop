@@ -245,7 +245,7 @@
     },
     "/api/applications": {
       "post": {
-        "summary": "Submit the answers for a quote: prunes, validates, evaluates the eligibility rules (D9)",
+        "summary": "Submit the answers for a quote: prunes, validates, evaluates the eligibility rules (D9); 409 QUOTE_IN_USE while another application holds the quote",
         "tags": ["applications"],
         "parameters": [],
         "requestBody": {
@@ -465,7 +465,7 @@
     },
     "/api/applications/{id}": {
       "get": {
-        "summary": "An application with its decision and reasons as codes with params",
+        "summary": "An application with its decision and reasons as codes with params (the applicant or admin; 404 for anyone else)",
         "tags": ["applications"],
         "parameters": [
           {
