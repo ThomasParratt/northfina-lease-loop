@@ -47,8 +47,8 @@ export function ModelCard({ group, offer, termMonths, locale, t }: ModelCardProp
   const priced = group.minMonthlyCents !== null;
   const range = priced && group.minMonthlyCents !== group.maxMonthlyCents;
   const sub =
-    offer.kind === 'needs_quantity'
-      ? t('catalogue.card.together', { count: offer.quantity })
+    offer.kind === 'none' && offer.reason.code === 'below_minimum'
+      ? t('catalogue.card.belowMinimum')
       : !priced
         ? undefined
         : offer.kind === 'needs_down_payment' && group.versions.length === 1
