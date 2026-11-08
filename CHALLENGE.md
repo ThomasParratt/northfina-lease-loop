@@ -1,3 +1,5 @@
+> Northfina's brief for the Lease Loop hackathon (Hive Helsinki, 5–6 November 2026), kept as the organiser wrote it in [etufillari/northfina-lease-loop](https://github.com/etufillari/northfina-lease-loop) (tag `v1.0-kickoff`). What Team LeaseMasters built on it is in the [README](README.md).
+
 # The Lease Loop challenge
 
 > Build the app that lets one thing live three lives.
