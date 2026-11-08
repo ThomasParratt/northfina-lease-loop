@@ -12,7 +12,9 @@ Names the demo mode and switches it as one thing, puts the usual security header
 
 **Cookies.** The actor and demo-clock cookies are `HttpOnly; SameSite=Lax` always and `Secure` on a production build (`secureFlag`), never on plain-http development.
 
-**The public audit log** and **limits**: see the second security slice (`docs/log/security-redaction-and-limits.md`) when it lands; until then the log shows every detail and nothing is rate-limited.
+**The public audit log.** The chain stores every detail, so the hash holds and the admin reads the stored rows. Anyone else, on the audit page and from `GET /api/audit-log`, gets a copy with the personal fields masked as `•••`: the keys the apply form and the signatory list took from a person (`birthDate`, `monthlyNetIncomeCents`, `incomeCents`, `revenueCents`, `businessId`, `country`, `email`, `signingLinkTo`, `by`), wherever they sit in the details, and a signatory's e-mail in the actor column (`signatory:•••`). The ids stay: `cust-aino` names a demo customer, not a person.
+
+**Limits.** The proxy counts the writes (anything but GET, HEAD, OPTIONS) on `/api` per client, the first address of `X-Forwarded-For` or one bucket without a proxy in front: at most 120 in a minute, then 429 `RATE_LIMITED` in the API envelope with `Retry-After`. Reads are not counted; one instance holds the one SQLite file, so one memory is the whole truth. A body that declares more than 64 kB is refused with 413 `PAYLOAD_TOO_LARGE` before it is read, in `readJsonBody` and the assessment route's own reader.
 
 **Secrets.** The pre-commit hook already scans the staged files; `npm run check:secrets` (in `check:all`, so in CI) scans the whole tree with the same rules, `.secretlintignore` leaving out dependencies, build output, generated code and the local databases.
 
@@ -25,6 +27,9 @@ Names the demo mode and switches it as one thing, puts the usual security header
 
 - `demoToolsOn(env)` (`src/server/demo-tools.ts`): the switch, from the environment passed in.
 - `secureFlag(env)` (`src/server/cookie-flags.ts`): `; Secure` on a production build, else nothing.
+- `redactAuditDetails(details)`, `redactAuditActor(actor)`, `redactAuditEntry(entry)` (`src/domain/audit/redact.ts`): the visitor's copy of an audit row.
+- `createRateLimiter(rule)` (`src/server/rate-limit.ts`): `take(key, now)` says whether one more request of `key` fits the window; the clock is an argument.
+- `assertBodySize(request, maxBytes)` (`src/server/api-response.ts`): 413 over the cap.
 - `resolveToday(systemToday, override)` (`src/server/demo-clock.ts`): unchanged; the caller passes no override while the tools are off.
 
 ## Files
@@ -33,15 +38,21 @@ Names the demo mode and switches it as one thing, puts the usual security header
 - `src/server/demo-clock.ts`, `src/app/api/demo/clock/route.ts`, `src/app/[locale]/demo/page.tsx`: the clock gated.
 - `src/server/cookie-flags.ts`, `src/server/actor.ts`: the cookies.
 - `.env.example`, `.secretlintignore`, `package.json` (`check:secrets`).
+- `src/domain/audit/redact.ts`, `src/app/api/audit-log/route.ts`, `src/app/[locale]/audit/page.tsx`: the public log.
+- `src/server/rate-limit.ts`, `src/proxy.ts` (matcher `/` and `/api/:path*`), `src/server/api-response.ts` (`assertBodySize`), `src/app/api/assets/[id]/assessments/route.ts`: the limits.
 
 ## Tests that pin the numbers
 
 - `tests/security-headers.test.ts`: the headers of every route, eval and HSTS by build, the signing page's referrer policy.
 - `src/server/demo-clock.test.ts`, `src/app/api/demo/clock/route.test.ts`: the clock ignored and the route 404 with the tools off; the cookie Secure in production.
 - `src/server/cookie-flags.test.ts`, `src/server/actor.test.ts`: the Secure flag.
+- `src/domain/audit/redact.test.ts`; `src/app/api/audit-log/route.test.ts` (a visitor masked, the admin not, on a real database).
+- `src/server/rate-limit.test.ts` (the window, per client, the wait, the sweep); `src/proxy.test.ts` (the redirect, a read untouched, 429 with `Retry-After` and the envelope, per forwarded address); `src/server/api-response.test.ts` "assertBodySize".
 
 ## Open questions
 
 - A nonce-based policy (no `'unsafe-inline'` for scripts) needs the proxy to mint a nonce per request and thread it into every script tag; not needed while no third-party script and no user-written HTML is rendered.
 - The `Permissions-Policy` list is the common four; extend it if a browser warns about another feature the app does not use.
+- The mask is by key name: a new detail that carries personal data under another key must be added to `PRIVATE_DETAIL_KEYS`, or better, written under one of them.
+- Behind a reverse proxy the limit trusts the first `X-Forwarded-For` address, which the client can set when no proxy strips it; a real deployment keys on the proxy's own header (`CF-Connecting-IP`, `X-Real-IP`).
 - A production build served over plain http on a LAN address (the `Network:` line `next start` prints) gets no actor or clock cookie back: the browser drops a `Secure` cookie there. `localhost` counts as secure, https always does; a demo shown from another machine on the LAN needs https (or a tunnel) on a production build, or `next dev`.

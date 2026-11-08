@@ -1,6 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { ApiError, fail, handleRoute, ok, readJsonBody, type ApiEnvelope } from './api-response';
+import {
+  ApiError,
+  assertBodySize,
+  fail,
+  handleRoute,
+  MAX_BODY_BYTES,
+  ok,
+  readJsonBody,
+  type ApiEnvelope,
+} from './api-response';
 
 async function body<T = unknown>(response: Response): Promise<ApiEnvelope<T>> {
   return (await response.json()) as ApiEnvelope<T>;
@@ -128,5 +137,34 @@ describe('readJsonBody', () => {
 
   it('throws a ZodError for JSON of the wrong shape', async () => {
     await expect(readJsonBody(post('{"actor":1}'), schema)).rejects.toBeInstanceOf(z.ZodError);
+  });
+});
+
+describe('assertBodySize', () => {
+  const declaring = (length: string) =>
+    ({ headers: new Headers({ 'content-length': length }) }) as unknown as Request;
+
+  it('lets a body up to the cap through', () => {
+    expect(() => assertBodySize(declaring(String(MAX_BODY_BYTES)))).not.toThrow();
+    expect(() => assertBodySize(declaring('0'))).not.toThrow();
+  });
+
+  it('refuses a body over the cap with 413 before it is read', async () => {
+    const handler = handleRoute(async (request) => ok(await readJsonBody(request, z.object({}))));
+    const response = await handler(
+      {
+        headers: new Headers({ 'content-length': String(MAX_BODY_BYTES + 1) }),
+        json: async () => {
+          throw new Error('must not be read');
+        },
+      } as unknown as Request,
+      undefined
+    );
+    expect(response.status).toBe(413);
+    expect(await body(response)).toMatchObject({ error: { code: 'PAYLOAD_TOO_LARGE' } });
+  });
+
+  it('reads a body that declares no length (the runtime caps it)', () => {
+    expect(() => assertBodySize({ headers: new Headers() } as unknown as Request)).not.toThrow();
   });
 });
