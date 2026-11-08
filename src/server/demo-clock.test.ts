@@ -66,6 +66,14 @@ describe('todayForRequest', () => {
     cookieStore.set(DEMO_CLOCK_COOKIE, '2027-99-99');
     expect(await todayForRequest()).not.toBe('2027-99-99');
   });
+
+  it('ignores the cookie while the demo tools are off (D74)', async () => {
+    vi.stubEnv('DEMO_TOOLS', '0');
+    cookieStore.set(DEMO_CLOCK_COOKIE, '2027-01-01');
+    expect(await todayForRequest()).not.toBe('2027-01-01');
+    expect(await readDemoClock()).toMatchObject({ overridden: false });
+    vi.unstubAllEnvs();
+  });
 });
 
 describe('readDemoClock', () => {
@@ -96,5 +104,12 @@ describe('demoClockCookieHeader', () => {
   it('clears it with null', async () => {
     const { demoClockCookieHeader } = await import('./demo-clock');
     expect(demoClockCookieHeader(null)).toMatch(new RegExp(`^${DEMO_CLOCK_COOKIE}=; .*Max-Age=0`));
+  });
+
+  it('is Secure on a production build', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const { demoClockCookieHeader } = await import('./demo-clock');
+    expect(demoClockCookieHeader('2027-06-05')).toMatch(/; Secure$/);
+    vi.unstubAllEnvs();
   });
 });

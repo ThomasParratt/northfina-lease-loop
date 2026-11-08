@@ -116,6 +116,7 @@ One page per slice under `docs/features/` ([template](docs/features/README.md));
 - [Second life: assessment, matchmaking and re-pricing](docs/features/second-life.md)
 - [Demo cards: one button per scenario card](docs/features/demo-cards.md)
 - [Authorization: who may do what, checked before the action](docs/features/authorization.md)
+- [Security: demo mode, the response headers, the public audit log, limits](docs/features/security.md)
 
 ## Team notes
 
